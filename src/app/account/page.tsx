@@ -1,0 +1,186 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { account } from '../../lib/appwrite'
+import { authUtils } from '../../lib/localDb'
+import BottomDock from '../../components/BottomDock'
+
+export default function AccountPage() {
+  const [user, setUser] = useState<any>(null)
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [studentCode, setStudentCode] = useState('')
+  const [credit, setCredit] = useState(0)
+  const [phone, setPhone] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [role, setRole] = useState<'customer' | 'delivery'>('customer')
+  const [orders, setOrders] = useState<any[]>([])
+
+  useEffect(() => {
+    checkUser()
+    const storedRole = localStorage.getItem('userRole') as 'customer' | 'delivery'
+    if (storedRole) setRole(storedRole)
+  }, [])
+
+  const checkUser = async () => {
+    // Get user from local authentication system
+    const currentUser = authUtils.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+      setName(currentUser.name || '');
+      setEmail(currentUser.email || '');
+      setStudentCode(currentUser.studentCode || '');
+      setCredit(currentUser.credit || 0);
+      setPhone(currentUser.phone || '');
+    } else {
+      window.location.href = '/auth';
+    }
+    
+    // Mock order history data
+    const mockOrders = [
+      {
+        id: '1',
+        orderCode: 'ORD001',
+        status: 'Delivered',
+        date: '2023-10-01',
+        cost: 15.99,
+      },
+      {
+        id: '2',
+        orderCode: 'ORD002',
+        status: 'In Progress',
+        date: '2023-10-02',
+        cost: 22.50,
+      },
+    ]
+    setOrders(mockOrders)
+  }
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    
+    // Mock update - in a real app we would update the user in the database
+    try {
+      // Update the current user in local storage
+      const currentUser = authUtils.getCurrentUser();
+      if (currentUser) {
+        const updatedUser = {
+          ...currentUser,
+          name,
+          email,
+          studentCode,
+          credit,
+          phone
+        };
+        authUtils.setCurrentUser(updatedUser);
+        alert('Profile updated successfully');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (!user) {
+    return <div>Loading...</div>
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="max-w-md mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-6 text-center">Account</h1>
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        <form onSubmit={handleUpdate} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">University Student Code</label>
+            <input
+              type="text"
+              value={studentCode}
+              onChange={e => setStudentCode(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Credit</label>
+            <input
+              type="number"
+              value={credit}
+              onChange={e => setCredit(Number(e.target.value))}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 disabled:opacity-50"
+          >
+            {loading ? 'Updating...' : 'Update Profile'}
+          </button>
+        </form>
+        <button
+          onClick={() => {
+            authUtils.logout();
+            window.location.href = '/auth';
+          }}
+          className="w-full mt-4 bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md transition duration-200"
+        >
+          Logout
+        </button>
+        <button
+          onClick={() => {
+            localStorage.removeItem('userRole')
+            window.location.href = '/role'
+          }}
+          className="w-full mt-4 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition duration-200"
+        >
+          Change Role
+        </button>
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold mb-4">Order History</h2>
+          <div className="space-y-2">
+            {orders.map(order => (
+              <div key={order.id} className="bg-white p-4 rounded-lg shadow-md">
+                <p><strong>Order Code:</strong> {order.orderCode}</p>
+                <p><strong>Status:</strong> {order.status}</p>
+                <p><strong>Date:</strong> {order.date}</p>
+                <p><strong>Cost:</strong> ${order.cost}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <BottomDock role={role} />
+    </div>
+  )
+}
