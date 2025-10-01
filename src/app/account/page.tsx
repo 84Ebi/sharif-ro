@@ -1,12 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { account } from '../../lib/appwrite'
-import { authUtils } from '../../lib/localDb'
+import { authUtils, User } from '../../lib/localDb'
 import BottomDock from '../../components/BottomDock'
 
+interface Order {
+  id: string;
+  orderCode: string;
+  status: string;
+  date: string;
+  cost: number;
+}
+
 export default function AccountPage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<Omit<User, 'password'> | null>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [studentCode, setStudentCode] = useState('')
@@ -15,7 +22,7 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [role, setRole] = useState<'customer' | 'delivery'>('customer')
-  const [orders, setOrders] = useState<any[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
 
   useEffect(() => {
     checkUser()
@@ -78,8 +85,9 @@ export default function AccountPage() {
         authUtils.setCurrentUser(updatedUser);
         alert('Profile updated successfully');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile'
+      setError(errorMessage)
     } finally {
       setLoading(false);
     }

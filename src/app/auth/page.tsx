@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { account } from '../../lib/appwrite'
 import { localDb, authUtils } from '../../lib/localDb'
 import '../../styles/auth.css'
 
@@ -68,8 +67,9 @@ export default function AuthPage() {
       } else {
         setError('Failed to send OTP: ' + (result.message || 'Unknown error'))
       }
-    } catch (err: any) {
-      setError('Failed to send OTP: ' + (err.message || 'Network error'))
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Network error'
+      setError('Failed to send OTP: ' + errorMessage)
     } finally {
       setLoading(false)
     }
@@ -117,8 +117,9 @@ export default function AuthPage() {
       } else {
         setError('Invalid OTP. Please try again.')
       }
-    } catch (err: any) {
-      setError('Verification failed: ' + (err.message || 'Unknown error'))
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      setError('Verification failed: ' + errorMessage)
     } finally {
       setLoading(false)
     }
@@ -135,6 +136,7 @@ export default function AuthPage() {
         const user = localDb.verifyCredentials(username, password)
         if (user) {
           // Remove password from stored user data
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { password: _, ...safeUserData } = user
           authUtils.setCurrentUser(safeUserData)
           router.push('/role')
@@ -153,8 +155,9 @@ export default function AuthPage() {
         sessionStorage.setItem('tempRegister', JSON.stringify({ username, password }))
         router.push('/auth/details')
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred')
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

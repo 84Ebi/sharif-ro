@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 
 export default function Waiting() {
-  const [status, setStatus] = useState('Order placed successfully!')
+  const [status] = useState('Order placed successfully!')
   const [timeLeft, setTimeLeft] = useState(30) // minutes
 
   useEffect(() => {

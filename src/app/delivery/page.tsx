@@ -1,11 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { account, databases, Query } from '../../lib/appwrite'
+import { useState, useEffect, useCallback } from 'react'
 import BottomDock from '../../components/BottomDock'
-
-const permDbId = '68dad08a0025eb52dbbf'
-const collectionId = 'orders'
 
 interface Order {
   $id: string
@@ -45,38 +41,15 @@ const mockOrders: Order[] = [
 ]
 
 export default function Delivery() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{$id: string; name: string; email: string} | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
   const [locationFilter, setLocationFilter] = useState('')
   const [costMin, setCostMin] = useState('')
   const [costMax, setCostMax] = useState('')
 
-  useEffect(() => {
-    checkUser()
-  }, [])
-
-  useEffect(() => {
-    filterOrders()
-  }, [orders, locationFilter, costMin, costMax])
-
-  const checkUser = async () => {
-    // Mock user
-    const mockUser = {
-      $id: 'user1',
-      name: 'Mock Delivery User',
-      email: 'delivery@example.com',
-    }
-    setUser(mockUser)
-    loadOrders()
-  }
-
-  const loadOrders = async () => {
-    // Mock loading orders
-    setOrders(mockOrders)
-  }
-
-  const filterOrders = () => {
+  // Define filterOrders with useCallback before using it in useEffect
+  const filterOrders = useCallback(() => {
     let filtered = orders.filter(order => !order.assigned)
     if (locationFilter) {
       filtered = filtered.filter(order =>
@@ -90,7 +63,23 @@ export default function Delivery() {
       filtered = filtered.filter(order => order.cost <= Number(costMax))
     }
     setFilteredOrders(filtered)
-  }
+  }, [orders, locationFilter, costMin, costMax]);
+
+  const loadOrders = useCallback(async () => {
+    // Mock loading orders
+    setOrders(mockOrders)
+  }, []);
+
+  const checkUser = useCallback(async () => {
+    // Mock user
+    const mockUser = {
+      $id: 'user1',
+      name: 'Mock Delivery User',
+      email: 'delivery@example.com',
+    }
+    setUser(mockUser)
+    loadOrders()
+  }, [loadOrders]);
 
   const acceptOrder = async (orderId: string) => {
     if (!user) return
@@ -98,6 +87,14 @@ export default function Delivery() {
     setOrders(orders.map(order => order.$id === orderId ? { ...order, assigned: true, deliveryPerson: user.$id } : order))
     alert('Order accepted')
   }
+
+  useEffect(() => {
+    checkUser()
+  }, [checkUser])
+
+  useEffect(() => {
+    filterOrders()
+  }, [filterOrders])
 
   if (!user) {
     return <div>Loading...</div>

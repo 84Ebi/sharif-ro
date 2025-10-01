@@ -1,10 +1,15 @@
-require('dotenv').config({ path: '.env.local' })
+import dotenv from 'dotenv'
+import { Client, Databases, ID, Permission, Role } from 'node-appwrite'
 
-const { Client, Databases } = require('appwrite')
+// Configure dotenv to load environment variables
+dotenv.config({ path: '.env.local' })
 
 const client = new Client()
 
-client.setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT).setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID).setKey(process.env.APPWRITE_API_KEY)
+client
+  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || '')
+  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '')
+  .setKey(process.env.APPWRITE_API_KEY || '')
 
 const databases = new Databases(client)
 
@@ -21,7 +26,10 @@ async function createCollections() {
     await databases.create(permDbId, 'Permanent Orders')
 
     console.log('Creating collection in temp DB...')
-    await databases.createCollection(tempDbId, collectionId, 'Orders', [], false)
+    await databases.createCollection(tempDbId, collectionId, 'Orders', [
+      Permission.write(Role.any()),
+      Permission.read(Role.any()),
+    ])
 
     console.log('Adding attributes to temp DB collection...')
     await databases.createStringAttribute(tempDbId, collectionId, 'orderCode', 255, true)
@@ -33,7 +41,10 @@ async function createCollections() {
     await databases.createDatetimeAttribute(tempDbId, collectionId, 'createdAt', true)
 
     console.log('Creating collection in perm DB...')
-    await databases.createCollection(permDbId, collectionId, 'Orders', [], false)
+    await databases.createCollection(permDbId, collectionId, 'Orders', [
+      Permission.write(Role.any()),
+      Permission.read(Role.any()),
+    ])
 
     console.log('Adding attributes to perm DB collection...')
     await databases.createStringAttribute(permDbId, collectionId, 'orderCode', 255, true)

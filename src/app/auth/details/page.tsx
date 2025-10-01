@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { account } from '../../../lib/appwrite'
 import { localDb, authUtils } from '../../../lib/localDb'
 
 export default function DetailsPage() {
@@ -22,7 +21,7 @@ export default function DetailsPage() {
         try {
           const parsedData = JSON.parse(tempRegisterData)
           setTempCredentials(parsedData)
-        } catch (e) {
+        } catch {
           console.error('Failed to parse temp registration data')
         }
       }
@@ -57,6 +56,7 @@ export default function DetailsPage() {
         })
         
         // Remove password from stored user data
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password: _, ...safeUserData } = newUser
         authUtils.setCurrentUser(safeUserData)
         
@@ -66,8 +66,9 @@ export default function DetailsPage() {
       
       // For all registrations, redirect to role selection
       router.push('/role')
-    } catch (err: any) {
-      setError(err.message || 'Failed to update details')
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update details'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
