@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { account } from '../../lib/appwrite'
 import BottomDock from '../../components/BottomDock'
@@ -13,8 +13,20 @@ interface Order {
   cost: number;
 }
 
+interface UserData {
+  $id: string;
+  name: string;
+  email: string;
+  phone: string;
+  prefs: {
+    studentCode?: string;
+    credit?: number;
+    phone?: string;
+  };
+}
+
 export default function AccountPage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<UserData | null>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [studentCode, setStudentCode] = useState('')
@@ -26,17 +38,11 @@ export default function AccountPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const router = useRouter()
 
-  useEffect(() => {
-    checkUser()
-    const storedRole = localStorage.getItem('userRole') as 'customer' | 'delivery'
-    if (storedRole) setRole(storedRole)
-  }, [])
-
-  const checkUser = async () => {
+  const checkUser = useCallback(async () => {
     try {
       // Get user from Appwrite session
       const currentUser = await account.get()
-      setUser(currentUser)
+      setUser(currentUser as UserData)
       setName(currentUser.name || '')
       setEmail(currentUser.email || '')
       
@@ -68,7 +74,13 @@ export default function AccountPage() {
       console.error('Not authenticated:', err)
       router.push('/auth')
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    checkUser()
+    const storedRole = localStorage.getItem('userRole') as 'customer' | 'delivery'
+    if (storedRole) setRole(storedRole)
+  }, [checkUser])
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()

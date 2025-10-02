@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { account, ID } from '../../lib/appwrite'
 import '../../styles/auth.css'
@@ -17,20 +17,20 @@ export default function AuthPage() {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  useEffect(() => {
-    // Check if user is already logged in
-    checkExistingSession()
-  }, [])
-
-  const checkExistingSession = async () => {
+  const checkExistingSession = useCallback(async () => {
     try {
       await account.get()
       // If we get here, user is already logged in
       router.push('/role')
-    } catch (err) {
+    } catch {
       // No active session, user can proceed with login/signup
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    // Check if user is already logged in
+    checkExistingSession()
+  }, [checkExistingSession])
   
   const handleCredentialAuth = async (e: React.FormEvent) => {
     e.preventDefault()
