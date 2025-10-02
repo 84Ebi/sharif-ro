@@ -1,158 +1,73 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { localDb, authUtils } from '../../lib/localDb'
+import { account, ID } from '../../lib/appwrite'
 import '../../styles/auth.css'
-
-type AuthMethod = 'phone' | 'credentials';
-type PhoneStep = 'phone' | 'otp';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
-  const [authMethod, setAuthMethod] = useState<AuthMethod>('credentials')
   
-  // Phone auth states
-  const [phone, setPhone] = useState('')
-  const [otp, setOtp] = useState('')
-  const [phoneStep, setPhoneStep] = useState<PhoneStep>('phone')
-  
-  // Username/password states
-  const [username, setUsername] = useState('')
+  // Email/password states
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
 
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    
-    try {
-      // Generate 6-digit OTP
-      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString()
-      
-      // Format mobile number (remove leading 0 and add country code)
-      const formattedMobile = phone.startsWith('0') ? '98' + phone.slice(1) : phone
-      
-      // Send OTP via SMS.ir API
-      const response = await fetch('https://api.sms.ir/v1/send/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'text/plain',
-          'x-api-key': 'BDTs7SBkEK24HaVfTOBPczODgXHNVVePmr9UHWf2sdeM3bWe'
-        },
-        body: JSON.stringify({
-          mobile: formattedMobile,
-          templateId: 117259,
-          parameters: [
-            {
-              name: 'Code',
-              value: generatedOtp
-            }
-          ]
-        })
-      })
-      
-      const result = await response.json()
-      
-      if (result.status === 1) {
-        // Store OTP in sessionStorage for verification
-        sessionStorage.setItem('otp', generatedOtp)
-        sessionStorage.setItem('otpPhone', phone)
-        setPhoneStep('otp')
-      } else {
-        setError('Failed to send OTP: ' + (result.message || 'Unknown error'))
-      }
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Network error'
-      setError('Failed to send OTP: ' + errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => {
+    // Check if user is already logged in
+    checkExistingSession()
+  }, [])
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    
+  const checkExistingSession = async () => {
     try {
-      const storedOtp = sessionStorage.getItem('otp')
-      const storedPhone = sessionStorage.getItem('otpPhone')
-      
-      if (!storedOtp || !storedPhone) {
-        setError('OTP session expired. Please request a new OTP.')
-        setPhoneStep('phone')
-        setLoading(false)
-        return
-      }
-      
-      if (storedPhone !== phone) {
-        setError('Phone number mismatch. Please request a new OTP.')
-        setPhoneStep('phone')
-        setLoading(false)
-        return
-      }
-      
-      if (otp === storedOtp) {
-        // Clear stored OTP
-        sessionStorage.removeItem('otp')
-        sessionStorage.removeItem('otpPhone')
-        
-        // Store phone for registration if needed
-        if (!isLogin) {
-          sessionStorage.setItem('verifiedPhone', phone)
-        }
-        
-        // Proceed to next step
-        if (isLogin) {
-          router.push('/role')
-        } else {
-          router.push('/auth/details')
-        }
-      } else {
-        setError('Invalid OTP. Please try again.')
-      }
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-      setError('Verification failed: ' + errorMessage)
-    } finally {
-      setLoading(false)
+      await account.get()
+      // If we get here, user is already logged in
+      router.push('/role')
+    } catch (err) {
+      // No active session, user can proceed with login/signup
     }
   }
   
-  const handleCredentialLogin = async (e: React.FormEvent) => {
+  const handleCredentialAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     
     try {
       if (isLogin) {
-        // Login with credentials
-        const user = localDb.verifyCredentials(username, password)
-        if (user) {
-          // Remove password from stored user data
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { password: _, ...safeUserData } = user
-          authUtils.setCurrentUser(safeUserData)
-          router.push('/role')
-        } else {
-          setError('Invalid username or password')
-        }
+        // Login with email and password
+        await account.createEmailPasswordSession(email, password)
+        router.push('/role')
       } else {
-        // Register with credentials - will be completed in details page
-        if (password.length < 6) {
-          setError('Password must be at least 6 characters')
+        // Register with email and password
+        if (password.length < 8) {
+          setError('Password must be at least 8 characters')
           setLoading(false)
           return
         }
         
-        // Store in session for completion in details page
-        sessionStorage.setItem('tempRegister', JSON.stringify({ username, password }))
+        if (!name.trim()) {
+          setError('Name is required')
+          setLoading(false)
+          return
+        }
+        
+        // Create new account
+        await account.create(
+          ID.unique(),
+          email,
+          password,
+          name
+        )
+        
+        // Automatically log in after registration
+        await account.createEmailPasswordSession(email, password)
+        
+        // Redirect to details page to complete profile
         router.push('/auth/details')
       }
     } catch (err: unknown) {
@@ -168,104 +83,58 @@ export default function AuthPage() {
       <div className="login-box">
         <h2>welcome to SharifRo</h2>
         <h3>{isLogin ? 'Login' : 'Register'}</h3>
-        
-        {/* Auth Method Selector Buttons - Moved outside forms */}
-        <div className="auth-method-selector">
-          <button 
-            type="button" 
-            onClick={(e) => {
-              e.preventDefault()
-              setAuthMethod('credentials')
-            }}
-            className={authMethod === 'credentials' ? 'active' : ''}
-          >
-            Username/Password
-          </button>
-          <button 
-            type="button"
-            onClick={(e) => {
-              e.preventDefault()
-              setAuthMethod('phone')
-            }}
-            className={authMethod === 'phone' ? 'active' : ''}
-          >
-            Phone
-          </button>
-        </div>
 
         {error && <p className="error-message">{error}</p>}
         
-        {authMethod === 'phone' ? (
-          // Phone Authentication
-          phoneStep === 'phone' ? (
-            <form onSubmit={handleSendOtp}>
-              <label htmlFor="phone">Phone Number</label>
-              <input
-                type="tel"
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="0912xxxxxxx"
-                required
-              />
-              <button type="submit" disabled={loading}>
-                {loading ? 'Sending...' : 'Send OTP'}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp}>
-              <label htmlFor="otp">OTP Code</label>
+        {/* Email/Password Authentication */}
+        <form onSubmit={handleCredentialAuth}>
+          {!isLogin && (
+            <>
+              <label htmlFor="name">Name</label>
               <input
                 type="text"
-                id="otp"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="Enter OTP"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your Name"
                 required
               />
-              
-              <button type="submit" disabled={loading}>
-                {loading ? 'Verifying...' : 'Verify OTP'}
-              </button>
-              
-              <button 
-                type="button" 
-                className="back-button" 
-                onClick={() => setPhoneStep('phone')}
-              >
-                Back
-              </button>
-            </form>
-          )
-        ) : (
-          // Credentials Authentication
-          <form onSubmit={handleCredentialLogin}>
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username"
-              required
-            />
-            
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              required
-            />
+            </>
+          )}
+          
+          <label htmlFor="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="email@example.com"
+            required
+          />
+          
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+          />
 
-            <button type="submit" disabled={loading}>
-              {loading ? 'Processing...' : isLogin ? 'Sign in' : 'Continue'}
-            </button>
-          </form>
+          <button type="submit" disabled={loading}>
+            {loading ? 'Processing...' : isLogin ? 'Sign in' : 'Sign up'}
+          </button>
+        </form>
+        
+        {isLogin && (
+          <a href="#" className="forgot" onClick={(e) => {
+            e.preventDefault()
+            alert('Password recovery feature coming soon!')
+          }}>
+            Forgot Password?
+          </a>
         )}
-        {isLogin && <a href="#" className="forgot">Forgot Password?</a>}
             
         <p className="register">
           {isLogin ? "Don't have an account yet? " : "Already have an account? "}
@@ -274,11 +143,9 @@ export default function AuthPage() {
             onClick={(e) => {
               e.preventDefault()
               setIsLogin(!isLogin)
-              setPhoneStep('phone')
-              setPhone('')
-              setOtp('')
-              setUsername('')
+              setEmail('')
               setPassword('')
+              setName('')
               setError('')
             }}
           >

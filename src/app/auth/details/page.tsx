@@ -2,30 +2,30 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { localDb, authUtils } from '../../../lib/localDb'
+import { account } from '../../../lib/appwrite'
 
 export default function DetailsPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [studentCode, setStudentCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [tempCredentials, setTempCredentials] = useState<{username: string, password: string} | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    // Check if we have temp registration data
-    if (typeof window !== 'undefined') {
-      const tempRegisterData = sessionStorage.getItem('tempRegister')
-      if (tempRegisterData) {
-        try {
-          const parsedData = JSON.parse(tempRegisterData)
-          setTempCredentials(parsedData)
-        } catch {
-          console.error('Failed to parse temp registration data')
-        }
+    // Get current user data to pre-fill the form
+    const loadUserData = async () => {
+      try {
+        const user = await account.get()
+        setName(user.name || '')
+        setEmail(user.email || '')
+        setPhone(user.phone || '')
+      } catch (err) {
+        console.error('Failed to load user data:', err)
       }
     }
+    loadUserData()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,37 +34,19 @@ export default function DetailsPage() {
     setError('')
     
     try {
-      // If we have temp credentials, register the user with the local DB
-      if (tempCredentials) {
-        const { username, password } = tempCredentials
-        
-        // Check if username already exists
-        const existingUser = localDb.findUserByUsername(username)
-        if (existingUser) {
-          setError('Username already taken')
-          setLoading(false)
-          return
-        }
-        
-        // Create the new user
-        const newUser = localDb.createUser({
-          username,
-          password,
-          name,
-          email,
-          studentCode
-        })
-        
-        // Remove password from stored user data
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password: _, ...safeUserData } = newUser
-        authUtils.setCurrentUser(safeUserData)
-        
-        // Clear temp data
-        sessionStorage.removeItem('tempRegister')
+      // Update user name if provided
+      if (name.trim()) {
+        await account.updateName(name)
       }
       
-      // For all registrations, redirect to role selection
+      // Update user preferences (store additional data like studentCode)
+      await account.updatePrefs({
+        studentCode,
+        phone,
+        profileComplete: true
+      })
+      
+      // Redirect to role selection
       router.push('/role')
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update details'
@@ -106,6 +88,20 @@ export default function DetailsPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={!!email}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+            />
+          </div>
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="0912xxxxxxx"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

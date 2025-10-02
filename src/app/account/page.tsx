@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { authUtils, User } from '../../lib/localDb'
+import { useRouter } from 'next/navigation'
+import { account } from '../../lib/appwrite'
 import BottomDock from '../../components/BottomDock'
 
 interface Order {
@@ -13,7 +14,7 @@ interface Order {
 }
 
 export default function AccountPage() {
-  const [user, setUser] = useState<Omit<User, 'password'> | null>(null)
+  const [user, setUser] = useState<any>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [studentCode, setStudentCode] = useState('')
@@ -23,6 +24,7 @@ export default function AccountPage() {
   const [error, setError] = useState('')
   const [role, setRole] = useState<'customer' | 'delivery'>('customer')
   const [orders, setOrders] = useState<Order[]>([])
+  const router = useRouter()
 
   useEffect(() => {
     checkUser()
@@ -31,37 +33,41 @@ export default function AccountPage() {
   }, [])
 
   const checkUser = async () => {
-    // Get user from local authentication system
-    const currentUser = authUtils.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-      setName(currentUser.name || '');
-      setEmail(currentUser.email || '');
-      setStudentCode(currentUser.studentCode || '');
-      setCredit(currentUser.credit || 0);
-      setPhone(currentUser.phone || '');
-    } else {
-      window.location.href = '/auth';
+    try {
+      // Get user from Appwrite session
+      const currentUser = await account.get()
+      setUser(currentUser)
+      setName(currentUser.name || '')
+      setEmail(currentUser.email || '')
+      
+      // Get user preferences
+      const prefs = currentUser.prefs || {}
+      setStudentCode(prefs.studentCode || '')
+      setCredit(prefs.credit || 0)
+      setPhone(prefs.phone || currentUser.phone || '')
+      
+      // Mock order history data
+      const mockOrders = [
+        {
+          id: '1',
+          orderCode: 'ORD001',
+          status: 'Delivered',
+          date: '2023-10-01',
+          cost: 15.99,
+        },
+        {
+          id: '2',
+          orderCode: 'ORD002',
+          status: 'In Progress',
+          date: '2023-10-02',
+          cost: 22.50,
+        },
+      ]
+      setOrders(mockOrders)
+    } catch (err) {
+      console.error('Not authenticated:', err)
+      router.push('/auth')
     }
-    
-    // Mock order history data
-    const mockOrders = [
-      {
-        id: '1',
-        orderCode: 'ORD001',
-        status: 'Delivered',
-        date: '2023-10-01',
-        cost: 15.99,
-      },
-      {
-        id: '2',
-        orderCode: 'ORD002',
-        status: 'In Progress',
-        date: '2023-10-02',
-        cost: 22.50,
-      },
-    ]
-    setOrders(mockOrders)
   }
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -69,32 +75,45 @@ export default function AccountPage() {
     setLoading(true)
     setError('')
     
-    // Mock update - in a real app we would update the user in the database
     try {
-      // Update the current user in local storage
-      const currentUser = authUtils.getCurrentUser();
-      if (currentUser) {
-        const updatedUser = {
-          ...currentUser,
-          name,
-          email,
-          studentCode,
-          credit,
-          phone
-        };
-        authUtils.setCurrentUser(updatedUser);
-        alert('Profile updated successfully');
+      // Update name
+      if (name.trim()) {
+        await account.updateName(name)
       }
+      
+      // Update preferences
+      await account.updatePrefs({
+        studentCode,
+        credit,
+        phone
+      })
+      
+      alert('Profile updated successfully')
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update profile'
       setError(errorMessage)
     } finally {
-      setLoading(false);
+      setLoading(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await account.deleteSession('current')
+      router.push('/auth')
+    } catch (err) {
+      console.error('Logout failed:', err)
+      // Force redirect even if logout fails
+      router.push('/auth')
     }
   }
 
   if (!user) {
-    return <div>Loading...</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    )
   }
 
   return (
@@ -117,8 +136,8 @@ export default function AccountPage() {
             <input
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              disabled
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100"
             />
           </div>
           <div>
@@ -157,10 +176,7 @@ export default function AccountPage() {
           </button>
         </form>
         <button
-          onClick={() => {
-            authUtils.logout();
-            window.location.href = '/auth';
-          }}
+          onClick={handleLogout}
           className="w-full mt-4 bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md transition duration-200"
         >
           Logout
@@ -168,7 +184,7 @@ export default function AccountPage() {
         <button
           onClick={() => {
             localStorage.removeItem('userRole')
-            window.location.href = '/role'
+            router.push('/role')
           }}
           className="w-full mt-4 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition duration-200"
         >
