@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '../../lib/useAuth'
 
 export default function Waiting() {
+  const { loading: authLoading } = useAuth()
   const [status] = useState('Order placed successfully!')
   const [timeLeft, setTimeLeft] = useState(30) // minutes
 
@@ -12,6 +14,14 @@ export default function Waiting() {
     }, 60000) // update every minute
     return () => clearInterval(timer)
   }, [])
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-md mx-auto p-4 text-center">

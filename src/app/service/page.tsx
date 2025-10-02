@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '../../lib/useAuth'
 
 export default function ServiceOrder() {
+  const { loading: authLoading } = useAuth()
   const [form, setForm] = useState({
     serviceType: '',
     description: '',
@@ -23,6 +25,14 @@ export default function ServiceOrder() {
     setTimeout(() => {
       router.push('/waiting')
     }, 2000)
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    )
   }
 
   return (

@@ -1,13 +1,23 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useAuth } from '../../lib/useAuth'
 
 export default function RolePage() {
   const router = useRouter()
+  const { loading } = useAuth()
 
   const handleRoleSelect = (role: 'customer' | 'delivery') => {
     localStorage.setItem('userRole', role)
     router.push(`/${role}`)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    )
   }
 
   return (

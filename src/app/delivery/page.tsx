@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import BottomDock from '../../components/BottomDock'
+import { useAuth } from '../../lib/useAuth'
 
 interface Order {
   $id: string
@@ -41,6 +42,7 @@ const mockOrders: Order[] = [
 ]
 
 export default function Delivery() {
+  const { loading: authLoading } = useAuth()
   const [user, setUser] = useState<{$id: string; name: string; email: string} | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
@@ -95,6 +97,14 @@ export default function Delivery() {
   useEffect(() => {
     filterOrders()
   }, [filterOrders])
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    )
+  }
 
   if (!user) {
     return <div>Loading...</div>

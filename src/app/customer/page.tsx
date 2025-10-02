@@ -2,9 +2,11 @@
 
 import { useRouter } from 'next/navigation'
 import BottomDock from '../../components/BottomDock'
+import { useAuth } from '../../lib/useAuth'
 
 export default function CustomerPage() {
   const router = useRouter()
+  const { loading } = useAuth()
 
   const services = [
     { id: 'food', name: 'Food Delivery', description: 'Order food from various restaurants' },
@@ -13,6 +15,14 @@ export default function CustomerPage() {
     { id: 'grocery', name: 'Grocery Delivery', description: 'Order groceries and essentials' },
     // Add more services later
   ]
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
