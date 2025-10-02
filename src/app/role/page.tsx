@@ -14,32 +14,52 @@ export default function RolePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div>Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-[#0d47a1] to-[#bbdefb]">
+        <div className="text-white text-xl">Loading...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Choose Your Role</h1>
-          <p className="text-gray-600">Select how you want to use the app</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-[#0d47a1] to-[#bbdefb]">
+      <div className="text-center">
+        {/* Logo Section */}
+        <div className="mb-10">
+          <h1 className="text-6xl font-bold text-white mb-2">SharifRo</h1>
+          <p className="text-white text-lg opacity-90">Choose Your Role</p>
         </div>
-        <div className="space-y-4">
-          <button
-            onClick={() => handleRoleSelect('customer')}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition duration-200"
-          >
-            Customer
-          </button>
-          <button
+
+        {/* Choices Section */}
+        <div className="flex justify-center gap-20 flex-wrap">
+          {/* Delivery Person - SharifGir */}
+          <div
             onClick={() => handleRoleSelect('delivery')}
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition duration-200"
+            className="bg-white bg-opacity-10 backdrop-blur-sm p-8 rounded-3xl cursor-pointer transition-all duration-300 hover:scale-110 hover:bg-opacity-20 w-56"
           >
-            Delivery Person
-          </button>
+            <div className="flex flex-col items-center">
+              {/* Icon placeholder - using emoji for now */}
+              <div className="w-24 h-24 mb-5 flex items-center justify-center text-6xl">
+                🛵
+              </div>
+              <h2 className="text-2xl font-bold text-[#001f3f]">SharifGir</h2>
+              <p className="text-white text-sm mt-2 opacity-80">Delivery Person</p>
+            </div>
+          </div>
+
+          {/* Customer - SharifBar */}
+          <div
+            onClick={() => handleRoleSelect('customer')}
+            className="bg-white bg-opacity-10 backdrop-blur-sm p-8 rounded-3xl cursor-pointer transition-all duration-300 hover:scale-110 hover:bg-opacity-20 w-56"
+          >
+            <div className="flex flex-col items-center">
+              {/* Icon placeholder - using emoji for now */}
+              <div className="w-24 h-24 mb-5 flex items-center justify-center text-6xl">
+                🎁
+              </div>
+              <h2 className="text-2xl font-bold text-[#001f3f]">SharifBar</h2>
+              <p className="text-white text-sm mt-2 opacity-80">Customer</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
