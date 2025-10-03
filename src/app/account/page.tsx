@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { account } from '../../lib/appwrite'
 import BottomDock from '../../components/BottomDock'
+import '../../styles/account-profile.css'
 
 interface Order {
   id: string;
@@ -36,6 +37,11 @@ export default function AccountPage() {
   const [error, setError] = useState('')
   const [role, setRole] = useState<'customer' | 'delivery'>('customer')
   const [orders, setOrders] = useState<Order[]>([])
+  const [editMode, setEditMode] = useState({
+    name: false,
+    studentCode: false,
+    phone: false,
+  })
   const router = useRouter()
 
   const checkUser = useCallback(async () => {
@@ -101,6 +107,7 @@ export default function AccountPage() {
       })
       
       alert('Profile updated successfully')
+      setEditMode({ name: false, studentCode: false, phone: false })
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update profile'
       setError(errorMessage)
@@ -112,10 +119,10 @@ export default function AccountPage() {
   const handleLogout = async () => {
     try {
       await account.deleteSession('current')
+      localStorage.removeItem('userRole')
       router.push('/auth')
     } catch (err) {
       console.error('Logout failed:', err)
-      // Force redirect even if logout fails
       router.push('/auth')
     }
   }
@@ -129,93 +136,158 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="max-w-md mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-6 text-center">Account</h1>
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-        <form onSubmit={handleUpdate} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
+    <div className="background">
+      <main className="profile-container">
+        <h1>Account</h1>
+        
+        {error && <p className="error-message" style={{color: '#ff6b6b', marginBottom: '15px'}}>{error}</p>}
+        
+        <div className="profile-section">
+          <div className="info-group">
+            <label>Name</label>
+            {editMode.name ? (
+              <input
+                type="text"
+                className="info-input"
+                value={name}
+                onChange={e => setName(e.target.value)}
+              />
+            ) : (
+              <div className="info-value">{name}</div>
+            )}
+            <button 
+              className="edit-btn"
+              onClick={() => {
+                if (editMode.name) {
+                  handleUpdate(new Event('submit') as any)
+                }
+                setEditMode(prev => ({ ...prev, name: !prev.name }))
+              }}
+              disabled={loading}
+            >
+              {editMode.name ? 'Save' : 'Edit'}
+            </button>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              value={email}
-              disabled
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100"
-            />
+
+          <div className="info-group">
+            <label>Email</label>
+            <div className="info-value">{email}</div>
+            <button className="edit-btn" disabled style={{opacity: 0.5, cursor: 'not-allowed'}}>
+              Locked
+            </button>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">University Student Code</label>
-            <input
-              type="text"
-              value={studentCode}
-              onChange={e => setStudentCode(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
+
+          <div className="info-group">
+            <label>University Student Code</label>
+            {editMode.studentCode ? (
+              <input
+                type="text"
+                className="info-input"
+                value={studentCode}
+                onChange={e => setStudentCode(e.target.value)}
+              />
+            ) : (
+              <div className="info-value">{studentCode || 'Not set'}</div>
+            )}
+            <button 
+              className="edit-btn"
+              onClick={() => {
+                if (editMode.studentCode) {
+                  handleUpdate(new Event('submit') as any)
+                }
+                setEditMode(prev => ({ ...prev, studentCode: !prev.studentCode }))
+              }}
+              disabled={loading}
+            >
+              {editMode.studentCode ? 'Save' : 'Edit'}
+            </button>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Credit</label>
-            <input
-              type="number"
-              value={credit}
-              onChange={e => setCredit(Number(e.target.value))}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
+
+          <div className="info-group">
+            <label>Credit</label>
+            <div className="info-value">${credit.toFixed(2)}</div>
+            <button className="edit-btn">Add Credit</button>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
+
+          <div className="info-group">
+            <label>Phone Number</label>
+            {editMode.phone ? (
+              <input
+                type="tel"
+                className="info-input"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+              />
+            ) : (
+              <div className="info-value">{phone || 'Not set'}</div>
+            )}
+            <button 
+              className="edit-btn"
+              onClick={() => {
+                if (editMode.phone) {
+                  handleUpdate(new Event('submit') as any)
+                }
+                setEditMode(prev => ({ ...prev, phone: !prev.phone }))
+              }}
+              disabled={loading}
+            >
+              {editMode.phone ? 'Save' : 'Edit'}
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 disabled:opacity-50"
-          >
-            {loading ? 'Updating...' : 'Update Profile'}
-          </button>
-        </form>
-        <button
-          onClick={handleLogout}
-          className="w-full mt-4 bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md transition duration-200"
-        >
-          Logout
-        </button>
-        <button
-          onClick={() => {
-            localStorage.removeItem('userRole')
-            router.push('/role')
-          }}
-          className="w-full mt-4 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition duration-200"
-        >
-          Change Role
-        </button>
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold mb-4">Order History</h2>
-          <div className="space-y-2">
-            {orders.map(order => (
-              <div key={order.id} className="bg-white p-4 rounded-lg shadow-md">
-                <p><strong>Order Code:</strong> {order.orderCode}</p>
-                <p><strong>Status:</strong> {order.status}</p>
-                <p><strong>Date:</strong> {order.date}</p>
-                <p><strong>Cost:</strong> ${order.cost}</p>
-              </div>
-            ))}
+
+          <div className="info-group" style={{borderBottom: 'none'}}>
+            <button 
+              onClick={handleLogout}
+              className="edit-btn"
+              style={{
+                background: 'linear-gradient(180deg, #ff4f4f 0%, #e63b3b 100%)',
+                width: '100%'
+              }}
+            >
+              Logout
+            </button>
+          </div>
+
+          <div className="info-group" style={{borderBottom: 'none', paddingTop: '10px'}}>
+            <button
+              onClick={() => {
+                localStorage.removeItem('userRole')
+                router.push('/role')
+              }}
+              className="edit-btn"
+              style={{
+                background: 'linear-gradient(180deg, #4CAF50 0%, #45a049 100%)',
+                width: '100%'
+              }}
+            >
+              Change Role
+            </button>
           </div>
         </div>
-      </div>
+
+        <div className="orders-section">
+          <h2>Order History</h2>
+          <div className="orders-list">
+            {orders.length > 0 ? (
+              orders.map(order => (
+                <div key={order.id} className="order-item">
+                  <div className="order-header">
+                    <span className="order-code">Order Code: {order.orderCode}</span>
+                    <span className="order-status">Status: {order.status}</span>
+                  </div>
+                  <div className="order-details">
+                    <p>Date: {order.date}</p>
+                    <p>Total: ${order.cost.toFixed(2)}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p style={{color: '#02243a', textAlign: 'center'}}>No orders yet</p>
+            )}
+          </div>
+        </div>
+      </main>
+
       <BottomDock role={role} />
     </div>
   )

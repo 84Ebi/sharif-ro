@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { account } from '../../../lib/appwrite'
+import '../../../styles/auth.css'
 
 export default function DetailsPage() {
   const [name, setName] = useState('')
@@ -57,73 +58,57 @@ export default function DetailsPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Profile</h1>
-          <p className="text-gray-600">Enter your details to finish sign up</p>
-        </div>
-        {error && <p className="text-red-500 text-center">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={!!email}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-            />
-          </div>
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="0912xxxxxxx"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label htmlFor="studentCode" className="block text-sm font-medium text-gray-700">
-              University Student Code
-            </label>
-            <input
-              type="text"
-              id="studentCode"
-              value={studentCode}
-              onChange={(e) => setStudentCode(e.target.value)}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 disabled:opacity-50"
-          >
-            {loading ? 'Updating...' : 'Complete Sign Up'}
+    <div className="background">
+      <div className="login-box">
+        <h2>Complete Your Profile</h2>
+        <h3>Enter your details to finish sign up</h3>
+
+        {error && <div className="error-message">{error}</div>}
+
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="name">Name</label>
+          <input
+            type="text"
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your Name"
+            required
+          />
+
+          <label htmlFor="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            required
+            disabled
+          />
+
+          <label htmlFor="phone">Phone Number</label>
+          <input
+            type="tel"
+            id="phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="0912xxxxxxx"
+            required
+          />
+
+          <label htmlFor="studentCode">University Student Code</label>
+          <input
+            type="text"
+            id="studentCode"
+            value={studentCode}
+            onChange={(e) => setStudentCode(e.target.value)}
+            placeholder="Student Code"
+            required
+          />
+
+          <button type="submit" disabled={loading}>
+            {loading ? 'Processing...' : 'Complete Sign Up'}
           </button>
         </form>
       </div>
