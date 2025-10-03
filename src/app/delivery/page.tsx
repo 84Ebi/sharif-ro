@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import BottomDock from '../../components/BottomDock'
 import { useAuth } from '../../lib/useAuth'
 
@@ -43,7 +42,6 @@ const mockOrders: Order[] = [
 ]
 
 export default function Delivery() {
-  const router = useRouter()
   const { loading: authLoading } = useAuth()
   const [user, setUser] = useState<{$id: string; name: string; email: string} | null>(null)
   const [orders, setOrders] = useState<Order[]>([])

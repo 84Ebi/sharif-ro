@@ -159,7 +159,10 @@ export default function AccountPage() {
               className="edit-btn"
               onClick={() => {
                 if (editMode.name) {
-                  handleUpdate(new Event('submit') as any)
+                  const form = document.createElement('form');
+                  const event = new Event('submit', { bubbles: true, cancelable: true }) as unknown as React.FormEvent;
+                  Object.defineProperty(event, 'target', { value: form, writable: false });
+                  handleUpdate(event);
                 }
                 setEditMode(prev => ({ ...prev, name: !prev.name }))
               }}
@@ -193,7 +196,10 @@ export default function AccountPage() {
               className="edit-btn"
               onClick={() => {
                 if (editMode.studentCode) {
-                  handleUpdate(new Event('submit') as any)
+                  const form = document.createElement('form');
+                  const event = new Event('submit', { bubbles: true, cancelable: true }) as unknown as React.FormEvent;
+                  Object.defineProperty(event, 'target', { value: form, writable: false });
+                  handleUpdate(event);
                 }
                 setEditMode(prev => ({ ...prev, studentCode: !prev.studentCode }))
               }}
@@ -225,7 +231,10 @@ export default function AccountPage() {
               className="edit-btn"
               onClick={() => {
                 if (editMode.phone) {
-                  handleUpdate(new Event('submit') as any)
+                  const form = document.createElement('form');
+                  const event = new Event('submit', { bubbles: true, cancelable: true }) as unknown as React.FormEvent;
+                  Object.defineProperty(event, 'target', { value: form, writable: false });
+                  handleUpdate(event);
                 }
                 setEditMode(prev => ({ ...prev, phone: !prev.phone }))
               }}
