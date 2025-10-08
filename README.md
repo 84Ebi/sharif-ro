@@ -23,33 +23,13 @@ A Next.js webapp for university food hall delivery ordering.
    npm install
    ```
 
-2. Set up Appwrite:
-
-   - Create an Appwrite project at https://appwrite.io
-   - Create two databases:
-     - Temporary Orders DB with ID: `68dad04a0039da9eb348`
-     - Permanent Orders DB with ID: `68dad08a0025eb52dbbf`
-   - In each database, create a collection named `orders` with the following attributes (all strings unless specified):
-     - `orderCode` (string, required)
-     - `name` (string, required)
-     - `phone` (string, required)
-     - `email` (string, optional)
-     - `address` (string, required)
-     - `instructions` (string, optional)
-     - `createdAt` (datetime, required)
-     - For Permanent Orders DB only, add:
-       - `assigned` (boolean, default: false)
-       - `deliveryPerson` (string, optional)
-   - Set collection permissions to allow read/write for authenticated users or as needed.
-   - Create user accounts for delivery personnel in Appwrite Auth.
-
 3. Create environment variables:
 
    Create a `.env.local` file in the root directory:
 
    ```
-   NEXT_PUBLIC_APPWRITE_ENDPOINT=https://fra.cloud.appwrite.io/v1
-   NEXT_PUBLIC_APPWRITE_PROJECT_ID=68dacad8003e7b0deb82
+   NEXT_PUBLIC_APPWRITE_ENDPOINT=
+   NEXT_PUBLIC_APPWRITE_PROJECT_ID=
    ```
 
 4. Run the development server:
