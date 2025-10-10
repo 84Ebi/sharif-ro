@@ -1,23 +1,24 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '../../lib/useAuth'
-import { getOrdersByUser, subscribeToOrders, updateOrderStatus, type Order } from '../../lib/orders'
+import BottomDock from '../../../components/BottomDock'
+import { useAuth } from '../../../lib/useAuth'
+import { getOrders, subscribeToOrders, updateOrderStatus, type Order } from '../../../lib/orders'
 import Link from 'next/link'
 
-export default function CustomerOrders() {
+export default function DeliveryOrders() {
   const { user, loading: authLoading } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'delivered'>('all')
+  const [filter, setFilter] = useState<'confirmed' | 'delivered'>('confirmed')
 
   const loadOrders = useCallback(async () => {
     if (!user) return
-    
+
     try {
       setLoading(true)
-      const userOrders = await getOrdersByUser(user.$id)
-      setOrders(userOrders)
+      const deliveryOrders = await getOrders({ deliveryPersonId: user.$id })
+      setOrders(deliveryOrders)
     } catch (error) {
       console.error('Error loading orders:', error)
     } finally {
@@ -28,10 +29,10 @@ export default function CustomerOrders() {
   useEffect(() => {
     if (user) {
       loadOrders()
-      
-      // Subscribe to real-time updates for user's orders
+
+      // Subscribe to real-time updates for delivery person's orders
       const unsubscribe = subscribeToOrders((order) => {
-        if (order.userId === user.$id) {
+        if (order.deliveryPersonId === user.$id) {
           setOrders(prev => {
             const exists = prev.find(o => o.$id === order.$id)
             if (exists) {
@@ -41,7 +42,7 @@ export default function CustomerOrders() {
           })
         }
       })
-      
+
       return () => {
         unsubscribe()
       }
@@ -59,7 +60,6 @@ export default function CustomerOrders() {
   }
 
   const filteredOrders = orders.filter(order => {
-    if (filter === 'all') return true
     return order.status === filter
   })
 
@@ -74,7 +74,7 @@ export default function CustomerOrders() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Please log in to view your orders.</div>
+        <div className="text-white text-xl">Please log in to view your delivery orders.</div>
       </div>
     )
   }
@@ -84,18 +84,18 @@ export default function CustomerOrders() {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-xl p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">My Orders</h1>
-            <Link 
-              href="/order"
+            <h1 className="text-2xl font-bold text-gray-800">My Delivery Orders</h1>
+            <Link
+              href="/delivery"
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
-              + New Order
+              ← Back to Dashboard
             </Link>
           </div>
 
           {/* Filter tabs */}
           <div className="flex gap-2 mb-6 flex-wrap">
-            {(['all', 'pending', 'confirmed', 'delivered'] as const).map((status) => (
+            {(['confirmed', 'delivered'] as const).map((status) => (
               <button
                 key={status}
                 onClick={() => setFilter(status)}
@@ -116,16 +116,16 @@ export default function CustomerOrders() {
           ) : filteredOrders.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-600 mb-4">
-                {filter === 'all' 
-                  ? 'You have no orders yet.' 
-                  : `No ${filter} orders.`}
+                {filter === 'confirmed'
+                  ? 'You have no active deliveries.'
+                  : 'You have no completed deliveries.'}
               </p>
-              {filter === 'all' && (
-                <Link 
-                  href="/order"
+              {filter === 'confirmed' && (
+                <Link
+                  href="/delivery"
                   className="text-blue-600 hover:text-blue-700 font-medium"
                 >
-                  Place your first order →
+                  Check for new orders →
                 </Link>
               )}
             </div>
@@ -151,9 +151,7 @@ export default function CustomerOrders() {
                       </div>
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                          order.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : order.status === 'confirmed'
+                          order.status === 'confirmed'
                             ? 'bg-blue-100 text-blue-800'
                             : 'bg-green-100 text-green-800'
                         }`}
@@ -183,64 +181,45 @@ export default function CustomerOrders() {
                       )}
                     </div>
 
-                    {/* Delivery person info - only shown when confirmed */}
-                    {order.status === 'confirmed' && order.deliveryPersonName && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                          🚴 Your delivery is on the way!
-                        </h4>
+                    {/* Customer info */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                      <h4 className="font-semibold text-gray-900 mb-2">Customer Details</h4>
+                      <p className="text-gray-700">
+                        <strong>Name:</strong> {order.fullName}
+                      </p>
+                      <p className="text-gray-700">
+                        <strong>Phone:</strong>{' '}
+                        <a
+                          href={`tel:${order.phone}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {order.phone}
+                        </a>
+                      </p>
+                      {order.email && (
                         <p className="text-gray-700">
-                          <strong>Delivery Person:</strong> {order.deliveryPersonName}
+                          <strong>Email:</strong> {order.email}
                         </p>
-                        <p className="text-gray-700">
-                          <strong>Contact:</strong>{' '}
-                          <a
-                            href={`tel:${order.deliveryPersonPhone}`}
-                            className="text-blue-600 hover:underline"
-                          >
-                            {order.deliveryPersonPhone}
-                          </a>
+                      )}
+                      {order.confirmedAt && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          Confirmed at: {new Date(order.confirmedAt).toLocaleString()}
                         </p>
-                        {order.confirmedAt && (
-                          <p className="text-xs text-gray-600 mt-1">
-                            Confirmed at: {new Date(order.confirmedAt).toLocaleString()}
-                          </p>
-                        )}
+                      )}
+                      {order.status === 'confirmed' && (
                         <button
                           onClick={() => markAsDelivered(order.$id!)}
                           className="mt-3 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-medium text-sm"
                         >
                           ✓ Mark as Delivered
                         </button>
-                      </div>
-                    )}
-
-                    {order.status === 'delivered' && order.deliveredAt && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <h4 className="font-semibold text-green-900 mb-2">
-                          ✓ Delivered
-                        </h4>
-                        <p className="text-sm text-gray-700">
+                      )}
+                      {order.status === 'delivered' && order.deliveredAt && (
+                        <p className="text-xs text-gray-600 mt-1">
                           Delivered at: {new Date(order.deliveredAt).toLocaleString()}
                         </p>
-                        {order.deliveryPersonName && (
-                          <p className="text-sm text-gray-700">
-                            By: {order.deliveryPersonName}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {order.status === 'pending' && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                        <h4 className="font-semibold text-yellow-900 mb-2">
-                          ⏳ Waiting for delivery person
-                        </h4>
-                        <p className="text-sm text-gray-700">
-                          Your order is pending. A delivery person will confirm it soon.
-                        </p>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -248,6 +227,7 @@ export default function CustomerOrders() {
           )}
         </div>
       </div>
+      <BottomDock role="delivery" />
     </div>
   )
 }

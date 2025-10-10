@@ -1,46 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import BottomDock from '../../components/BottomDock'
 import { useAuth } from '../../lib/useAuth'
 import Link from 'next/link'
-
-interface Order {
-  $id: string
-  orderCode: string
-  name: string
-  phone: string
-  email?: string
-  address: string
-  instructions: string
-  createdAt: string
-  cost: number
-  assigned?: boolean
-}
-
-const mockOrders: Order[] = [
-  {
-    $id: '1',
-    orderCode: 'ORD001',
-    name: 'John Doe',
-    phone: '1234567890',
-    email: 'john@example.com',
-    address: '123 Main St',
-    instructions: 'Leave at door',
-    createdAt: new Date().toISOString(),
-    cost: 15.99,
-  },
-  {
-    $id: '2',
-    orderCode: 'ORD002',
-    name: 'Jane Smith',
-    phone: '0987654321',
-    address: '456 Elm St',
-    instructions: '',
-    createdAt: new Date().toISOString(),
-    cost: 22.50,
-  },
-]
+import Image from 'next/image'
+import { getPendingOrders, confirmOrder, type Order } from '../../lib/orders'
 
 export default function Delivery() {
   const { user, loading: authLoading } = useAuth()
@@ -50,27 +14,40 @@ export default function Delivery() {
   const [costMin, setCostMin] = useState('')
   const [costMax, setCostMax] = useState('')
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const filterOrders = useCallback(() => {
-    let filtered = orders.filter(order => !order.assigned)
+    let filtered = orders
+    
     if (locationFilter) {
       filtered = filtered.filter(order =>
-        order.address.toLowerCase().includes(locationFilter.toLowerCase())
+        order.restaurantLocation.toLowerCase().includes(locationFilter.toLowerCase()) ||
+        order.deliveryLocation.toLowerCase().includes(locationFilter.toLowerCase())
       )
     }
+    
     if (costMin) {
-      filtered = filtered.filter(order => order.cost >= Number(costMin))
+      filtered = filtered.filter(order => order.price >= Number(costMin))
     }
+    
     if (costMax) {
-      filtered = filtered.filter(order => order.cost <= Number(costMax))
+      filtered = filtered.filter(order => order.price <= Number(costMax))
     }
+    
     setFilteredOrders(filtered)
-  }, [orders, locationFilter, costMin, costMax]);
+  }, [orders, locationFilter, costMin, costMax])
 
   const loadOrders = useCallback(async () => {
-    // Mock loading orders
-    setOrders(mockOrders)
-  }, []);
+    try {
+      setLoading(true)
+      const pendingOrders = await getPendingOrders()
+      setOrders(pendingOrders)
+    } catch (error) {
+      console.error('Error loading orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (user && user.emailVerification) {
@@ -80,9 +57,21 @@ export default function Delivery() {
 
   const acceptOrder = async (orderId: string) => {
     if (!user) return
-    // Mock accept order
-    setOrders(orders.map(order => order.$id === orderId ? { ...order, assigned: true, deliveryPerson: user.$id } : order))
-    alert('Order accepted')
+    
+    try {
+      await confirmOrder(orderId, {
+        id: user.$id,
+        name: user.name,
+        phone: user.phone || ''
+      })
+      
+      // Remove order from list
+      setOrders(orders.filter(order => order.$id !== orderId))
+      alert('Order confirmed! Customer details are now available.')
+    } catch (error) {
+      console.error('Error accepting order:', error)
+      alert('Failed to accept order. Please try again.')
+    }
   }
 
   useEffect(() => {
@@ -231,8 +220,6 @@ export default function Delivery() {
               <li>✓ Manual review by admins for security</li>
             </ul>
           </div>
-
-          <BottomDock role="delivery" />
         </div>
       </>
     )
@@ -241,8 +228,11 @@ export default function Delivery() {
   return (
     <>
       <style jsx>{`
+        /* Reset & base */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
+        html, body { height: 100%; font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing:antialiased; }
+
+        /* Page background gradient */
         .background {
           min-height: 100vh;
           display: flex;
@@ -253,6 +243,7 @@ export default function Delivery() {
           padding: 18px;
         }
 
+        /* Top area */
         .topbar {
           width: 100%;
           max-width: 920px;
@@ -261,22 +252,22 @@ export default function Delivery() {
           flex-direction: column;
           gap: 10px;
         }
-
         .topbar-inner {
           display: flex;
           align-items: center;
           gap: 12px;
         }
 
+        /* Modified brand and logo styling */
         .brand {
           display: flex;
           align-items: center;
         }
-
         .brand-logo {
           width: 56px;
           height: 56px;
-          font-size: 36px;
+          object-fit: contain;
+          mix-blend-mode: screen;
         }
 
         .page-title {
@@ -286,63 +277,7 @@ export default function Delivery() {
           margin: 0;
         }
 
-        .filter-pill {
-          align-self: flex-start;
-          position: relative;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 8px 12px;
-          border-radius: 999px;
-          background: rgba(255,255,255,0.08);
-          color: #fff;
-          cursor: pointer;
-          transition: all 0.18s;
-          border: 1px solid rgba(255,255,255,0.04);
-          width: 110px;
-          justify-content: center;
-        }
-
-        .filter-label {
-          font-weight: 700;
-          font-size: 13px;
-        }
-
-        .filter-controls {
-          display: none;
-          gap: 8px;
-          align-items: center;
-          margin-left: 8px;
-        }
-
-        .filter-pill:hover,
-        .filter-pill:focus-within {
-          background: rgba(255,255,255,0.12);
-          width: auto;
-          padding: 8px 14px;
-        }
-
-        .filter-pill:hover .filter-controls,
-        .filter-pill:focus-within .filter-controls {
-          display: flex;
-        }
-
-        .filter-input {
-          padding: 8px 10px;
-          border-radius: 10px;
-          border: none;
-          background: rgba(255,255,255,0.95);
-          color: #02243a;
-          font-size: 13px;
-          min-width: 120px;
-          outline: none;
-          box-shadow: 0 6px 18px rgba(79,123,255,0.06);
-        }
-
-        .filter-input.small {
-          min-width: 72px;
-        }
-
+        /* Card */
         .card {
           width: 100%;
           max-width: 920px;
@@ -360,6 +295,51 @@ export default function Delivery() {
           overflow: hidden;
         }
 
+        /* Filter pill */
+        .filter-pill {
+          align-self: flex-start;
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 12px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.08);
+          color: #fff;
+          cursor: pointer;
+          transition: background .18s, transform .12s;
+          border: 1px solid rgba(255,255,255,0.04);
+          width: 110px;
+          justify-content: center;
+        }
+        .filter-pill .filter-label { font-weight: 700; font-size: 13px; }
+        .filter-controls { display: none; gap: 8px; align-items: center; margin-left: 8px; }
+
+        /* show controls on hover/focus-within */
+        .filter-pill:hover,
+        .filter-pill:focus-within {
+          background: rgba(255,255,255,0.12);
+          width: auto;
+          padding: 8px 14px;
+        }
+        .filter-pill:hover .filter-controls,
+        .filter-pill:focus-within .filter-controls {
+          display: flex;
+        }
+        .filter-input {
+          padding: 8px 10px;
+          border-radius: 10px;
+          border: none;
+          background: rgba(255,255,255,0.95);
+          color: #02243a;
+          font-size: 13px;
+          min-width: 120px;
+          outline: none;
+          box-shadow: 0 6px 18px rgba(79,123,255,0.06);
+        }
+        .filter-input.small { min-width: 72px; }
+
+        /* orders list */
         .orders {
           overflow: auto;
           padding-right: 8px;
@@ -369,6 +349,7 @@ export default function Delivery() {
           padding: 6px;
         }
 
+        /* compact order */
         .order-compact {
           background: rgba(255,255,255,0.98);
           color: #02243a;
@@ -380,79 +361,45 @@ export default function Delivery() {
           flex-direction: column;
           gap: 8px;
           cursor: pointer;
-          transition: transform 0.12s ease, box-shadow 0.12s ease;
+          transition: transform .12s ease, box-shadow .12s ease;
           outline: none;
         }
-
-        .order-compact:hover {
+        .order-compact:hover,
+        .order-compact:focus {
           transform: translateY(-4px);
           box-shadow: 0 12px 28px rgba(2,36,58,0.08);
         }
 
+        /* compact card header */
         .compact-head {
           display: flex;
           justify-content: space-between;
           align-items: center;
           gap: 12px;
         }
+        .compact-info { display:flex; flex-direction:column; gap:4px; }
+        .order-code { font-weight:700; color: #034066; font-size: 13px; }
+        .order-time { color: rgba(2,36,58,0.55); font-size: 12px; }
+        .compact-cost { font-weight:700; color: #034066; font-size: 14px; }
+        .compact-preview { font-size: 13px; color: #1f3a4a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .compact-info {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .order-code {
-          font-weight: 700;
-          color: #034066;
-          font-size: 13px;
-        }
-
-        .order-time {
-          color: rgba(2,36,58,0.55);
-          font-size: 12px;
-        }
-
-        .compact-cost {
-          font-weight: 700;
-          color: #034066;
-          font-size: 14px;
-        }
-
-        .compact-preview {
-          font-size: 13px;
-          color: #1f3a4a;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
+        /* expanded area */
         .expanded {
-          max-height: ${expandedOrder ? '400px' : '0'};
+          max-height: 0;
           overflow: hidden;
           transition: max-height 260ms ease, opacity 180ms ease;
-          opacity: ${expandedOrder ? '1' : '0'};
+          opacity: 0;
         }
 
-        .order-body {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+        .order-compact:hover .expanded,
+        .order-compact:focus-within .expanded {
+          max-height: 400px;
+          opacity: 1;
         }
 
-        .order-body div {
-          font-size: 13px;
-          color: #1f3a4a;
-          padding: 2px 0;
-        }
-
-        .order-actions {
-          display: flex;
-          justify-content: center;
-          margin-top: 6px;
-        }
-
-        .btn-accept {
+        .order-body div { font-size: 13px; color: #1f3a4a; padding: 2px 0; }
+        .order-actions { display:flex; justify-content:center; margin-top:6px; }
+        .btn.accept, .btn.small {
           background: linear-gradient(180deg, #4f7bff 0%, #3b5fe6 100%);
           color: #fff;
           padding: 8px 12px;
@@ -461,41 +408,52 @@ export default function Delivery() {
           border: none;
           box-shadow: 0 8px 20px rgba(79,123,255,0.14);
           cursor: pointer;
-          transition: transform 0.12s ease;
         }
 
-        .btn-accept:hover {
-          transform: translateY(-2px);
+        /* Bottom nav */
+        .bottom-nav {
+          width: 100%;
+          max-width: 920px;
+          display: flex;
+          justify-content: space-around;
+          gap: 12px;
+          margin-top: 12px;
+        }
+        .nav-item {
+          background: rgba(255,255,255,0.95);
+          border-radius: 12px;
+          border: none;
+          padding: 10px 14px;
+          width: 32%;
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          justify-content: center;
+          color: #02243a;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 6px 16px rgba(2,36,58,0.08);
         }
 
-        .empty-state {
-          text-align: center;
-          color: rgba(255,255,255,0.8);
-          padding: 40px;
-          font-size: 16px;
+        /* Accessibility helper */
+        .visually-hidden {
+          position: absolute !important;
+          height: 1px; width: 1px;
+          overflow: hidden;
+          clip: rect(1px,1px,1px,1px);
+          white-space: nowrap;
+          border: 0;
+          padding: 0;
+          margin: -1px;
         }
 
+        /* Responsive tweaks */
         @media (max-width: 720px) {
-          .card {
-            max-width: 96%;
-            padding: 8px;
-            max-height: calc(100vh - 170px);
-          }
-          .brand-logo {
-            width: 48px;
-            height: 48px;
-            font-size: 28px;
-          }
-          .page-title {
-            font-size: 16px;
-          }
-          .filter-input {
-            min-width: 84px;
-            font-size: 13px;
-          }
-          .order-compact {
-            padding: 10px;
-          }
+          .card { max-width: 96%; padding: 8px; max-height: calc(100vh - 170px); }
+          .brand-logo { width: 48px; height: 48px; }
+          .page-title { font-size: 16px; }
+          .filter-input { min-width: 84px; font-size: 13px;}
+          .order-compact { padding: 10px; }
         }
       `}</style>
 
@@ -503,7 +461,7 @@ export default function Delivery() {
         <header className="topbar">
           <div className="topbar-inner">
             <div className="brand">
-                <img src="/gift.png" alt="Logo" className="brand-logo" />
+                <Image src="/gift.png" alt="Logo" className="brand-logo" width={56} height={56} />
             </div>
             <h1 className="page-title">Delivery Dashboard</h1>
           </div>
@@ -542,33 +500,35 @@ export default function Delivery() {
 
         <main className="card">
           <section className="orders">
-            {filteredOrders.length === 0 ? (
-              <div className="empty-state">No unassigned orders.</div>
+            {loading ? (
+              <div className="empty-state">Loading orders...</div>
+            ) : filteredOrders.length === 0 ? (
+              <div className="empty-state">No pending orders available.</div>
             ) : (
               filteredOrders.map(order => (
                 <article
                   key={order.$id}
                   className="order-compact"
                   tabIndex={0}
-                  onClick={() => setExpandedOrder(expandedOrder === order.$id ? null : order.$id)}
+                  onClick={() => setExpandedOrder(expandedOrder === order.$id ? null : (order.$id || null))}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
-                      setExpandedOrder(expandedOrder === order.$id ? null : order.$id)
+                      setExpandedOrder(expandedOrder === order.$id ? null : (order.$id || null))
                     }
                   }}
                 >
                   <div className="compact-head">
                     <div className="compact-info">
-                      <div className="order-code">{order.orderCode}</div>
+                      <div className="order-code">{order.orderCode || order.$id?.slice(0, 8)}</div>
                       <div className="order-time">
-                        {new Date(order.createdAt).toLocaleDateString()} • {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+                        {order.$createdAt && new Date(order.$createdAt).toLocaleDateString()} • {order.$createdAt && new Date(order.$createdAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
                       </div>
                     </div>
-                    <div className="compact-cost">${order.cost.toFixed(2)}</div>
+                    <div className="compact-cost">${order.price.toFixed(2)}</div>
                   </div>
 
                   <div className="compact-preview">
-                    {order.name} — {order.address} {order.instructions && `— ${order.instructions}`}
+                    {order.restaurantLocation} → {order.deliveryLocation}
                   </div>
 
                   <div className="expanded" style={{
@@ -576,23 +536,25 @@ export default function Delivery() {
                     opacity: expandedOrder === order.$id ? '1' : '0'
                   }}>
                     <div className="order-body">
-                      <div><strong>Name:</strong> {order.name}</div>
+                      <div><strong>Customer:</strong> {order.fullName}</div>
                       <div><strong>Phone:</strong> {order.phone}</div>
                       {order.email && <div><strong>Email:</strong> {order.email}</div>}
-                      <div><strong>Address:</strong> {order.address}</div>
-                      <div><strong>Instructions:</strong> {order.instructions || 'None'}</div>
-                      <div><strong>Time:</strong> {new Date(order.createdAt).toLocaleString()}</div>
+                      <div><strong>Restaurant:</strong> {order.restaurantLocation} ({order.restaurantType})</div>
+                      {order.orderCode && <div><strong>Order Code:</strong> {order.orderCode}</div>}
+                      <div><strong>Delivery To:</strong> {order.deliveryLocation}</div>
+                      {order.extraNotes && <div><strong>Notes:</strong> {order.extraNotes}</div>}
+                      <div><strong>Price:</strong> ${order.price.toFixed(2)}</div>
                     </div>
 
                     <div className="order-actions">
                       <button
-                        className="btn-accept"
+                        className="btn accept"
                         onClick={(e) => {
                           e.stopPropagation()
-                          acceptOrder(order.$id)
+                          if (order.$id) acceptOrder(order.$id)
                         }}
                       >
-                        Accept Order
+                        Confirm Delivery
                       </button>
                     </div>
                   </div>
@@ -602,7 +564,28 @@ export default function Delivery() {
           </section>
         </main>
 
-        <BottomDock role="delivery" />
+        <nav className="bottom-nav" role="navigation" aria-label="Primary">
+          <Link href="/delivery">
+            <button className="nav-item" aria-label="Home">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V11.5z" fill="#02243a"/></svg>
+              <span>Home</span>
+            </button>
+          </Link>
+
+          <Link href="/account">
+            <button className="nav-item" aria-label="Account">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z" fill="#02243a"/></svg>
+              <span>Account</span>
+            </button>
+          </Link>
+
+          <Link href="/delivery/orders">
+            <button className="nav-item" aria-label="Orders List">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h14l4 4V6l-4 4H3z" fill="#02243a"/></svg>
+              <span>Orders List</span>
+            </button>
+          </Link>
+        </nav>
       </div>
     </>
   )
