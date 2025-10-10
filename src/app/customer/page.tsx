@@ -199,7 +199,7 @@ export default function CustomerPage() {
 
         {filteredServices.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-white/80 text-lg">No services found matching "{searchQuery}"</p>
+            <p className="text-white/80 text-lg">No services found matching &ldquo;{searchQuery}&rdquo;</p>
           </div>
         )}
       </main>
