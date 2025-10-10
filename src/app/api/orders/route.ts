@@ -70,8 +70,9 @@ export async function POST(request: Request) {
     return Response.json({ order }, { status: 201 });
   } catch (error) {
     console.error('Error creating order:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return Response.json(
-      { error: 'Failed to create order' },
+      { error: `Failed to create order: ${errorMessage}` },
       { status: 500 }
     );
   }
