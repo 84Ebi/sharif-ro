@@ -1,11 +1,10 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { databases, ID, Query } from './appwrite';
+import type { Models } from 'appwrite';
 
-const DB_PATH = path.join(process.cwd(), 'data', 'orders.json');
+const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
+const COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_ORDERS_COLLECTION_ID!;
 
-export interface Order {
-  $id: string;
+export interface Order extends Models.Document {
   restaurantLocation: string;
   restaurantType: string;
   orderCode?: string;
@@ -22,8 +21,6 @@ export interface Order {
   deliveryPersonPhone?: string;
   confirmedAt?: string;
   deliveredAt?: string;
-  $createdAt: string;
-  $updatedAt: string;
 }
 
 export interface OrderFilters {
@@ -35,69 +32,13 @@ export interface OrderFilters {
   maxPrice?: number;
 }
 
-interface Database {
-  orders: Order[];
-}
-
-// Initialize database file
-async function initDatabase(): Promise<void> {
-  try {
-    const dir = path.dirname(DB_PATH);
-    await fs.mkdir(dir, { recursive: true });
-    
-    try {
-      await fs.access(DB_PATH);
-    } catch {
-      // File doesn't exist, create it
-      await fs.writeFile(DB_PATH, JSON.stringify({ orders: [] }, null, 2));
-    }
-  } catch (error) {
-    console.error('Error initializing database:', error);
-    throw error;
-  }
-}
-
-// Read database
-async function readDatabase(): Promise<Database> {
-  try {
-    await initDatabase();
-    const data = await fs.readFile(DB_PATH, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading database:', error);
-    return { orders: [] };
-  }
-}
-
-// Write database
-async function writeDatabase(db: Database): Promise<void> {
-  try {
-    await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
-  } catch (error) {
-    console.error('Error writing database:', error);
-    throw error;
-  }
-}
-
 /**
  * Create a new order
  */
 export async function createOrder(orderData: Omit<Order, '$id' | '$createdAt' | '$updatedAt'>): Promise<Order> {
   try {
-    const db = await readDatabase();
-    
-    const now = new Date().toISOString();
-    const newOrder: Order = {
-      ...orderData,
-      $id: uuidv4(),
-      $createdAt: now,
-      $updatedAt: now,
-    };
-    
-    db.orders.push(newOrder);
-    await writeDatabase(db);
-    
-    return newOrder;
+    const response = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), orderData);
+    return response as unknown as Order;
   } catch (error) {
     console.error('Error creating order:', error);
     throw error;
@@ -109,35 +50,34 @@ export async function createOrder(orderData: Omit<Order, '$id' | '$createdAt' | 
  */
 export async function getOrders(filters?: OrderFilters): Promise<Order[]> {
   try {
-    const db = await readDatabase();
-    let orders = [...db.orders];
+    const queries: string[] = [];
     
-    // Apply filters
     if (filters?.status) {
-      orders = orders.filter(order => order.status === filters.status);
+      queries.push(Query.equal('status', filters.status));
     }
     
     if (filters?.userId) {
-      orders = orders.filter(order => order.userId === filters.userId);
+      queries.push(Query.equal('userId', filters.userId));
     }
     
     if (filters?.deliveryPersonId) {
-      orders = orders.filter(order => order.deliveryPersonId === filters.deliveryPersonId);
+      queries.push(Query.equal('deliveryPersonId', filters.deliveryPersonId));
     }
     
     if (filters?.restaurantLocation) {
-      orders = orders.filter(order => 
-        order.restaurantLocation.toLowerCase().includes(filters.restaurantLocation!.toLowerCase())
-      );
+      queries.push(Query.search('restaurantLocation', filters.restaurantLocation));
     }
     
     if (filters?.minPrice !== undefined) {
-      orders = orders.filter(order => order.price >= filters.minPrice!);
+      queries.push(Query.greaterThanEqual('price', filters.minPrice));
     }
     
     if (filters?.maxPrice !== undefined) {
-      orders = orders.filter(order => order.price <= filters.maxPrice!);
+      queries.push(Query.lessThanEqual('price', filters.maxPrice));
     }
+    
+    const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, queries);
+    const orders = response.documents as unknown as Order[];
     
     // Sort by creation date, newest first
     orders.sort((a, b) => new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime());
@@ -168,12 +108,11 @@ export async function getPendingOrders(filters?: Omit<OrderFilters, 'status'>): 
  */
 export async function getOrder(orderId: string): Promise<Order | null> {
   try {
-    const db = await readDatabase();
-    const order = db.orders.find(o => o.$id === orderId);
-    return order || null;
+    const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, orderId);
+    return response as unknown as Order;
   } catch (error) {
     console.error('Error fetching order:', error);
-    throw error;
+    return null;
   }
 }
 
@@ -185,25 +124,16 @@ export async function confirmOrder(
   deliveryPersonData: { id: string; name: string; phone: string }
 ): Promise<Order | null> {
   try {
-    const db = await readDatabase();
-    const orderIndex = db.orders.findIndex(o => o.$id === orderId);
-    
-    if (orderIndex === -1) {
-      return null;
-    }
-    
-    db.orders[orderIndex] = {
-      ...db.orders[orderIndex],
+    const updateData = {
       status: 'confirmed',
       deliveryPersonId: deliveryPersonData.id,
       deliveryPersonName: deliveryPersonData.name,
       deliveryPersonPhone: deliveryPersonData.phone,
       confirmedAt: new Date().toISOString(),
-      $updatedAt: new Date().toISOString(),
     };
     
-    await writeDatabase(db);
-    return db.orders[orderIndex];
+    const response = await databases.updateDocument(DATABASE_ID, COLLECTION_ID, orderId, updateData);
+    return response as unknown as Order;
   } catch (error) {
     console.error('Error confirming order:', error);
     throw error;
@@ -218,16 +148,8 @@ export async function updateOrderStatus(
   status: 'pending' | 'confirmed' | 'delivered'
 ): Promise<Order | null> {
   try {
-    const db = await readDatabase();
-    const orderIndex = db.orders.findIndex(o => o.$id === orderId);
-    
-    if (orderIndex === -1) {
-      return null;
-    }
-    
-    const updateData: Partial<Order> = { 
+    const updateData: any = { 
       status,
-      $updatedAt: new Date().toISOString()
     };
     
     // Add timestamp for delivered status
@@ -235,13 +157,8 @@ export async function updateOrderStatus(
       updateData.deliveredAt = new Date().toISOString();
     }
     
-    db.orders[orderIndex] = {
-      ...db.orders[orderIndex],
-      ...updateData,
-    };
-    
-    await writeDatabase(db);
-    return db.orders[orderIndex];
+    const response = await databases.updateDocument(DATABASE_ID, COLLECTION_ID, orderId, updateData);
+    return response as unknown as Order;
   } catch (error) {
     console.error('Error updating order status:', error);
     throw error;
@@ -253,21 +170,8 @@ export async function updateOrderStatus(
  */
 export async function updateOrder(orderId: string, data: Partial<Order>): Promise<Order | null> {
   try {
-    const db = await readDatabase();
-    const orderIndex = db.orders.findIndex(o => o.$id === orderId);
-    
-    if (orderIndex === -1) {
-      return null;
-    }
-    
-    db.orders[orderIndex] = {
-      ...db.orders[orderIndex],
-      ...data,
-      $updatedAt: new Date().toISOString(),
-    };
-    
-    await writeDatabase(db);
-    return db.orders[orderIndex];
+    const response = await databases.updateDocument(DATABASE_ID, COLLECTION_ID, orderId, data);
+    return response as unknown as Order;
   } catch (error) {
     console.error('Error updating order:', error);
     throw error;
@@ -279,15 +183,7 @@ export async function updateOrder(orderId: string, data: Partial<Order>): Promis
  */
 export async function deleteOrder(orderId: string): Promise<boolean> {
   try {
-    const db = await readDatabase();
-    const orderIndex = db.orders.findIndex(o => o.$id === orderId);
-    
-    if (orderIndex === -1) {
-      return false;
-    }
-    
-    db.orders.splice(orderIndex, 1);
-    await writeDatabase(db);
+    await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, orderId);
     return true;
   } catch (error) {
     console.error('Error deleting order:', error);
