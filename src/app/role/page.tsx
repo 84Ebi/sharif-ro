@@ -40,9 +40,9 @@ export default function RolePage() {
 
         {/* Choices Section */}
         <div className="flex justify-center gap-20 flex-wrap">
-          {/* Delivery Person - SharifGir */}
+          {/* Customer - SharifGir */}
           <div
-            onClick={() => handleRoleSelect('delivery')}
+            onClick={() => handleRoleSelect('customer')}
             className="bg-white bg-opacity-10 backdrop-blur-sm p-8 rounded-3xl cursor-pointer transition-all duration-300 hover:scale-110 hover:bg-opacity-20 w-56"
           >
             <div className="flex flex-col items-center">
@@ -55,13 +55,13 @@ export default function RolePage() {
                 />
               </div>
               <h2 className="text-2xl font-bold text-[#001f3f]">SharifGir</h2>
-              <p className="text-white text-sm mt-2 opacity-80">Delivery Person</p>
+              <p className="text-white text-sm mt-2 opacity-80">Customer</p>
             </div>
           </div>
 
-          {/* Customer - SharifBar */}
+          {/* Delivery Person - SharifBar */}
           <div
-            onClick={() => handleRoleSelect('customer')}
+            onClick={() => handleRoleSelect('delivery')}
             className="bg-white bg-opacity-10 backdrop-blur-sm p-8 rounded-3xl cursor-pointer transition-all duration-300 hover:scale-110 hover:bg-opacity-20 w-56"
           >
             <div className="flex flex-col items-center">
@@ -74,7 +74,7 @@ export default function RolePage() {
                 />
               </div>
               <h2 className="text-2xl font-bold text-[#001f3f]">SharifBar</h2>
-              <p className="text-white text-sm mt-2 opacity-80">Customer</p>
+              <p className="text-white text-sm mt-2 opacity-80">Delivery Person</p>
             </div>
           </div>
         </div>
