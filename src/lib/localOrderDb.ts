@@ -32,6 +32,11 @@ export interface OrderFilters {
   maxPrice?: number;
 }
 
+type OrderUpdateData = {
+  status: 'pending' | 'confirmed' | 'delivered';
+  deliveredAt?: string;
+};
+
 /**
  * Create a new order
  */
@@ -148,7 +153,7 @@ export async function updateOrderStatus(
   status: 'pending' | 'confirmed' | 'delivered'
 ): Promise<Order | null> {
   try {
-    const updateData: any = { 
+    const updateData: OrderUpdateData = { 
       status,
     };
     
