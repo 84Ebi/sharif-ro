@@ -30,12 +30,12 @@ export default function BottomDock({ role }: BottomDockProps) {
           </div>
         </Link>
         {role === 'customer' ? (
-          <Link href="/order">
-            <div className={`flex flex-col items-center p-2 rounded-lg transition-all ${isActive('/order') ? 'bg-blue-100' : 'hover:bg-gray-100'}`}>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          <Link href="/customer/my-orders">
+            <div className={`flex flex-col items-center p-2 rounded-lg transition-all ${isActive('/customer/my-orders') ? 'bg-blue-100' : 'hover:bg-gray-100'}`}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
               </svg>
-              <span className="text-xs mt-1">New Order</span>
+              <span className="text-xs mt-1">My Orders</span>
             </div>
           </Link>
         ) : (

@@ -1,14 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../../lib/useAuth'
 import { createOrder } from '../../lib/orders'
+import BottomDock from '../../components/BottomDock'
 
 export default function OrderForm() {
   const { user, loading: authLoading } = useAuth()
+  const searchParams = useSearchParams()
+  const restaurantFromUrl = searchParams.get('restaurant') || ''
+  
   const [form, setForm] = useState({
-    restaurantLocation: '',
+    restaurantLocation: restaurantFromUrl,
     restaurantType: '',
     orderCode: '',
     deliveryLocation: '',
@@ -19,6 +23,12 @@ export default function OrderForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+
+  useEffect(() => {
+    if (restaurantFromUrl) {
+      setForm(prev => ({ ...prev, restaurantLocation: restaurantFromUrl }))
+    }
+  }, [restaurantFromUrl])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,7 +81,7 @@ export default function OrderForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-8 px-4 pb-24">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-6">
         <h1 className="text-2xl font-bold mb-6 text-gray-800">Place Your Order</h1>
         
@@ -201,6 +211,8 @@ export default function OrderForm() {
           </button>
         </form>
       </div>
+
+      <BottomDock role="customer" />
     </div>
   )
 }

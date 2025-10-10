@@ -1,67 +1,29 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../lib/useAuth'
-import { getOrdersByUser, subscribeToOrders, updateOrderStatus, type Order } from '../../lib/orders'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import BottomDock from '../../components/BottomDock'
 
-export default function CustomerOrders() {
+export default function CustomerHome() {
   const { user, loading: authLoading } = useAuth()
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'delivered'>('all')
+  const router = useRouter()
+  const [filterLocation, setFilterLocation] = useState('')
+  const [minCost, setMinCost] = useState('')
+  const [maxCost, setMaxCost] = useState('')
 
-  const loadOrders = useCallback(async () => {
-    if (!user) return
-    
-    try {
-      setLoading(true)
-      const userOrders = await getOrdersByUser(user.$id)
-      setOrders(userOrders)
-    } catch (error) {
-      console.error('Error loading orders:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [user])
+  const services = [
+    { name: 'Sharif Plus', icon: '/delivery-icon.png', location: 'Sharif Plus' },
+    { name: 'Sharif Fastfood', icon: '/shariffastfood.png', location: 'Sharif Fastfood' },
+    { name: 'Self', icon: '/self.png', location: 'Self' },
+    { name: 'Clean Food', icon: '/logo38668.jpeg', location: 'Clean Food' },
+    { name: 'Other', icon: '/other-icon.png', location: 'Other' },
+    { name: 'Kelana', icon: '/kelana-icon.png', location: 'Kelana' },
+  ]
 
-  useEffect(() => {
-    if (user) {
-      loadOrders()
-      
-      // Subscribe to real-time updates for user's orders
-      const unsubscribe = subscribeToOrders((order) => {
-        if (order.userId === user.$id) {
-          setOrders(prev => {
-            const exists = prev.find(o => o.$id === order.$id)
-            if (exists) {
-              return prev.map(o => o.$id === order.$id ? order : o)
-            }
-            return [order, ...prev]
-          })
-        }
-      })
-      
-      return () => {
-        unsubscribe()
-      }
-    }
-  }, [user, loadOrders])
-
-  const markAsDelivered = async (orderId: string) => {
-    try {
-      await updateOrderStatus(orderId, 'delivered')
-      setOrders(orders.map(o => o.$id === orderId ? { ...o, status: 'delivered' } : o))
-    } catch (error) {
-      console.error('Error marking as delivered:', error)
-      alert('Failed to update order status')
-    }
+  const handleOrderClick = (location: string) => {
+    router.push(`/order?restaurant=${encodeURIComponent(location)}`)
   }
-
-  const filteredOrders = orders.filter(order => {
-    if (filter === 'all') return true
-    return order.status === filter
-  })
 
   if (authLoading) {
     return (
@@ -74,180 +36,74 @@ export default function CustomerOrders() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Please log in to view your orders.</div>
+        <div className="text-white text-xl">Please log in to view services.</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-xl p-6 mb-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">My Orders</h1>
-            <Link 
-              href="/order"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+    <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-6 px-4 pb-24">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <header className="mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <img src="/logo-scooter.png" alt="SharifRo Logo" className="w-16 h-auto" />
+          </div>
+
+          {/* Filter Pill */}
+          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white bg-opacity-10 border border-white border-opacity-10 text-white hover:bg-opacity-20 transition-all group cursor-pointer">
+            <span className="font-bold text-sm">Filters</span>
+            <div className="hidden group-hover:flex group-focus-within:flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Location"
+                value={filterLocation}
+                onChange={(e) => setFilterLocation(e.target.value)}
+                className="px-3 py-2 rounded-lg bg-white text-gray-800 text-sm outline-none w-32"
+              />
+              <input
+                type="number"
+                placeholder="Min"
+                value={minCost}
+                onChange={(e) => setMinCost(e.target.value)}
+                className="px-3 py-2 rounded-lg bg-white text-gray-800 text-sm outline-none w-20"
+              />
+              <input
+                type="number"
+                placeholder="Max"
+                value={maxCost}
+                onChange={(e) => setMaxCost(e.target.value)}
+                className="px-3 py-2 rounded-lg bg-white text-gray-800 text-sm outline-none w-20"
+              />
+            </div>
+          </div>
+        </header>
+
+        {/* Services Grid */}
+        <main className="grid grid-cols-2 md:grid-cols-3 gap-5 mb-8">
+          {services.map((service) => (
+            <div
+              key={service.name}
+              onClick={() => handleOrderClick(service.location)}
+              className="bg-white bg-opacity-95 rounded-xl p-6 text-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl group"
             >
-              + New Order
-            </Link>
-          </div>
-
-          {/* Filter tabs */}
-          <div className="flex gap-2 mb-6 flex-wrap">
-            {(['all', 'pending', 'confirmed', 'delivered'] as const).map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilter(status)}
-                className={`px-4 py-2 rounded-lg font-medium capitalize transition ${
-                  filter === status
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                {status}
-              </button>
-            ))}
-          </div>
-
-          {/* Orders list */}
-          {loading ? (
-            <div className="text-center py-12 text-gray-600">Loading your orders...</div>
-          ) : filteredOrders.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600 mb-4">
-                {filter === 'all' 
-                  ? 'You have no orders yet.' 
-                  : `No ${filter} orders.`}
-              </p>
-              {filter === 'all' && (
-                <Link 
-                  href="/order"
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Place your first order →
-                </Link>
-              )}
+              <div className="flex flex-col items-center gap-3">
+                <img
+                  src={service.icon}
+                  alt={service.name}
+                  className="w-12 h-12 object-contain"
+                />
+                <span className="text-gray-800 font-semibold">{service.name}</span>
+                <button className="hidden group-hover:block bg-gradient-to-b from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all hover:from-blue-600 hover:to-blue-700">
+                  Order Now
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredOrders.map((order) => (
-                <div
-                  key={order.$id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold text-lg text-gray-800">
-                        {order.restaurantLocation}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {order.$createdAt && new Date(order.$createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-gray-800">
-                        ${order.price.toFixed(2)}
-                      </div>
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                          order.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : order.status === 'confirmed'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-green-100 text-green-800'
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-gray-600">
-                        <strong>Type:</strong> {order.restaurantType}
-                      </p>
-                      {order.orderCode && (
-                        <p className="text-gray-600">
-                          <strong>Order Code:</strong> {order.orderCode}
-                        </p>
-                      )}
-                      <p className="text-gray-600">
-                        <strong>Delivery To:</strong> {order.deliveryLocation}
-                      </p>
-                      {order.extraNotes && (
-                        <p className="text-gray-600">
-                          <strong>Notes:</strong> {order.extraNotes}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Delivery person info - only shown when confirmed */}
-                    {order.status === 'confirmed' && order.deliveryPersonName && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                          🚴 Your delivery is on the way!
-                        </h4>
-                        <p className="text-gray-700">
-                          <strong>Delivery Person:</strong> {order.deliveryPersonName}
-                        </p>
-                        <p className="text-gray-700">
-                          <strong>Contact:</strong>{' '}
-                          <a
-                            href={`tel:${order.deliveryPersonPhone}`}
-                            className="text-blue-600 hover:underline"
-                          >
-                            {order.deliveryPersonPhone}
-                          </a>
-                        </p>
-                        {order.confirmedAt && (
-                          <p className="text-xs text-gray-600 mt-1">
-                            Confirmed at: {new Date(order.confirmedAt).toLocaleString()}
-                          </p>
-                        )}
-                        <button
-                          onClick={() => markAsDelivered(order.$id!)}
-                          className="mt-3 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-medium text-sm"
-                        >
-                          ✓ Mark as Delivered
-                        </button>
-                      </div>
-                    )}
-
-                    {order.status === 'delivered' && order.deliveredAt && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <h4 className="font-semibold text-green-900 mb-2">
-                          ✓ Delivered
-                        </h4>
-                        <p className="text-sm text-gray-700">
-                          Delivered at: {new Date(order.deliveredAt).toLocaleString()}
-                        </p>
-                        {order.deliveryPersonName && (
-                          <p className="text-sm text-gray-700">
-                            By: {order.deliveryPersonName}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {order.status === 'pending' && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                        <h4 className="font-semibold text-yellow-900 mb-2">
-                          ⏳ Waiting for delivery person
-                        </h4>
-                        <p className="text-sm text-gray-700">
-                          Your order is pending. A delivery person will confirm it soon.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+          ))}
+        </main>
       </div>
+
+      <BottomDock role="customer" />
     </div>
   )
 }
