@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../../lib/useAuth'
 import { getOrdersByUser, Order } from '../../../lib/orders'
 import BottomDock from '../../../components/BottomDock'
@@ -12,13 +12,7 @@ export default function MyOrders() {
   const [error, setError] = useState('')
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
 
-  useEffect(() => {
-    if (user) {
-      loadOrders()
-    }
-  }, [user])
-
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     if (!user) return
     
     try {
@@ -38,7 +32,13 @@ export default function MyOrders() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (user) {
+      loadOrders()
+    }
+  }, [user, loadOrders])
 
   const getStatusColor = (status: string) => {
     switch (status) {

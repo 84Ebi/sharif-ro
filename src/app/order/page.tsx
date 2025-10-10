@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../../lib/useAuth'
 import { createOrder } from '../../lib/orders'
 import BottomDock from '../../components/BottomDock'
 
-export default function OrderForm() {
+function OrderFormContent() {
   const { user, loading: authLoading } = useAuth()
   const searchParams = useSearchParams()
   const restaurantFromUrl = searchParams.get('restaurant') || ''
@@ -214,5 +214,17 @@ export default function OrderForm() {
 
       <BottomDock role="customer" />
     </div>
+  )
+}
+
+export default function OrderForm() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <OrderFormContent />
+    </Suspense>
   )
 }

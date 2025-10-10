@@ -140,6 +140,7 @@ export default function Delivery() {
         {/* Header */}
         <header className="mb-4">
           <div className="flex items-center gap-3 mb-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/gift.png" alt="Logo" className="w-14 h-14 object-contain" style={{mixBlendMode: 'screen'}} />
             <h1 className="text-lg font-bold text-white">Delivery Dashboard</h1>
           </div>

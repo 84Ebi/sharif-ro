@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../../lib/useAuth'
 import { getOrders, updateOrderStatus, Order } from '../../../lib/orders'
 import BottomDock from '../../../components/BottomDock'
@@ -13,13 +13,7 @@ export default function MyDeliveries() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'delivered'>('all')
 
-  useEffect(() => {
-    if (user) {
-      loadOrders()
-    }
-  }, [user])
-
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     if (!user) return
     
     try {
@@ -39,7 +33,13 @@ export default function MyDeliveries() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (user) {
+      loadOrders()
+    }
+  }, [user, loadOrders])
 
   const markAsDelivered = async (orderId: string) => {
     try {

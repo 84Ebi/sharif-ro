@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../../lib/useAuth'
 import { useRouter } from 'next/navigation'
 import BottomDock from '../../components/BottomDock'
