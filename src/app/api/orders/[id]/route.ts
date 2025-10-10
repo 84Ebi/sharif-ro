@@ -75,8 +75,9 @@ export async function PATCH(
     return Response.json({ order }, { status: 200 });
   } catch (error) {
     console.error('Error updating order:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return Response.json(
-      { error: 'Failed to update order' },
+      { error: `Failed to update order: ${errorMessage}` },
       { status: 500 }
     );
   }
