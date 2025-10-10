@@ -503,7 +503,7 @@ export default function Delivery() {
         <header className="topbar">
           <div className="topbar-inner">
             <div className="brand">
-              <div className="brand-logo">🛵</div>
+                <img src="/gift.png" alt="Logo" className="brand-logo" />
             </div>
             <h1 className="page-title">Delivery Dashboard</h1>
           </div>
