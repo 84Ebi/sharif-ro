@@ -9,6 +9,7 @@ interface User {
   name: string
   email: string
   phone: string
+  emailVerification: boolean
   prefs: Record<string, string | number | boolean>
 }
 

@@ -8,11 +8,7 @@ import { useState } from 'react'
 export default function CustomerPage() {
   const router = useRouter()
   const { loading } = useAuth()
-  const [filterExpanded, setFilterExpanded] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [location, setLocation] = useState('')
-  const [minCost, setMinCost] = useState('')
-  const [maxCost, setMaxCost] = useState('')
 
   const services = [
     { 
@@ -34,10 +30,10 @@ export default function CustomerPage() {
     { 
       id: 'self', 
       name: 'Self Service', 
-      icon: '/4537278.png', 
+      icon: '/self.png', 
       route: '/courier',
       description: 'Pick up your own orders',
-      color: 'from-green-500 to-green-600'
+      color: 'white'
     },
     { 
       id: 'clean', 
@@ -53,7 +49,7 @@ export default function CustomerPage() {
       icon: '/other-icon.png', 
       route: '/service',
       description: 'Various delivery options',
-      color: 'from-purple-500 to-purple-600'
+      color: 'white'
     },
     { 
       id: 'kelana', 
@@ -89,12 +85,11 @@ export default function CustomerPage() {
               alt="SharifRo Logo" 
               width={164} 
               height={164}
-              className="object-contain w-16 h-16 "
+              className="object-contain "
               priority
             />
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-white">SharifGir</h1>
-              <p className="text-xs sm:text-sm text-white/80">Your delivery partner</p>
             </div>
           </div>
           
@@ -119,44 +114,7 @@ export default function CustomerPage() {
           </svg>
         </div>
 
-        {/* Filter Pill */}
-        <div 
-          className={`self-start relative inline-flex items-center gap-[10px] px-3 py-2 rounded-full bg-white/10 border border-white/20 cursor-pointer transition-all backdrop-blur-sm ${filterExpanded ? 'bg-white/20 w-auto px-[14px]' : 'w-[110px] justify-center'}`}
-          onMouseEnter={() => setFilterExpanded(true)}
-          onMouseLeave={() => setFilterExpanded(false)}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-          </svg>
-          <span className="font-bold text-[13px]">Filters</span>
-          {filterExpanded && (
-            <div className="flex gap-2 items-center ml-2 animate-in fade-in slide-in-from-left-2 duration-200">
-              <input 
-                type="text" 
-                placeholder="Location" 
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="px-[10px] py-2 rounded-[10px] border-none bg-white/95 text-[#02243a] text-[13px] min-w-[120px] outline-none shadow-lg"
-              />
-              <div className="flex gap-2">
-                <input 
-                  type="number" 
-                  placeholder="Min $" 
-                  value={minCost}
-                  onChange={(e) => setMinCost(e.target.value)}
-                  className="px-[10px] py-2 rounded-[10px] border-none bg-white/95 text-[#02243a] text-[13px] w-[72px] outline-none shadow-lg"
-                />
-                <input 
-                  type="number" 
-                  placeholder="Max $" 
-                  value={maxCost}
-                  onChange={(e) => setMaxCost(e.target.value)}
-                  className="px-[10px] py-2 rounded-[10px] border-none bg-white/95 text-[#02243a] text-[13px] w-[72px] outline-none shadow-lg"
-                />
-              </div>
-            </div>
-          )}
-        </div>
+
       </header>
 
       {/* Services Grid */}
@@ -172,7 +130,7 @@ export default function CustomerPage() {
             >
               <div className="flex flex-col items-center gap-3">
                 {/* Icon with gradient background */}
-                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br ${service.color} p-3 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br ${service.color} p-3 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300`}>
                   <Image 
                     src={service.icon} 
                     alt={service.name}

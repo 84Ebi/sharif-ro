@@ -48,7 +48,7 @@ export default function RolePage() {
             <div className="flex flex-col items-center">
               <div className="w-24 h-24 mb-5 flex items-center justify-center">
                 <Image 
-                  src="/4537278.png" 
+                  src="/sharifgir.jpg" 
                   alt="SharifGir Icon" 
                   width={96} 
                   height={96}
@@ -67,7 +67,7 @@ export default function RolePage() {
             <div className="flex flex-col items-center">
               <div className="w-24 h-24 mb-5 flex items-center justify-center">
                 <Image 
-                  src="/gift.png" 
+                  src="/sharifbar.png" 
                   alt="SharifBar Icon" 
                   width={96} 
                   height={96}

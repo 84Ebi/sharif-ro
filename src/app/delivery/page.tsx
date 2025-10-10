@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import BottomDock from '../../components/BottomDock'
 import { useAuth } from '../../lib/useAuth'
+import Link from 'next/link'
 
 interface Order {
   $id: string
@@ -42,8 +43,7 @@ const mockOrders: Order[] = [
 ]
 
 export default function Delivery() {
-  const { loading: authLoading } = useAuth()
-  const [user, setUser] = useState<{$id: string; name: string; email: string} | null>(null)
+  const { user, loading: authLoading } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
   const [locationFilter, setLocationFilter] = useState('')
@@ -72,16 +72,11 @@ export default function Delivery() {
     setOrders(mockOrders)
   }, []);
 
-  const checkUser = useCallback(async () => {
-    // Mock user
-    const mockUser = {
-      $id: 'user1',
-      name: 'Mock Delivery User',
-      email: 'delivery@example.com',
+  useEffect(() => {
+    if (user && user.emailVerification) {
+      loadOrders()
     }
-    setUser(mockUser)
-    loadOrders()
-  }, [loadOrders]);
+  }, [user, loadOrders])
 
   const acceptOrder = async (orderId: string) => {
     if (!user) return
@@ -89,10 +84,6 @@ export default function Delivery() {
     setOrders(orders.map(order => order.$id === orderId ? { ...order, assigned: true, deliveryPerson: user.$id } : order))
     alert('Order accepted')
   }
-
-  useEffect(() => {
-    checkUser()
-  }, [checkUser])
 
   useEffect(() => {
     filterOrders()
@@ -109,8 +100,141 @@ export default function Delivery() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{background: 'linear-gradient(to right, #0d47a1, #bbdefb)'}}>
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-white text-xl">Please log in to access delivery dashboard.</div>
       </div>
+    )
+  }
+
+  // Check if user is verified
+  if (!user.emailVerification) {
+    return (
+      <>
+        <style jsx>{`
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          
+          .background {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to right, #0d47a1, #bbdefb);
+            color: #fff;
+            padding: 18px;
+            padding-bottom: 80px;
+          }
+
+          .verification-banner {
+            width: 100%;
+            max-width: 920px;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 193, 7, 0.95);
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+          }
+
+          .banner-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #02243a;
+            margin-bottom: 12px;
+          }
+
+          .banner-text {
+            font-size: 1rem;
+            color: #02243a;
+            margin-bottom: 20px;
+            opacity: 0.9;
+          }
+
+          .btn-verify {
+            background: linear-gradient(180deg, #4f7bff 0%, #3b5fe6 100%);
+            color: #fff;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-weight: 700;
+            border: none;
+            box-shadow: 0 8px 20px rgba(79,123,255,0.3);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.12s ease;
+            font-size: 1rem;
+          }
+
+          .btn-verify:hover {
+            transform: translateY(-2px);
+          }
+
+          .info-card {
+            width: 100%;
+            max-width: 920px;
+            margin-top: 24px;
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(6px);
+          }
+
+          .info-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+          }
+
+          .info-list {
+            list-style: none;
+            padding: 0;
+          }
+
+          .info-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+
+          .info-list li:last-child {
+            border-bottom: none;
+          }
+
+          @media (max-width: 720px) {
+            .banner-title {
+              font-size: 1.25rem;
+            }
+            .banner-text {
+              font-size: 0.9rem;
+            }
+          }
+        `}</style>
+
+        <div className="background">
+          <div className="verification-banner">
+            <h2 className="banner-title">⚠️ Verification Required</h2>
+            <p className="banner-text">
+              Your account is not yet verified to accept delivery orders. 
+              Please complete the verification process to start delivering.
+            </p>
+            <Link href="/delivery/verify" className="btn-verify">
+              Go to Verification
+            </Link>
+          </div>
+
+          <div className="info-card">
+            <h3 className="info-title">Why Verification?</h3>
+            <ul className="info-list">
+              <li>✓ Ensures safe and reliable deliveries</li>
+              <li>✓ Protects customers and delivery partners</li>
+              <li>✓ Verifies student identity</li>
+              <li>✓ Manual review by admins for security</li>
+            </ul>
+          </div>
+
+          <BottomDock role="delivery" />
+        </div>
+      </>
     )
   }
 
