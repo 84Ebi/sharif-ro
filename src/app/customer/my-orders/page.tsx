@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '../../../lib/useAuth'
-import { createOrder } from '../../../lib/orders'
+import { createOrder, getOrdersByUser, Order } from '../../../lib/orders'
 import BottomDock from '../../../components/BottomDock'
 
 interface MenuItem {
@@ -53,6 +53,9 @@ function OrderCompletionContent() {
   const router = useRouter()
 
   const [orderData, setOrderData] = useState<OrderData | null>(null)
+  const [pastOrders, setPastOrders] = useState<Order[]>([])
+  const [pageMode, setPageMode] = useState<'loading' | 'completion' | 'history'>('loading')
+
   const [deliveryLocation, setDeliveryLocation] = useState('')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [extraNotes, setExtraNotes] = useState('')
@@ -67,11 +70,26 @@ function OrderCompletionContent() {
       try {
         const parsedData = JSON.parse(decodeURIComponent(orderQuery))
         setOrderData(parsedData)
+        setPageMode('completion')
       } catch (e) {
         setError('Invalid order data.')
+        setPageMode('history') // Fallback to history
       }
+    } else {
+      // No order in query, so fetch past orders
+      setPageMode('history')
     }
   }, [searchParams])
+
+  useEffect(() => {
+    if (pageMode === 'history' && user) {
+      setLoading(true)
+      getOrdersByUser(user.$id)
+        .then(setPastOrders)
+        .catch(() => setError('Failed to fetch past orders.'))
+        .finally(() => setLoading(false))
+    }
+  }, [pageMode, user])
 
   const handleSubmitOrder = async () => {
     if (!user) {
@@ -86,7 +104,7 @@ function OrderCompletionContent() {
       setError('Please select a delivery location.')
       return
     }
-     if (!phone) {
+    if (!phone) {
       setError('Please enter a phone number.')
       return
     }
@@ -112,7 +130,6 @@ function OrderCompletionContent() {
         status: 'pending',
       })
 
-      // Redirect to a success page or the main customer page
       router.push('/customer')
       alert('Your order has been placed successfully!')
     } catch (err: unknown) {
@@ -123,12 +140,51 @@ function OrderCompletionContent() {
     }
   }
 
-  if (authLoading) {
-    return <div className="text-center p-8">Loading user...</div>
+  if (authLoading || pageMode === 'loading') {
+    return <div className="text-center p-8 text-white">Loading...</div>
+  }
+
+  if (pageMode === 'history') {
+    return (
+      <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-6 px-4 pb-24">
+        <div className="max-w-md mx-auto">
+          <header className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-white">My Past Orders</h1>
+          </header>
+          {loading && <div className="text-center text-white">Loading orders...</div>}
+          {error && <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">{error}</div>}
+          <div className="space-y-4">
+            {pastOrders.length > 0 ? (
+              pastOrders.map((order) => (
+                <div key={order.$id} className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-bold text-gray-800">{order.restaurantLocation}</span>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      order.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
+                      order.status === 'confirmed' ? 'bg-blue-200 text-blue-800' :
+                      'bg-green-200 text-green-800'
+                    }`}>{order.status}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-2 whitespace-pre-wrap">{order.orderCode}</p>
+                  <div className="text-right font-bold text-blue-600">{order.price.toLocaleString()} تومان</div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-white bg-white bg-opacity-20 p-6 rounded-xl">
+                You have no past orders.
+              </div>
+            )}
+          </div>
+        </div>
+        <BottomDock role="customer" />
+      </div>
+    )
   }
 
   if (!orderData) {
-    return <div className="text-center p-8">Loading order details...</div>
+    // This case should ideally not be hit if logic is correct, but as a fallback:
+    router.push('/customer'); // Redirect if no order data and not in history mode
+    return <div className="text-center p-8 text-white">Redirecting...</div>;
   }
 
   const deliveryFee = 15000
@@ -190,7 +246,7 @@ function OrderCompletionContent() {
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
         </div>
-         <div>
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">شماره تلفن</label>
           <input
             value={phone}
@@ -243,7 +299,7 @@ function OrderCompletionContent() {
 
 export default function MyOrdersPage() {
   return (
-    <Suspense fallback={<div className="text-center p-8">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 text-center p-8 text-white">Loading Page...</div>}>
       <OrderCompletionContent />
     </Suspense>
   )
