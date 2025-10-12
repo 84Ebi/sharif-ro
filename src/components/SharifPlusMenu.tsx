@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '../lib/useAuth'
-import { createOrder } from '../lib/orders'
+import { useRouter } from 'next/navigation'
 
 interface MenuItem {
   name: string
@@ -18,12 +18,10 @@ interface SharifPlusMenuProps {
 
 export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: SharifPlusMenuProps) {
   const { user } = useAuth()
+  const router = useRouter()
   const [selectedItems, setSelectedItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [deliveryLocation, setDeliveryLocation] = useState('')
-  const [phone, setPhone] = useState('')
-  const [extraNotes, setExtraNotes] = useState('')
 
   const menuData = [
     {
@@ -149,66 +147,22 @@ export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: Shar
     return selectedItems.reduce((sum, item) => sum + item.price, 0)
   }
 
-  const handleSubmitOrder = async () => {
-    if (!user) {
-      setError('Please log in to place an order')
-      return
-    }
-
+  const handleProceedToOrder = () => {
     if (selectedItems.length === 0) {
-      setError('Please select at least one item')
+      setError('Please select at least one item.')
       return
     }
 
-    if (!deliveryLocation.trim()) {
-      setError('Please enter your delivery location')
-      return
+    const orderData = {
+      items: selectedItems,
+      total: calculateTotal(),
     }
 
-    if (!phone.trim()) {
-      setError('Please enter your phone number')
-      return
-    }
-
-    setLoading(true)
-    setError('')
-
-    try {
-      // Format order items as a string
-      const orderItemsText = selectedItems
-        .map((item) => `${item.name} - ${item.price.toLocaleString()} تومان`)
-        .join('\n')
-
-      await createOrder({
-        userId: user.$id,
-        fullName: user.name,
-        restaurantLocation: 'Sharif Plus',
-        restaurantType: 'Sharif Plus Menu',
-        orderCode: orderItemsText, // Save items in orderCode field
-        deliveryLocation: deliveryLocation,
-        phone: phone,
-        extraNotes: extraNotes || undefined,
-        price: calculateTotal(),
-        status: 'pending',
-      })
-
-      // Success! Reset form
-      setSelectedItems([])
-      setDeliveryLocation('')
-      setPhone('')
-      setExtraNotes('')
-      
-      if (onOrderSuccess) {
-        onOrderSuccess()
-      }
-      
-      onClose()
-    } catch (err: unknown) {
-      console.error('Order submission error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to create order. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+    // Navigate to the order completion page with selected items
+    router.push(
+      `/customer/my-orders?order=${encodeURIComponent(JSON.stringify(orderData))}`
+    )
+    onClose()
   }
 
   if (!isOpen) return null
@@ -235,7 +189,7 @@ export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: Shar
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-200px)] p-6">
+        <div className="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
               {error}
@@ -273,51 +227,6 @@ export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: Shar
               </div>
             ))}
           </div>
-
-          {/* Order Details Form */}
-          {selectedItems.length > 0 && (
-            <div className="bg-white bg-opacity-95 rounded-xl p-4 mb-4 shadow-lg">
-              <h3 className="text-lg font-bold text-gray-800 mb-3">Order Details</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Delivery Location *
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Your delivery address"
-                    value={deliveryLocation}
-                    onChange={(e) => setDeliveryLocation(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="Your phone number"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Extra Notes (Optional)
-                  </label>
-                  <textarea
-                    placeholder="Any special instructions"
-                    value={extraNotes}
-                    onChange={(e) => setExtraNotes(e.target.value)}
-                    rows={2}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Footer with Total and Submit */}
@@ -333,11 +242,11 @@ export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: Shar
               {selectedItems.length} items selected
             </div>
             <button
-              onClick={handleSubmitOrder}
+              onClick={handleProceedToOrder}
               disabled={loading}
               className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
             >
-              {loading ? 'Submitting...' : 'Submit Order'}
+              {loading ? 'Processing...' : 'Complete Your Order'}
             </button>
           </div>
         )}
