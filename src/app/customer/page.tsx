@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/useAuth'
 import { useRouter } from 'next/navigation'
 import BottomDock from '../../components/BottomDock'
 import SharifPlusMenu from '../../components/SharifPlusMenu'
+import SharifFastFoodMenu from '../../components/SharifFastFoodMenu'
 
 export default function CustomerHome() {
   const { user, loading: authLoading } = useAuth()
@@ -12,7 +13,8 @@ export default function CustomerHome() {
   const [filterLocation, setFilterLocation] = useState('')
   const [minCost, setMinCost] = useState('')
   const [maxCost, setMaxCost] = useState('')
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false)
+  const [isFastFoodMenuOpen, setIsFastFoodMenuOpen] = useState(false)
 
   const services = [
     { name: 'Sharif Plus', icon: '/delivery-icon.png', location: 'Sharif Plus' },
@@ -24,9 +26,10 @@ export default function CustomerHome() {
   ]
 
   const handleOrderClick = (location: string) => {
-    // If Sharif Plus is clicked, open the menu popup
     if (location === 'Sharif Plus') {
-      setIsMenuOpen(true)
+      setIsPlusMenuOpen(true)
+    } else if (location === 'Sharif Fastfood') {
+      setIsFastFoodMenuOpen(true)
     } else {
       router.push(`/order?restaurant=${encodeURIComponent(location)}`)
     }
@@ -46,9 +49,10 @@ export default function CustomerHome() {
   }
 
   if (!user) {
+    router.push('/auth')
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Please log in to view services.</div>
+        <div className="text-white text-xl">Redirecting to login...</div>
       </div>
     )
   }
@@ -119,9 +123,15 @@ export default function CustomerHome() {
       
       {/* Sharif Plus Menu Popup */}
       <SharifPlusMenu 
-        isOpen={isMenuOpen} 
-        onClose={() => setIsMenuOpen(false)}
+        isOpen={isPlusMenuOpen} 
+        onClose={() => setIsPlusMenuOpen(false)}
         onOrderSuccess={handleOrderSuccess}
+      />
+
+      {/* Sharif Fast Food Menu Popup */}
+      <SharifFastFoodMenu 
+        isOpen={isFastFoodMenuOpen} 
+        onClose={() => setIsFastFoodMenuOpen(false)}
       />
     </div>
   )
