@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useAuth } from '../../lib/useAuth'
 import { useRouter } from 'next/navigation'
 import BottomDock from '../../components/BottomDock'
+import SharifPlusMenu from '../../components/SharifPlusMenu'
 
 export default function CustomerHome() {
   const { user, loading: authLoading } = useAuth()
@@ -11,6 +12,7 @@ export default function CustomerHome() {
   const [filterLocation, setFilterLocation] = useState('')
   const [minCost, setMinCost] = useState('')
   const [maxCost, setMaxCost] = useState('')
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const services = [
     { name: 'Sharif Plus', icon: '/delivery-icon.png', location: 'Sharif Plus' },
@@ -22,7 +24,17 @@ export default function CustomerHome() {
   ]
 
   const handleOrderClick = (location: string) => {
-    router.push(`/order?restaurant=${encodeURIComponent(location)}`)
+    // If Sharif Plus is clicked, open the menu popup
+    if (location === 'Sharif Plus') {
+      setIsMenuOpen(true)
+    } else {
+      router.push(`/order?restaurant=${encodeURIComponent(location)}`)
+    }
+  }
+
+  const handleOrderSuccess = () => {
+    // Show success message or redirect
+    alert('Order submitted successfully!')
   }
 
   if (authLoading) {
@@ -104,6 +116,13 @@ export default function CustomerHome() {
       </div>
 
       <BottomDock role="customer" />
+      
+      {/* Sharif Plus Menu Popup */}
+      <SharifPlusMenu 
+        isOpen={isMenuOpen} 
+        onClose={() => setIsMenuOpen(false)}
+        onOrderSuccess={handleOrderSuccess}
+      />
     </div>
   )
 }
