@@ -59,6 +59,9 @@ function ShoppingCartContent() {
   const [discountCode, setDiscountCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [pastOrders, setPastOrders] = useState<Order[]>([])
+  const [historyLoading, setHistoryLoading] = useState(true)
+  const [historyError, setHistoryError] = useState('')
 
   useEffect(() => {
     const cartData = sessionStorage.getItem('shoppingCart')
@@ -72,6 +75,16 @@ function ShoppingCartContent() {
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (user) {
+      setHistoryLoading(true)
+      getOrdersByUser(user.$id)
+        .then(setPastOrders)
+        .catch(() => setHistoryError('Failed to fetch past orders.'))
+        .finally(() => setHistoryLoading(false))
+    }
+  }, [user])
 
   const handleSubmitOrder = async () => {
     if (!user) {
@@ -128,124 +141,154 @@ function ShoppingCartContent() {
     return <div className="text-center p-8 text-white">Loading...</div>
   }
 
-  if (!orderData || orderData.items.length === 0) {
-    return (
-       <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-6 px-4 pb-24">
-        <div className="max-w-md mx-auto text-center">
-           <h1 className="text-2xl font-bold text-white mb-6">Shopping Cart</h1>
-           <div className="bg-white bg-opacity-20 p-8 rounded-xl">
-            <p className="text-white">Your shopping cart is empty.</p>
-           </div>
-        </div>
-        <BottomDock role="customer" />
-      </div>
-    )
-  }
-
   const deliveryFee = 15000
-  const finalPrice = orderData.total + deliveryFee
+  const finalPrice = orderData ? orderData.total + deliveryFee : deliveryFee
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-6 px-4 pb-24">
-      <div className="max-w-md mx-auto bg-white bg-opacity-95 rounded-2xl shadow-xl p-6 space-y-6">
-        <header className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800">سبد خرید</h1>
-        </header>
+      <div className="max-w-md mx-auto space-y-6">
+        {orderData && orderData.items.length > 0 ? (
+          <div className="bg-white bg-opacity-95 rounded-2xl shadow-xl p-6 space-y-6">
+            <header className="text-center">
+              <h1 className="text-2xl font-bold text-gray-800">سبد خرید</h1>
+            </header>
 
-        {error && (
-          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            {error}
+            {error && (
+              <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            {/* Delivery Location */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                انتخاب محل دریافت سفارش
+              </label>
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-full p-3 border border-blue-500 rounded-lg bg-blue-50 text-right flex justify-between items-center"
+                >
+                  <span>{deliveryLocation || 'محل را انتخاب کنید'}</span>
+                  <span>▼</span>
+                </button>
+                {isDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto border border-gray-200">
+                    {deliveryLocations.map((loc) => (
+                      <div
+                        key={loc}
+                        onClick={() => {
+                          setDeliveryLocation(loc)
+                          setIsDropdownOpen(false)
+                        }}
+                        className="p-3 hover:bg-blue-50 cursor-pointer text-right"
+                      >
+                        {loc}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Order Notes and Phone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">توضیحات سفارش</label>
+              <textarea
+                value={extraNotes}
+                onChange={(e) => setExtraNotes(e.target.value)}
+                rows={2}
+                placeholder="اگر سفارش‌تان نیاز به توضیحات دارد اینجا بنویسید."
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">شماره تلفن</label>
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                type="tel"
+                placeholder="شماره تلفن خود را وارد کنید"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">کد تخفیف</label>
+              <input
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value)}
+                type="text"
+                placeholder="کد تخفیف خود را وارد کنید"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Order Summary */}
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold text-gray-800">خلاصه سفارش</h2>
+              <div className="flex justify-between text-gray-700">
+                <span>جمع سفارش ({orderData.items.length})</span>
+                <span>{orderData.total.toLocaleString()} تومان</span>
+              </div>
+              <div className="flex justify-between text-gray-700">
+                <span>هزینه ارسال</span>
+                <span>{deliveryFee.toLocaleString()} تومان</span>
+              </div>
+              <div className="flex justify-between font-bold text-xl text-gray-800 pt-2 border-t">
+                <span>مبلغ قابل پرداخت</span>
+                <span>{finalPrice.toLocaleString()} تومان</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleSubmitOrder}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
+            >
+              {loading ? 'در حال ثبت سفارش...' : 'ثبت نهایی سفارش'}
+            </button>
+          </div>
+        ) : (
+          <div className="max-w-md mx-auto text-center">
+            <h1 className="text-2xl font-bold text-white mb-6">Shopping Cart</h1>
+            <div className="bg-white bg-opacity-20 p-8 rounded-xl">
+              <p className="text-white">Your shopping cart is empty.</p>
+            </div>
           </div>
         )}
 
-        {/* Delivery Location */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            انتخاب محل دریافت سفارش
-          </label>
-          <div className="relative">
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full p-3 border border-blue-500 rounded-lg bg-blue-50 text-right flex justify-between items-center"
-            >
-              <span>{deliveryLocation || 'محل را انتخاب کنید'}</span>
-              <span>▼</span>
-            </button>
-            {isDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto border border-gray-200">
-                {deliveryLocations.map((loc) => (
-                  <div
-                    key={loc}
-                    onClick={() => {
-                      setDeliveryLocation(loc)
-                      setIsDropdownOpen(false)
-                    }}
-                    className="p-3 hover:bg-blue-50 cursor-pointer text-right"
-                  >
-                    {loc}
+        {/* Past Orders */}
+        <div className="max-w-md mx-auto">
+          <header className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-white">My Past Orders</h1>
+          </header>
+          {historyLoading && <div className="text-center text-white">Loading orders...</div>}
+          {historyError && <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">{historyError}</div>}
+          <div className="space-y-4">
+            {pastOrders.length > 0 ? (
+              pastOrders.map((order) => (
+                <div key={order.$id} className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-bold text-gray-800">{order.restaurantLocation}</span>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      order.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
+                      order.status === 'confirmed' ? 'bg-blue-200 text-blue-800' :
+                      'bg-green-200 text-green-800'
+                    }`}>{order.status}</span>
                   </div>
-                ))}
-              </div>
+                  <p className="text-sm text-gray-600 mb-2 whitespace-pre-wrap">{order.orderCode}</p>
+                  <div className="text-right font-bold text-blue-600">{order.price.toLocaleString()} تومان</div>
+                </div>
+              ))
+            ) : (
+              !historyLoading && (
+                <div className="text-center text-white bg-white bg-opacity-20 p-6 rounded-xl">
+                  You have no past orders.
+                </div>
+              )
             )}
           </div>
         </div>
-
-        {/* Order Notes and Phone */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">توضیحات سفارش</label>
-          <textarea
-            value={extraNotes}
-            onChange={(e) => setExtraNotes(e.target.value)}
-            rows={2}
-            placeholder="اگر سفارش‌تان نیاز به توضیحات دارد اینجا بنویسید."
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">شماره تلفن</label>
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            type="tel"
-            placeholder="شماره تلفن خود را وارد کنید"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">کد تخفیف</label>
-          <input
-            value={discountCode}
-            onChange={(e) => setDiscountCode(e.target.value)}
-            type="text"
-            placeholder="کد تخفیف خود را وارد کنید"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Order Summary */}
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-gray-800">خلاصه سفارش</h2>
-          <div className="flex justify-between text-gray-700">
-            <span>جمع سفارش ({orderData.items.length})</span>
-            <span>{orderData.total.toLocaleString()} تومان</span>
-          </div>
-          <div className="flex justify-between text-gray-700">
-            <span>هزینه ارسال</span>
-            <span>{deliveryFee.toLocaleString()} تومان</span>
-          </div>
-          <div className="flex justify-between font-bold text-xl text-gray-800 pt-2 border-t">
-            <span>مبلغ قابل پرداخت</span>
-            <span>{finalPrice.toLocaleString()} تومان</span>
-          </div>
-        </div>
-
-        <button
-          onClick={handleSubmitOrder}
-          disabled={loading}
-          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
-        >
-          {loading ? 'در حال ثبت سفارش...' : 'ثبت نهایی سفارش'}
-        </button>
       </div>
       <BottomDock role="customer" />
     </div>
