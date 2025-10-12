@@ -52,7 +52,7 @@ function OrderHistory() {
           },
         ]
         setOrders(mockOrders)
-      } catch (err) {
+      } catch {
         setError('Failed to fetch order history.')
       } finally {
         setLoading(false)
@@ -157,8 +157,8 @@ export default function AccountPage() {
       
       alert('Profile updated successfully')
       setEditMode({ name: false, studentCode: false, phone: false })
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile'
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
       setError(errorMessage)
     } finally {
       setLoading(false)

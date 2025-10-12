@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useAuth } from '../lib/useAuth'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 interface Addon {
   name: string
@@ -27,12 +27,11 @@ interface SharifFastFoodMenuProps {
 }
 
 export default function SharifFastFoodMenu({ isOpen, onClose }: SharifFastFoodMenuProps) {
-  const { user } = useAuth()
   const router = useRouter()
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([])
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [openAddons, setOpenAddons] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const menuData: { category: string; items: MenuItem[] }[] = [
     {
@@ -225,6 +224,7 @@ export default function SharifFastFoodMenu({ isOpen, onClose }: SharifFastFoodMe
       }
     }
     
+    setLoading(true)
     sessionStorage.setItem('shoppingCart', JSON.stringify(finalCart))
     router.push('/customer/shopping-cart')
     onClose()
@@ -241,7 +241,7 @@ export default function SharifFastFoodMenu({ isOpen, onClose }: SharifFastFoodMe
         {/* Header */}
         <div className="bg-white bg-opacity-95 p-4 flex items-center justify-between border-b flex-shrink-0">
           <div className="flex items-center gap-3">
-            <img src="/logo38668.jpeg" alt="Sharif Fast Food" className="w-12 h-12 rounded-lg" />
+            <Image src="/logo38668.jpeg" alt="Sharif Fast Food" width={48} height={48} className="w-12 h-12 rounded-lg" />
             <h2 className="text-2xl font-bold text-gray-800">منوی فست فود شریف</h2>
           </div>
           <button onClick={onClose} className="text-gray-600 hover:text-gray-800 text-3xl font-bold">×</button>

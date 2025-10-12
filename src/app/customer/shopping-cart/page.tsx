@@ -70,10 +70,10 @@ function ShoppingCartContent() {
       try {
         const parsedData = JSON.parse(cartData)
         if (parsedData.items) {
-          const itemsWithQuantity = parsedData.items.reduce((acc: any, item: any) => {
-            const existingItem = acc.find((i: any) => i.name === item.name)
+          const itemsWithQuantity = parsedData.items.reduce((acc: MenuItem[], item: MenuItem) => {
+            const existingItem = acc.find((i: MenuItem) => i.name === item.name)
             if (existingItem) {
-              existingItem.quantity += 1
+              existingItem.quantity = (existingItem.quantity || 0) + 1
             } else {
               acc.push({ ...item, quantity: 1 })
             }
@@ -83,7 +83,7 @@ function ShoppingCartContent() {
         } else {
           setOrderData(parsedData)
         }
-      } catch (e) {
+      } catch {
         setError('Invalid cart data.')
         sessionStorage.removeItem('shoppingCart')
       }

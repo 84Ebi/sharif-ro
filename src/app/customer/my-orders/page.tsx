@@ -71,7 +71,7 @@ function OrderCompletionContent() {
         const parsedData = JSON.parse(decodeURIComponent(orderQuery))
         setOrderData(parsedData)
         setPageMode('completion')
-      } catch (e) {
+      } catch {
         setError('Invalid order data.')
         setPageMode('history') // Fallback to history
       }

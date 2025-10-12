@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import BottomDock from '../../components/BottomDock'
 import SharifPlusMenu from '../../components/SharifPlusMenu'
 import SharifFastFoodMenu from '../../components/SharifFastFoodMenu'
+import Image from 'next/image'
 
 export default function CustomerHome() {
   const { user, loading: authLoading } = useAuth()
@@ -63,7 +64,7 @@ export default function CustomerHome() {
         {/* Header */}
         <header className="mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <img src="/logo-scooter.png" alt="SharifRo Logo" className="w-16 h-auto" />
+            <Image src="/logo-scooter.png" alt="SharifRo Logo" width={64} height={64} className="w-16 h-auto" />
           </div>
 
           {/* Filter Pill */}
@@ -104,9 +105,11 @@ export default function CustomerHome() {
               className="bg-white bg-opacity-95 rounded-xl p-6 text-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl group"
             >
               <div className="flex flex-col items-center gap-3">
-                <img
+                <Image
                   src={service.icon}
                   alt={service.name}
+                  width={48}
+                  height={48}
                   className="w-12 h-12 object-contain"
                 />
                 <span className="text-gray-800 font-semibold">{service.name}</span>

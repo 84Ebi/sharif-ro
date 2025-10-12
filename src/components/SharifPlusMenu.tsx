@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useAuth } from '../lib/useAuth'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 interface MenuItem {
   name: string
@@ -13,15 +13,14 @@ interface MenuItem {
 interface SharifPlusMenuProps {
   isOpen: boolean
   onClose: () => void
-  onOrderSuccess?: () => void
+  onOrderSuccess: () => void
 }
 
 export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: SharifPlusMenuProps) {
-  const { user } = useAuth()
   const router = useRouter()
   const [selectedItems, setSelectedItems] = useState<MenuItem[]>([])
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const menuData = [
     {
@@ -153,6 +152,8 @@ export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: Shar
       return
     }
 
+    setLoading(true)
+
     const orderData = {
       items: selectedItems,
       total: calculateTotal(),
@@ -163,7 +164,8 @@ export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: Shar
 
     // Navigate to the order completion page
     router.push('/customer/shopping-cart');
-    onClose()
+    onOrderSuccess();
+    onClose();
   }
 
   if (!isOpen) return null
@@ -177,7 +179,7 @@ export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: Shar
         {/* Header */}
         <div className="bg-white bg-opacity-95 p-4 flex items-center justify-between border-b flex-shrink-0">
           <div className="flex items-center gap-3">
-            <img src="/logo38668.jpeg" alt="Sharif Plus" className="w-12 h-12 rounded-lg" />
+            <Image src="/logo38668.jpeg" alt="Sharif Plus" width={48} height={48} className="w-12 h-12 rounded-lg" />
             <h2 className="text-2xl font-bold text-gray-800">منوی شریف پلاس</h2>
           </div>
           <button
