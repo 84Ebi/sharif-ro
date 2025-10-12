@@ -158,10 +158,11 @@ export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: Shar
       total: calculateTotal(),
     }
 
-    // Navigate to the order completion page with selected items
-    router.push(
-      `/customer/my-orders?order=${encodeURIComponent(JSON.stringify(orderData))}`
-    )
+    // Save to session storage
+    sessionStorage.setItem('shoppingCart', JSON.stringify(orderData));
+
+    // Navigate to the order completion page
+    router.push('/customer/shopping-cart');
     onClose()
   }
 
@@ -170,11 +171,11 @@ export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: Shar
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={onClose}>
       <div
-        className="bg-gradient-to-r from-blue-900 to-blue-200 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+        className="bg-gradient-to-r from-blue-900 to-blue-200 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-white bg-opacity-95 p-4 flex items-center justify-between border-b">
+        <div className="bg-white bg-opacity-95 p-4 flex items-center justify-between border-b flex-shrink-0">
           <div className="flex items-center gap-3">
             <img src="/logo38668.jpeg" alt="Sharif Plus" className="w-12 h-12 rounded-lg" />
             <h2 className="text-2xl font-bold text-gray-800">منوی شریف پلاس</h2>
@@ -246,7 +247,7 @@ export default function SharifPlusMenu({ isOpen, onClose, onOrderSuccess }: Shar
               disabled={loading}
               className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
             >
-              {loading ? 'Processing...' : 'Complete Your Order'}
+              {loading ? 'Adding to Cart...' : 'Add to Shopping Cart'}
             </button>
           </div>
         )}
