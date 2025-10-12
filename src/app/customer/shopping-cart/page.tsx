@@ -10,6 +10,7 @@ interface MenuItem {
   name: string
   price: number
   category: string
+  quantity: number
 }
 
 interface OrderData {
@@ -68,7 +69,20 @@ function ShoppingCartContent() {
     if (cartData) {
       try {
         const parsedData = JSON.parse(cartData)
-        setOrderData(parsedData)
+        if (parsedData.items) {
+          const itemsWithQuantity = parsedData.items.reduce((acc: any, item: any) => {
+            const existingItem = acc.find((i: any) => i.name === item.name)
+            if (existingItem) {
+              existingItem.quantity += 1
+            } else {
+              acc.push({ ...item, quantity: 1 })
+            }
+            return acc
+          }, [])
+          setOrderData({ ...parsedData, items: itemsWithQuantity })
+        } else {
+          setOrderData(parsedData)
+        }
       } catch (e) {
         setError('Invalid cart data.')
         sessionStorage.removeItem('shoppingCart')
@@ -85,6 +99,33 @@ function ShoppingCartContent() {
         .finally(() => setHistoryLoading(false))
     }
   }, [user])
+
+  const updateCart = (newItems: MenuItem[]) => {
+    const newTotal = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const newOrderData = { items: newItems, total: newTotal }
+    setOrderData(newOrderData)
+    sessionStorage.setItem('shoppingCart', JSON.stringify(newOrderData))
+  }
+
+  const handleRemoveItem = (itemName: string) => {
+    if (orderData) {
+      const newItems = orderData.items.filter((item) => item.name !== itemName)
+      updateCart(newItems)
+    }
+  }
+
+  const handleQuantityChange = (itemName: string, newQuantity: number) => {
+    if (orderData) {
+      if (newQuantity <= 0) {
+        handleRemoveItem(itemName)
+        return
+      }
+      const newItems = orderData.items.map((item) =>
+        item.name === itemName ? { ...item, quantity: newQuantity } : item,
+      )
+      updateCart(newItems)
+    }
+  }
 
   const handleSubmitOrder = async () => {
     if (!user) {
@@ -109,7 +150,12 @@ function ShoppingCartContent() {
 
     try {
       const orderItemsText = orderData.items
-        .map((item) => `${item.name} (${item.category}) - ${item.price.toLocaleString()} تومان`)
+        .map(
+          (item) =>
+            `${item.name} (x${item.quantity}) - ${(
+              item.price * item.quantity
+            ).toLocaleString()} تومان`,
+        )
         .join('\n')
 
       await createOrder({
@@ -158,6 +204,43 @@ function ShoppingCartContent() {
                 {error}
               </div>
             )}
+
+            {/* Cart Items */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gray-800">اقلام سفارش</h2>
+              {orderData.items.map((item, index) => (
+                <div key={index} className="flex justify-between items-center border-b pb-2">
+                  <div>
+                    <p className="font-semibold">{item.name}</p>
+                    <p className="text-sm text-gray-500">{item.category}</p>
+                    <div className="flex items-center mt-2">
+                      <button
+                        onClick={() => handleQuantityChange(item.name, item.quantity - 1)}
+                        className="px-2 py-1 bg-gray-200 rounded"
+                      >
+                        -
+                      </button>
+                      <span className="px-3">{item.quantity}</span>
+                      <button
+                        onClick={() => handleQuantityChange(item.name, item.quantity + 1)}
+                        className="px-2 py-1 bg-gray-200 rounded"
+                      >
+                        +
+                      </button>
+                      <button
+                        onClick={() => handleRemoveItem(item.name)}
+                        className="ml-4 text-red-500"
+                      >
+                        حذف
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-gray-700">
+                    {(item.price * item.quantity).toLocaleString()} تومان
+                  </p>
+                </div>
+              ))}
+            </div>
 
             {/* Delivery Location */}
             <div>
