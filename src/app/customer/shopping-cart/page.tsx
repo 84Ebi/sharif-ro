@@ -191,7 +191,7 @@ function ShoppingCartContent() {
   const finalPrice = orderData ? orderData.total + deliveryFee : deliveryFee
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-6 px-4 pb-24">
+    <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-6 px-4 pb-24 text-black">
       <div className="max-w-md mx-auto space-y-6">
         {orderData && orderData.items.length > 0 ? (
           <div className="bg-white bg-opacity-95 rounded-2xl shadow-xl p-6 space-y-6">
