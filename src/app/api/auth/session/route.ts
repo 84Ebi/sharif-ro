@@ -1,28 +1,30 @@
-import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { sessionId, expire } = await request.json();
+    const { sessionSecret, expire } = await request.json()
 
-    if (!sessionId || !expire) {
-      return NextResponse.json({ error: 'Session ID and expiration are required' }, { status: 400 });
+    if (!sessionSecret || !expire) {
+      return NextResponse.json({ error: 'Missing session information' }, { status: 400 })
     }
 
-    const response = NextResponse.json({ success: true });
+    const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!
+    const cookieName = `a_session_${projectId}`
+
+    const response = NextResponse.json({ success: true })
     
-    // Set the httpOnly cookie
-    response.cookies.set('session', sessionId, {
+    response.cookies.set(cookieName, sessionSecret, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       expires: new Date(expire),
-    });
+    })
 
-    return response;
+    return response
   } catch (error) {
-    console.error('API session error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Failed to set session cookie:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

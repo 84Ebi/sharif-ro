@@ -6,20 +6,21 @@ const AUTH_ROUTES = ['/auth']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const session = request.cookies.get('session')
+  const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!
+  const sessionCookie = request.cookies.get(`a_session_${projectId}`)
 
   // If user is on the root page, redirect based on session
   if (pathname === '/') {
-    return NextResponse.redirect(new URL(session ? '/role' : '/auth', request.url))
+    return NextResponse.redirect(new URL(sessionCookie ? '/role' : '/auth', request.url))
   }
 
   // If user is trying to access an auth page but is already logged in, redirect to /role
-  if (session && AUTH_ROUTES.some(p => pathname.startsWith(p))) {
+  if (sessionCookie && AUTH_ROUTES.some(p => pathname.startsWith(p))) {
     return NextResponse.redirect(new URL('/role', request.url))
   }
 
   // If user is trying to access a protected page and is not logged in, redirect to /auth
-  if (!session && PROTECTED_ROUTES.some(p => pathname.startsWith(p))) {
+  if (!sessionCookie && PROTECTED_ROUTES.some(p => pathname.startsWith(p))) {
     return NextResponse.redirect(new URL('/auth', request.url))
   }
 

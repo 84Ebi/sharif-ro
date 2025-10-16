@@ -3,23 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { account, ID } from '../../lib/appwrite'
-import { Models } from 'appwrite'
-
-// This component will handle setting the session cookie after a successful login/signup.
-const setSessionCookie = async (session: Models.Session) => {
-  try {
-    if (session) {
-      // Make a request to an API route to set the cookie.
-      // The browser can't set httpOnly cookies directly.
-      await fetch('/api/auth/session', {
-        method: 'POST',
-        body: JSON.stringify({ sessionId: session.$id, expire: session.expire }),
-      });
-    }
-  } catch (error) {
-    console.error('Failed to set session cookie:', error);
-  }
-};
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -54,18 +37,13 @@ export default function AuthPage() {
     setError('')
     
     try {
-      try {
-        // Check if a session exists and delete it
-        await account.getSession('current');
-        await account.deleteSession('current');
-      } catch {
-        // No active session, proceed
-      }
+      // Delete any existing sessions
+      await account.deleteSessions()
 
       if (isLogin) {
         // Login with email and password
         const session = await account.createEmailPasswordSession(email, password)
-        await setSessionCookie(session);
+        localStorage.setItem('appwrite_session', JSON.stringify(session))
         router.push('/role')
       } else {
         // Register with email and password
@@ -91,7 +69,7 @@ export default function AuthPage() {
         
         // Automatically log in after registration
         const session = await account.createEmailPasswordSession(email, password)
-        await setSessionCookie(session);
+        localStorage.setItem('appwrite_session', JSON.stringify(session))
         
         // Redirect to details page to complete profile
         router.push('/auth/details')
