@@ -54,6 +54,14 @@ export default function AuthPage() {
     setError('')
     
     try {
+      try {
+        // Check if a session exists and delete it
+        await account.getSession('current');
+        await account.deleteSession('current');
+      } catch {
+        // No active session, proceed
+      }
+
       if (isLogin) {
         // Login with email and password
         await account.createEmailPasswordSession(email, password)
