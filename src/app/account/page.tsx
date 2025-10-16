@@ -70,8 +70,8 @@ function OrderHistory() {
       <div className="space-y-4">
         {orders.length > 0 ? (
           orders.map((order) => (
-            <div key={order.id} className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
-              <div className="flex justify-between items-center mb-2">
+            <div key={order.id} className=" justify-around bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
+              <div className="flex justify-between items-center mb-2 pb-">
                 <span className="font-bold text-gray-800">{order.orderCode}</span>
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                   order.status === 'Delivered' ? 'bg-green-200 text-green-800' :
@@ -323,7 +323,6 @@ export default function AccountPage() {
           </div>
         </div>
 
-        <OrderHistory />
       </main>
 
       <BottomDock role={role} />

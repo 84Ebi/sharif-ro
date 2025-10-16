@@ -1,10 +1,13 @@
-import { databases, ID, Query } from './appwrite';
-import type { Models } from 'appwrite';
+import { databases, ID } from './appwrite';
+import { Query } from 'appwrite';
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
 const COLLECTION_ID = process.env.NEXT_PUBLIC_APPWRITE_ORDERS_COLLECTION_ID!;
 
-export interface Order extends Models.Document {
+export interface Order {
+  $id: string;
+  $createdAt: string;
+  $updatedAt: string;
   restaurantLocation: string;
   restaurantType: string;
   orderCode?: string;

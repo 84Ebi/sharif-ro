@@ -31,7 +31,7 @@ export interface OrderFilters {
   maxPrice?: number
 }
 
-import client from './appwrite';
+import { client } from './appwrite';
 
 /**
  * Create a new order

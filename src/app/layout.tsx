@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import Body from '../components/Body'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
   title: 'Food Hall Delivery',
@@ -14,7 +14,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <Body className="">{children}</Body>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" 
+          rel="stylesheet"
+        />
+      </head>
+      <body suppressHydrationWarning={true}>{children}</body>
     </html>
   )
 }

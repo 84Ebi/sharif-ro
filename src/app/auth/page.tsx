@@ -3,7 +3,23 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { account, ID } from '../../lib/appwrite'
-import '../../styles/auth.css'
+
+// This component will handle setting the session cookie after a successful login/signup.
+const setSessionCookie = async () => {
+  try {
+    const session = await account.getSession('current');
+    if (session) {
+      // Make a request to an API route to set the cookie.
+      // The browser can't set httpOnly cookies directly.
+      await fetch('/api/auth/session', {
+        method: 'POST',
+        body: JSON.stringify({ sessionId: session.$id, expire: session.expire }),
+      });
+    }
+  } catch (error) {
+    console.error('Failed to set session cookie:', error);
+  }
+};
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -41,6 +57,7 @@ export default function AuthPage() {
       if (isLogin) {
         // Login with email and password
         await account.createEmailPasswordSession(email, password)
+        await setSessionCookie();
         router.push('/role')
       } else {
         // Register with email and password
@@ -66,6 +83,7 @@ export default function AuthPage() {
         
         // Automatically log in after registration
         await account.createEmailPasswordSession(email, password)
+        await setSessionCookie();
         
         // Redirect to details page to complete profile
         router.push('/auth/details')
@@ -79,18 +97,19 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="background">
-      <div className="login-box">
-        <h2>welcome to SharifRo</h2>
-        <h3>{isLogin ? 'Login' : 'Register'}</h3>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-700 to-blue-900">
+      <div className="w-full max-w-sm p-8 space-y-6 bg-white/10 rounded-xl shadow-2xl backdrop-blur-lg">
+        <div className="text-center text-white">
+          <h2 className="text-2xl font-bold">Welcome to SharifRo</h2>
+          <h3 className="text-xl">{isLogin ? 'Login' : 'Register'}</h3>
+        </div>
 
-        {error && <p className="error-message">{error}</p>}
+        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
         
-        {/* Email/Password Authentication */}
-        <form onSubmit={handleCredentialAuth}>
+        <form onSubmit={handleCredentialAuth} className="space-y-4">
           {!isLogin && (
-            <>
-              <label htmlFor="name">Name</label>
+            <div>
+              <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-200">Name</label>
               <input
                 type="text"
                 id="name"
@@ -98,45 +117,54 @@ export default function AuthPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your Name"
                 required
+                className="w-full px-4 py-2 text-gray-900 bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </>
+            </div>
           )}
           
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="email@example.com"
-            required
-          />
+          <div>
+            <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-200">Email</label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="email@example.com"
+              required
+              className="w-full px-4 py-2 text-gray-900 bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
           
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            required
-          />
+          <div>
+            <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-200">Password</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              required
+              className="w-full px-4 py-2 text-gray-900 bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
-          <button type="submit" disabled={loading}>
+          <button type="submit" disabled={loading} className="w-full px-4 py-2 font-bold text-white bg-blue-800 rounded-md hover:bg-blue-700 disabled:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-900">
             {loading ? 'Processing...' : isLogin ? 'Sign in' : 'Sign up'}
           </button>
         </form>
         
         {isLogin && (
-          <a href="#" className="forgot" onClick={(e) => {
-            e.preventDefault()
-            alert('Password recovery feature coming soon!')
-          }}>
-            Forgot Password?
-          </a>
+          <div className="text-center">
+            <a href="#" className="text-sm text-gray-300 hover:underline" onClick={(e) => {
+              e.preventDefault()
+              alert('Password recovery feature coming soon!')
+            }}>
+              Forgot Password?
+            </a>
+          </div>
         )}
             
-        <p className="register">
+        <p className="text-sm text-center text-gray-300">
           {isLogin ? "Don't have an account yet? " : "Already have an account? "}
           <a
             href="#"
@@ -148,6 +176,7 @@ export default function AuthPage() {
               setName('')
               setError('')
             }}
+            className="font-medium text-white hover:underline"
           >
             {isLogin ? 'Register for free' : 'Sign in'}
           </a>

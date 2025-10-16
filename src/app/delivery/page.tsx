@@ -135,7 +135,7 @@ export default function Delivery() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-6 px-4 pb-24">
+    <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 text-black py-6 px-4 pb-24">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <header className="mb-4">
@@ -146,7 +146,7 @@ export default function Delivery() {
           </div>
 
           {/* Filter Pill */}
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white bg-opacity-10 border border-white border-opacity-10 text-white hover:bg-opacity-20 transition-all group cursor-pointer">
+          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white bg-opacity-10 border border-white border-opacity-10 text-black hover:bg-opacity-20 transition-all group cursor-pointer">
             <span className="font-bold text-sm">Filters</span>
             <div className="hidden group-hover:flex group-focus-within:flex items-center gap-2">
               <input
