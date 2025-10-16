@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { account, ID } from '../../lib/appwrite'
+import { account } from '../../lib/appwrite'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -37,43 +37,27 @@ export default function AuthPage() {
     setError('')
     
     try {
-      // Delete any existing sessions
-      await account.deleteSessions()
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup'
+      const body = isLogin 
+        ? { email, password } 
+        : { email, password, name }
 
-      if (isLogin) {
-        // Login with email and password
-        const session = await account.createEmailPasswordSession(email, password)
-        localStorage.setItem('appwrite_session', JSON.stringify(session))
-        router.push('/role')
-      } else {
-        // Register with email and password
-        if (password.length < 8) {
-          setError('Password must be at least 8 characters')
-          setLoading(false)
-          return
-        }
-        
-        if (!name.trim()) {
-          setError('Name is required')
-          setLoading(false)
-          return
-        }
-        
-        // Create new account
-        await account.create(
-          ID.unique(),
-          email,
-          password,
-          name
-        )
-        
-        // Automatically log in after registration
-        const session = await account.createEmailPasswordSession(email, password)
-        localStorage.setItem('appwrite_session', JSON.stringify(session))
-        
-        // Redirect to details page to complete profile
-        router.push('/auth/details')
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Authentication failed')
       }
+
+      // Redirect based on login or signup
+      router.push(isLogin ? '/role' : '/auth/details')
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred'
       setError(errorMessage)

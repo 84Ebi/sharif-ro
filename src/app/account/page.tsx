@@ -6,14 +6,6 @@ import { account } from '../../lib/appwrite'
 import BottomDock from '../../components/BottomDock'
 import '../../styles/account-profile.css'
 
-interface Order {
-  id: string;
-  orderCode: string;
-  status: string;
-  date: string;
-  cost: number;
-}
-
 interface UserData {
   $id: string;
   name: string;
@@ -24,75 +16,6 @@ interface UserData {
     credit?: number;
     phone?: string;
   };
-}
-
-function OrderHistory() {
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        // Mock order history data
-        const mockOrders = [
-          {
-            id: '1',
-            orderCode: 'ORD001',
-            status: 'Delivered',
-            date: '2023-10-01',
-            cost: 15.99,
-          },
-          {
-            id: '2',
-            orderCode: 'ORD002',
-            status: 'In Progress',
-            date: '2023-10-02',
-            cost: 22.50,
-          },
-        ]
-        setOrders(mockOrders)
-      } catch {
-        setError('Failed to fetch order history.')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchOrders()
-  }, [])
-
-  return (
-    <div className="mt-8">
-      <h2 className="text-xl font-bold text-white mb-4">Order History</h2>
-      {loading && <div className="text-center text-white">Loading order history...</div>}
-      {error && <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">{error}</div>}
-      <div className="space-y-4">
-        {orders.length > 0 ? (
-          orders.map((order) => (
-            <div key={order.id} className=" justify-around bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
-              <div className="flex justify-between items-center mb-2 pb-">
-                <span className="font-bold text-gray-800">{order.orderCode}</span>
-                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                  order.status === 'Delivered' ? 'bg-green-200 text-green-800' :
-                  order.status === 'In Progress' ? 'bg-yellow-200 text-yellow-800' :
-                  'bg-red-200 text-red-800'
-                }`}>{order.status}</span>
-              </div>
-              <p className="text-sm text-gray-600 mb-2 whitespace-pre-wrap">{order.date}</p>
-              <div className="text-right font-bold text-blue-600">${order.cost.toFixed(2)}</div>
-            </div>
-          ))
-        ) : (
-          !loading && (
-            <div className="text-center text-white bg-white bg-opacity-20 p-6 rounded-xl">
-              You have no past orders.
-            </div>
-          )
-        )}
-      </div>
-    </div>
-  )
 }
 
 export default function AccountPage() {
