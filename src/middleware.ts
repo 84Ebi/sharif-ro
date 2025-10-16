@@ -8,6 +8,11 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const session = request.cookies.get('session')
 
+  // If user is on the root page, redirect based on session
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL(session ? '/role' : '/auth', request.url))
+  }
+
   // If user is trying to access an auth page but is already logged in, redirect to /role
   if (session && AUTH_ROUTES.some(p => pathname.startsWith(p))) {
     return NextResponse.redirect(new URL('/role', request.url))

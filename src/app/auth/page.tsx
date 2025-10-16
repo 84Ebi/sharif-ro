@@ -3,11 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { account, ID } from '../../lib/appwrite'
+import { Models } from 'appwrite'
 
 // This component will handle setting the session cookie after a successful login/signup.
-const setSessionCookie = async () => {
+const setSessionCookie = async (session: Models.Session) => {
   try {
-    const session = await account.getSession('current');
     if (session) {
       // Make a request to an API route to set the cookie.
       // The browser can't set httpOnly cookies directly.
@@ -64,8 +64,8 @@ export default function AuthPage() {
 
       if (isLogin) {
         // Login with email and password
-        await account.createEmailPasswordSession(email, password)
-        await setSessionCookie();
+        const session = await account.createEmailPasswordSession(email, password)
+        await setSessionCookie(session);
         router.push('/role')
       } else {
         // Register with email and password
@@ -90,8 +90,8 @@ export default function AuthPage() {
         )
         
         // Automatically log in after registration
-        await account.createEmailPasswordSession(email, password)
-        await setSessionCookie();
+        const session = await account.createEmailPasswordSession(email, password)
+        await setSessionCookie(session);
         
         // Redirect to details page to complete profile
         router.push('/auth/details')
