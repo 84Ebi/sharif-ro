@@ -37,24 +37,9 @@ export default function AuthPage() {
     setError('')
     
     try {
-      // Delete any existing sessions
-      await account.deleteSessions()
-
       if (isLogin) {
         // Login with email and password
-        const session = await account.createEmailPasswordSession(email, password)
-        
-        // Set the session cookie via API
-        await fetch('/api/auth/session', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            sessionSecret: session.secret,
-            expire: session.expire,
-          }),
-        })
+        await account.createEmailPasswordSession(email, password)
         
         router.push('/role')
       } else {
@@ -80,19 +65,7 @@ export default function AuthPage() {
         )
         
         // Automatically log in after registration
-        const session = await account.createEmailPasswordSession(email, password)
-        
-        // Set the session cookie via API
-        await fetch('/api/auth/session', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            sessionSecret: session.secret,
-            expire: session.expire,
-          }),
-        })
+        await account.createEmailPasswordSession(email, password)
         
         // Redirect to details page to complete profile
         router.push('/auth/details')
