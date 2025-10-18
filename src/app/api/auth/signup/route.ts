@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
 import { Client, Account, ID } from 'node-appwrite'
 
-const client = new Client()
-  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
-  .setKey(process.env.APPWRITE_API_KEY!)
-
-const account = new Account(client)
-
 export async function POST(request: Request) {
+  const client = new Client()
+    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
+    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
+    .setKey(process.env.APPWRITE_API_KEY!)
+
+  const account = new Account(client)
+
   try {
     const { email, password, name } = await request.json()
 
