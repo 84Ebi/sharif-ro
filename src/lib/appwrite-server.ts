@@ -100,3 +100,4 @@ export const APPWRITE_SERVER_CONFIG = {
     projectId: APPWRITE_PROJECT_ID,
 } as const;
 
+

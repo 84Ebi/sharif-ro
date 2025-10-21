@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         const { account } = createAdminClient();
 
         // Create user account
-        const user = await account.create(
+        await account.create(
             ID.unique(),
             email,
             password,
@@ -53,10 +53,9 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             success: true,
-            user: {
-                $id: user.$id,
-                name: user.name,
-                email: user.email,
+            session: {
+                $id: session.$id,
+                userId: session.userId,
             },
             message: 'Account created successfully'
         }, { status: 201 });

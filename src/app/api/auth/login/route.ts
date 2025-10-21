@@ -26,16 +26,11 @@ export async function POST(request: Request) {
         // Set session cookie
         await setSessionCookie(session.secret, session.expire);
 
-        // Get user data
-        const user = await account.get();
-
         return NextResponse.json({
             success: true,
-            user: {
-                $id: user.$id,
-                name: user.name,
-                email: user.email,
-                prefs: user.prefs,
+            session: {
+                $id: session.$id,
+                userId: session.userId,
             },
             message: 'Login successful'
         });

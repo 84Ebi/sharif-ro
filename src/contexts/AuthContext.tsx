@@ -131,15 +131,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setError(null);
             setLoading(true);
 
-            // Try to delete current session if one exists (logged in user trying to login again)
+            // Delete any existing sessions first
             try {
-                const currentSession = await account.getSession('current');
-                if (currentSession) {
-                    await account.deleteSession('current');
-                }
+                await account.deleteSession('current');
             } catch {
-                // No current session - this is fine for login
-                console.log('No current session to delete');
+                // No existing session, continue
             }
 
             // Create email session
@@ -189,6 +185,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Clear local storage
             if (typeof window !== 'undefined') {
                 localStorage.removeItem('userRole');
+                // Clear all Appwrite localStorage keys
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('appwrite')) {
+                        localStorage.removeItem(key);
+                    }
+                });
             }
 
             // Redirect to auth page
@@ -199,6 +201,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
             if (typeof window !== 'undefined') {
                 localStorage.removeItem('userRole');
+                // Clear all Appwrite localStorage keys
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('appwrite')) {
+                        localStorage.removeItem(key);
+                    }
+                });
             }
             router.push('/auth');
         } finally {
