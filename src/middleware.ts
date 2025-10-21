@@ -22,9 +22,6 @@ const PROTECTED_ROUTES = [
 // Routes only accessible when NOT authenticated
 const AUTH_ROUTES = ['/auth'];
 
-// Public routes that don't require authentication
-const PUBLIC_ROUTES = ['/'];
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!;

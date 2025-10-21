@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(currentUser as User);
             setError(null);
             return true;
-        } catch (err) {
+        } catch {
             console.log('No active session');
             setUser(null);
             return false;
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Delete any existing sessions first
             try {
                 await account.deleteSessions();
-            } catch (deleteError) {
+            } catch {
                 // Ignore error if no sessions exist
                 console.log('No existing sessions to delete');
             }
@@ -142,7 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Delete any existing sessions first to avoid conflict
             try {
                 await account.deleteSessions();
-            } catch (deleteError) {
+            } catch {
                 // Ignore error if no sessions exist
                 console.log('No existing sessions to delete');
             }
