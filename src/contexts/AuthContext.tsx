@@ -103,6 +103,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setError(null);
             setLoading(true);
 
+            // Delete any existing sessions first
+            try {
+                await account.deleteSessions();
+            } catch (deleteError) {
+                // Ignore error if no sessions exist
+                console.log('No existing sessions to delete');
+            }
+
             // Create account
             await account.create(ID.unique(), email, password, name);
 
@@ -130,6 +138,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             setError(null);
             setLoading(true);
+
+            // Delete any existing sessions first to avoid conflict
+            try {
+                await account.deleteSessions();
+            } catch (deleteError) {
+                // Ignore error if no sessions exist
+                console.log('No existing sessions to delete');
+            }
 
             // Create email session
             await account.createEmailPasswordSession(email, password);

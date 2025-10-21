@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '../../lib/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function Waiting() {
   const { loading: authLoading } = useAuth()

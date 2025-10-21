@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '../../lib/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { getPendingOrders, confirmOrder, type Order } from '../../lib/orders'
 import BottomDock from '../../components/BottomDock'

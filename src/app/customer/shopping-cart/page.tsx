@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '../../../lib/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import { createOrder, getOrdersByUser, Order } from '../../../lib/orders'
 import BottomDock from '../../../components/BottomDock'
 

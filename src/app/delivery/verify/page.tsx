@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useAuth } from '../../../lib/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import { storage, databases, ID } from '../../../lib/appwrite'
 import { useRouter } from 'next/navigation'
 import BottomDock from '../../../components/BottomDock'

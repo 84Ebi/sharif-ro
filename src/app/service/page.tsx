@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '../../lib/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function ServiceOrder() {
   const { loading: authLoading } = useAuth()
