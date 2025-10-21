@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import Image from 'next/image'
 
 export default function RoleSelectionPage() {
   const router = useRouter()
@@ -27,62 +28,67 @@ export default function RoleSelectionPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-        <p>Loading user information...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-[#0d47a1] to-[#bbdefb] text-white">
+        <p className="text-xl">Loading user information...</p>
       </div>
     )
   }
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-        <p>Redirecting to login...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-[#0d47a1] to-[#bbdefb] text-white">
+        <p className="text-xl">Redirecting to login...</p>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-800 to-gray-900 text-white p-4">
-      <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold mb-2">Welcome, {user.name}!</h1>
-        <p className="text-lg text-gray-400">Please select your role to continue.</p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-[#0d47a1] to-[#bbdefb] text-white p-4">
+      {/* Logo Section */}
+      <div className="mb-10">
+        <Image 
+          src="/logo-scooter.png" 
+          alt="SharifRo Logo" 
+          width={220} 
+          height={220}
+          priority
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl">
-        <RoleCard
-          title="Customer"
-          description="Order from your favorite stores."
-          onClick={() => handleRoleSelection('customer')}
-        />
-        <RoleCard
-          title="Delivery"
-          description="Deliver orders and earn money."
+      {/* Choices Section */}
+      <div className="flex flex-col md:flex-row justify-center gap-8 md:gap-20">
+        {/* Delivery Person - SharifGir */}
+        <div
           onClick={() => handleRoleSelection('delivery')}
-        />
-        <RoleCard
-          title="Courier"
-          description="Manage and dispatch orders."
-          onClick={() => handleRoleSelection('courier')}
-        />
+          className="bg-white/95 backdrop-blur-sm p-8 rounded-[20px] transition-all duration-300 cursor-pointer w-[220px] hover:scale-110 text-center"
+        >
+          <div className="flex justify-center mb-5">
+            <Image 
+              src="/sharifgir.jpg" 
+              alt="SharifGir Icon" 
+              width={100} 
+              height={100}
+            />
+          </div>
+          <h2 className="text-2xl font-bold text-[#001f3f]">SharifGir</h2>
+        </div>
+
+        {/* Customer - SharifBar */}
+        <div
+          onClick={() => handleRoleSelection('customer')}
+          className="bg-white/97 backdrop-blur-sm p-8 rounded-[20px] transition-all duration-300 cursor-pointer w-[220px] hover:scale-110 hover:bg-white/97 text-center"
+        >
+          <div className="flex justify-center mb-5">
+            <Image 
+              src="/sharifbar.png" 
+              alt="SharifBar Icon" 
+              width={100} 
+              height={100}
+            />
+          </div>
+          <h2 className="text-2xl font-bold text-[#001f3f]">SharifBar</h2>
+        </div>
       </div>
-    </div>
-  )
-}
-
-interface RoleCardProps {
-  title: string;
-  description: string;
-  onClick: () => void;
-}
-
-const RoleCard: React.FC<RoleCardProps> = ({ title, description, onClick }) => {
-  return (
-    <div
-      onClick={onClick}
-      className="bg-white/10 p-6 rounded-lg shadow-lg hover:bg-white/20 transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-    >
-      <h3 className="text-2xl font-semibold mb-2">{title}</h3>
-      <p className="text-gray-300">{description}</p>
     </div>
   )
 }
