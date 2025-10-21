@@ -41,7 +41,9 @@ function AuthPageContent() {
     try {
       if (isLogin) {
         // Login with email and password
+        console.log('Attempting login...');
         await login(email, password)
+        console.log('Login successful');
       } else {
         // Register with email and password
         if (password.length < 8) {
@@ -55,10 +57,13 @@ function AuthPageContent() {
         }
         
         // Sign up new user
+        console.log('Attempting signup...');
         await signup(email, password, name)
+        console.log('Signup successful');
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+      console.error('Auth error:', err);
       setLocalError(errorMessage)
     }
   }

@@ -103,14 +103,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setError(null);
             setLoading(true);
 
-            // Delete any existing sessions first
-            try {
-                await account.deleteSessions();
-            } catch {
-                // Ignore error if no sessions exist
-                console.log('No existing sessions to delete');
-            }
-
             // Create account
             await account.create(ID.unique(), email, password, name);
 
@@ -139,12 +131,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setError(null);
             setLoading(true);
 
-            // Delete any existing sessions first to avoid conflict
+            // Try to delete current session if one exists (logged in user trying to login again)
             try {
-                await account.deleteSessions();
+                const currentSession = await account.getSession('current');
+                if (currentSession) {
+                    await account.deleteSession('current');
+                }
             } catch {
-                // Ignore error if no sessions exist
-                console.log('No existing sessions to delete');
+                // No current session - this is fine for login
+                console.log('No current session to delete');
             }
 
             // Create email session
@@ -170,6 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Login failed';
             setError(message);
+            console.error('Login error:', err);
             throw new Error(message);
         } finally {
             setLoading(false);
