@@ -59,7 +59,7 @@ export default function RoleSelectionPage() {
       <div className="flex flex-col md:flex-row justify-center gap-8 md:gap-20">
         {/* Delivery Person - SharifGir */}
         <div
-          onClick={() => handleRoleSelection('delivery')}
+          onClick={() => handleRoleSelection('customer')}
           className="bg-white/95 backdrop-blur-sm p-8 rounded-[20px] transition-all duration-300 cursor-pointer w-[220px] hover:scale-110 text-center"
         >
           <div className="flex justify-center mb-5">
@@ -75,7 +75,7 @@ export default function RoleSelectionPage() {
 
         {/* Customer - SharifBar */}
         <div
-          onClick={() => handleRoleSelection('customer')}
+          onClick={() => handleRoleSelection('delivery')}
           className="bg-white/97 backdrop-blur-sm p-8 rounded-[20px] transition-all duration-300 cursor-pointer w-[220px] hover:scale-110 hover:bg-white/97 text-center"
         >
           <div className="flex justify-center mb-5">
