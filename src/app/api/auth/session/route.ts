@@ -1,30 +1,49 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+/**
+ * Session API Route
+ * Gets current session and user information
+ */
 
-export async function POST(request: NextRequest) {
-  try {
-    const { sessionSecret, expire } = await request.json()
+import { NextResponse } from 'next/server';
+import { createSessionClient } from '@/lib/appwrite-server';
 
-    if (!sessionSecret || !expire) {
-      return NextResponse.json({ error: 'Missing session information' }, { status: 400 })
+export async function GET() {
+    try {
+        // Get session client
+        const { account } = await createSessionClient();
+
+        // Get current user
+        const user = await account.get();
+
+        // Get current session
+        const session = await account.getSession('current');
+
+        return NextResponse.json({
+            authenticated: true,
+            user: {
+                $id: user.$id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                emailVerification: user.emailVerification,
+                phoneVerification: user.phoneVerification,
+                prefs: user.prefs,
+            },
+            session: {
+                $id: session.$id,
+                provider: session.provider,
+                expire: session.expire,
+            }
+        });
+
+    } catch (error) {
+        console.error('Session check error:', error);
+        
+        return NextResponse.json(
+            { 
+                authenticated: false,
+                error: 'No active session' 
+            },
+            { status: 401 }
+        );
     }
-
-    const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!
-    const cookieName = `a_session_${projectId}`
-
-    const response = NextResponse.json({ success: true })
-    
-    response.cookies.set(cookieName, sessionSecret, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      expires: new Date(expire),
-    })
-
-    return response
-  } catch (error) {
-    console.error('Failed to set session cookie:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
 }

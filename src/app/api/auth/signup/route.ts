@@ -1,49 +1,82 @@
-import { NextResponse } from 'next/server'
-import { Client, Account, ID } from 'node-appwrite'
+/**
+ * Signup API Route
+ * Creates a new user account and establishes a session
+ */
+
+import { NextResponse } from 'next/server';
+import { createAdminClient, setSessionCookie } from '@/lib/appwrite-server';
+import { ID } from 'node-appwrite';
 
 export async function POST(request: Request) {
-  const client = new Client()
-    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
-    .setKey(process.env.APPWRITE_API_KEY!)
+    try {
+        const { email, password, name } = await request.json();
 
-  const account = new Account(client)
+        // Validate input
+        if (!email || !password || !name) {
+            return NextResponse.json(
+                { error: 'Email, password, and name are required' },
+                { status: 400 }
+            );
+        }
 
-  try {
-    const { email, password, name } = await request.json()
+        if (password.length < 8) {
+            return NextResponse.json(
+                { error: 'Password must be at least 8 characters' },
+                { status: 400 }
+            );
+        }
 
-    if (!email || !password || !name) {
-      return NextResponse.json({ error: 'Email, password, and name are required' }, { status: 400 })
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return NextResponse.json(
+                { error: 'Invalid email format' },
+                { status: 400 }
+            );
+        }
+
+        const { account } = createAdminClient();
+
+        // Create user account
+        const user = await account.create(
+            ID.unique(),
+            email,
+            password,
+            name
+        );
+
+        // Create email session for the new user
+        const session = await account.createEmailPasswordSession(email, password);
+
+        // Set session cookie
+        await setSessionCookie(session.secret, session.expire);
+
+        return NextResponse.json({
+            success: true,
+            user: {
+                $id: user.$id,
+                name: user.name,
+                email: user.email,
+            },
+            message: 'Account created successfully'
+        }, { status: 201 });
+
+    } catch (error) {
+        console.error('Signup error:', error);
+        
+        const message = error instanceof Error ? error.message : 'Failed to create account';
+        
+        // Handle specific Appwrite errors
+        if (message.includes('user already exists')) {
+            return NextResponse.json(
+                { error: 'An account with this email already exists' },
+                { status: 409 }
+            );
+        }
+
+        return NextResponse.json(
+            { error: message },
+            { status: 500 }
+        );
     }
-
-    if (password.length < 8) {
-      return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
-    }
-
-    // Create new account
-    await account.create(ID.unique(), email, password, name)
-
-    // Automatically log in after registration
-    const session = await account.createEmailPasswordSession(email, password)
-
-    // Set the session cookie
-    const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!
-    const cookieName = `a_session_${projectId}`
-
-    const response = NextResponse.json({ success: true, session })
-
-    response.cookies.set(cookieName, session.secret, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      expires: new Date(session.expire),
-    })
-
-    return response
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Signup failed'
-    console.error('Signup error:', error)
-    return NextResponse.json({ error: message }, { status: 400 })
-  }
 }

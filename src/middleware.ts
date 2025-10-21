@@ -1,30 +1,77 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+/**
+ * Middleware for authentication and route protection
+ * Validates user sessions and redirects unauthorized users
+ */
 
-const PROTECTED_ROUTES = ['/role', '/customer', '/delivery', '/account']
-const AUTH_ROUTES = ['/auth']
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!
-  const sessionCookie = request.cookies.get(`a_session_${projectId}`)
+// Routes that require authentication
+const PROTECTED_ROUTES = [
+  '/role',
+  '/customer',
+  '/delivery',
+  '/courier',
+  '/account',
+  '/service',
+  '/grocery',
+  '/order',
+  '/waiting'
+];
 
-  // If user is on the root page, redirect based on session
+// Routes only accessible when NOT authenticated
+const AUTH_ROUTES = ['/auth'];
+
+// Public routes that don't require authentication
+const PUBLIC_ROUTES = ['/'];
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!;
+  
+  // Get session cookie
+  const sessionCookie = request.cookies.get(`a_session_${projectId}`);
+  const hasSession = !!sessionCookie?.value;
+
+  // Allow root page to handle its own routing logic
+  // The page component will check authentication and redirect appropriately
   if (pathname === '/') {
-    return NextResponse.redirect(new URL(sessionCookie ? '/role' : '/auth', request.url))
+    const response = NextResponse.next();
+    // Add security headers
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    return response;
   }
 
-  // If user is trying to access an auth page but is already logged in, redirect to /role
-  if (sessionCookie && AUTH_ROUTES.some(p => pathname.startsWith(p))) {
-    return NextResponse.redirect(new URL('/role', request.url))
+  // Check if route is protected
+  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
+  const isAuthRoute = AUTH_ROUTES.some(route => pathname.startsWith(route));
+
+  // Redirect to auth if trying to access protected route without session
+  if (isProtectedRoute && !hasSession) {
+    const url = new URL('/auth', request.url);
+    // Store the original URL to redirect back after login
+    url.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(url);
   }
 
-  // If user is trying to access a protected page and is not logged in, redirect to /auth
-  if (!sessionCookie && PROTECTED_ROUTES.some(p => pathname.startsWith(p))) {
-    return NextResponse.redirect(new URL('/auth', request.url))
+  // Redirect to role selection if trying to access auth route with active session
+  if (isAuthRoute && hasSession) {
+    const redirect = request.nextUrl.searchParams.get('redirect');
+    const targetUrl = redirect && redirect.startsWith('/') ? redirect : '/role';
+    return NextResponse.redirect(new URL(targetUrl, request.url));
   }
 
-  return NextResponse.next()
+  // Allow the request to continue
+  const response = NextResponse.next();
+
+  // Add security headers
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  return response;
 }
 
 export const config = {
@@ -35,8 +82,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public assets in root
+     * - public assets (images, fonts, etc.)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
-}
+};

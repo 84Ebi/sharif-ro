@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { account } from '../../../lib/appwrite'
+import { useAuth } from '@/contexts/AuthContext'
 import '../../../styles/auth.css'
 
 export default function DetailsPage() {
@@ -10,38 +10,40 @@ export default function DetailsPage() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [studentCode, setStudentCode] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [localLoading, setLocalLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const { user, loading, updateName, updatePreferences } = useAuth()
 
   useEffect(() => {
-    // Get current user data to pre-fill the form
-    const loadUserData = async () => {
-      try {
-        const user = await account.get()
-        setName(user.name || '')
-        setEmail(user.email || '')
-        setPhone(user.phone || '')
-      } catch (err) {
-        console.error('Failed to load user data:', err)
-      }
+    // Redirect if not logged in
+    if (!loading && !user) {
+      router.push('/auth')
+      return
     }
-    loadUserData()
-  }, [])
+
+    // Pre-fill form with user data
+    if (user) {
+      setName(user.name || '')
+      setEmail(user.email || '')
+      setPhone(user.prefs?.phone || user.phone || '')
+      setStudentCode(user.prefs?.studentCode || '')
+    }
+  }, [user, loading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
+    setLocalLoading(true)
     setError('')
     
     try {
-      // Update user name if provided
-      if (name.trim()) {
-        await account.updateName(name)
+      // Update user name if changed
+      if (name.trim() && name !== user?.name) {
+        await updateName(name)
       }
       
-      // Update user preferences (store additional data like studentCode)
-      await account.updatePrefs({
+      // Update user preferences
+      await updatePreferences({
         studentCode,
         phone,
         profileComplete: true
@@ -53,8 +55,18 @@ export default function DetailsPage() {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update details'
       setError(errorMessage)
     } finally {
-      setLoading(false)
+      setLocalLoading(false)
     }
+  }
+
+  if (loading || !user) {
+    return (
+      <div className="background">
+        <div className="login-box">
+          <h2>Loading...</h2>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -107,8 +119,8 @@ export default function DetailsPage() {
             required
           />
 
-          <button type="submit" disabled={loading}>
-            {loading ? 'Processing...' : 'Complete Sign Up'}
+          <button type="submit" disabled={localLoading}>
+            {localLoading ? 'Processing...' : 'Complete Sign Up'}
           </button>
         </form>
       </div>

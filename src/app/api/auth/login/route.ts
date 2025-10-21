@@ -1,45 +1,63 @@
-import { NextResponse } from 'next/server'
-import { Client, Account } from 'node-appwrite'
+/**
+ * Login API Route
+ * Authenticates a user and creates a session
+ */
+
+import { NextResponse } from 'next/server';
+import { createAdminClient, setSessionCookie } from '@/lib/appwrite-server';
 
 export async function POST(request: Request) {
-  const client = new Client()
-    .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-    .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
-    .setKey(process.env.APPWRITE_API_KEY!)
+    try {
+        const { email, password } = await request.json();
 
-  const account = new Account(client)
+        // Validate input
+        if (!email || !password) {
+            return NextResponse.json(
+                { error: 'Email and password are required' },
+                { status: 400 }
+            );
+        }
 
-  try {
-    const { email, password } = await request.json()
+        const { account } = createAdminClient();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
+        // Create email password session
+        const session = await account.createEmailPasswordSession(email, password);
+
+        // Set session cookie
+        await setSessionCookie(session.secret, session.expire);
+
+        // Get user data
+        const user = await account.get();
+
+        return NextResponse.json({
+            success: true,
+            user: {
+                $id: user.$id,
+                name: user.name,
+                email: user.email,
+                prefs: user.prefs,
+            },
+            message: 'Login successful'
+        });
+
+    } catch (error) {
+        console.error('Login error:', error);
+        
+        const message = error instanceof Error ? error.message : 'Login failed';
+        
+        // Handle specific authentication errors
+        if (message.includes('Invalid credentials') || 
+            message.includes('user') || 
+            message.includes('password')) {
+            return NextResponse.json(
+                { error: 'Invalid email or password' },
+                { status: 401 }
+            );
+        }
+
+        return NextResponse.json(
+            { error: 'Login failed. Please try again.' },
+            { status: 500 }
+        );
     }
-
-    // Delete any existing sessions
-    await account.deleteSessions()
-
-    // Create new session
-    const session = await account.createEmailPasswordSession(email, password)
-
-    // Set the session cookie
-    const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!
-    const cookieName = `a_session_${projectId}`
-
-    const response = NextResponse.json({ success: true, session })
-
-    response.cookies.set(cookieName, session.secret, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      expires: new Date(session.expire),
-    })
-
-    return response
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Login failed'
-    console.error('Login error:', error)
-    return NextResponse.json({ error: message }, { status: 400 })
-  }
 }

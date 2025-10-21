@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { account, ID } from '../../lib/appwrite'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -12,70 +12,64 @@ export default function AuthPage() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [localError, setLocalError] = useState('')
+  const [redirectMessage, setRedirectMessage] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { user, loading, login, signup } = useAuth()
 
-  const checkExistingSession = useCallback(async () => {
-    try {
-      await account.get()
-      // If we get here, user is already logged in
-      router.push('/role')
-    } catch {
-      // No active session, user can proceed with login/signup
-    }
-  }, [router])
-
+  // Check for redirect parameter and show message
   useEffect(() => {
-    // Check if user is already logged in
-    checkExistingSession()
-  }, [checkExistingSession])
+    const redirect = searchParams.get('redirect')
+    if (redirect) {
+      setRedirectMessage('Please login to access that page')
+    }
+  }, [searchParams])
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !loading) {
+      const redirect = searchParams.get('redirect')
+      router.push(redirect && redirect.startsWith('/') ? redirect : '/role')
+    }
+  }, [user, loading, router, searchParams])
   
   const handleCredentialAuth = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
+    setLocalError('')
     
     try {
       if (isLogin) {
         // Login with email and password
-        await account.createEmailPasswordSession(email, password)
-        
-        router.push('/role')
+        await login(email, password)
       } else {
         // Register with email and password
         if (password.length < 8) {
-          setError('Password must be at least 8 characters')
-          setLoading(false)
+          setLocalError('Password must be at least 8 characters')
           return
         }
         
         if (!name.trim()) {
-          setError('Name is required')
-          setLoading(false)
+          setLocalError('Name is required')
           return
         }
         
-        // Create new account
-        await account.create(
-          ID.unique(),
-          email,
-          password,
-          name
-        )
-        
-        // Automatically log in after registration
-        await account.createEmailPasswordSession(email, password)
-        
-        // Redirect to details page to complete profile
-        router.push('/auth/details')
+        // Sign up new user
+        await signup(email, password, name)
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred'
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
+      setLocalError(errorMessage)
     }
+  }
+
+  // Show loading spinner while checking auth status
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-700 to-blue-900">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    )
   }
 
   return (
@@ -86,7 +80,12 @@ export default function AuthPage() {
           <h3 className="text-xl">{isLogin ? 'Login' : 'Register'}</h3>
         </div>
 
-        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+        {redirectMessage && (
+          <p className="text-yellow-300 text-sm text-center bg-yellow-900/30 py-2 px-3 rounded">
+            {redirectMessage}
+          </p>
+        )}
+        {localError && <p className="text-red-400 text-sm text-center">{localError}</p>}
         
         <form onSubmit={handleCredentialAuth} className="space-y-4">
           {!isLogin && (
@@ -156,7 +155,7 @@ export default function AuthPage() {
               setEmail('')
               setPassword('')
               setName('')
-              setError('')
+              setLocalError('')
             }}
             className="font-medium text-white hover:underline"
           >

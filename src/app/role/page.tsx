@@ -1,33 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { account } from '../../lib/appwrite'
-import { Models } from 'appwrite'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function RoleSelectionPage() {
   const router = useRouter()
-  const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user, loading } = useAuth()
 
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const currentUser = await account.get()
-        setUser(currentUser)
-      } catch (error) {
-        console.error('Authentication check failed:', error)
-        router.push('/auth')
-      } finally {
-        setLoading(false)
-      }
+    // Redirect to auth if not logged in
+    if (!loading && !user) {
+      router.push('/auth')
     }
-    checkSession()
-  }, [router])
+  }, [user, loading, router])
 
   const handleRoleSelection = (role: string) => {
-    // Here you would typically update user preferences or navigate
-    // For now, we just navigate to the respective dashboard
+    // Save role to localStorage for persistence
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('userRole', role.toLowerCase())
+    }
+    
+    // Navigate to the respective dashboard
     router.push(`/${role.toLowerCase()}`)
   }
 
@@ -40,7 +34,6 @@ export default function RoleSelectionPage() {
   }
 
   if (!user) {
-    // This state should ideally not be reached due to the redirect in useEffect
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
         <p>Redirecting to login...</p>

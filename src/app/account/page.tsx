@@ -1,25 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { account } from '../../lib/appwrite'
+import { useAuth } from '@/contexts/AuthContext'
 import BottomDock from '../../components/BottomDock'
 import '../../styles/account-profile.css'
 
-interface UserData {
-  $id: string;
-  name: string;
-  email: string;
-  phone: string;
-  prefs: {
-    studentCode?: string;
-    credit?: number;
-    phone?: string;
-  };
-}
-
 export default function AccountPage() {
-  const [user, setUser] = useState<UserData | null>(null)
+  const { user, loading: authLoading, updateName, updatePreferences, logout } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [studentCode, setStudentCode] = useState('')
@@ -35,30 +23,26 @@ export default function AccountPage() {
   })
   const router = useRouter()
 
-  const checkUser = useCallback(async () => {
-    try {
-      // Get user from Appwrite session
-      const currentUser = await account.get()
-      setUser(currentUser as UserData)
-      setName(currentUser.name || '')
-      setEmail(currentUser.email || '')
-      
-      // Get user preferences
-      const prefs = currentUser.prefs || {}
-      setStudentCode(prefs.studentCode || '')
-      setCredit(prefs.credit || 0)
-      setPhone(prefs.phone || currentUser.phone || '')
-    } catch (err) {
-      console.error('Not authenticated:', err)
-      router.push('/auth')
-    }
-  }, [router])
-
   useEffect(() => {
-    checkUser()
+    // Redirect if not authenticated
+    if (!authLoading && !user) {
+      router.push('/auth')
+      return
+    }
+
+    // Load user data
+    if (user) {
+      setName(user.name || '')
+      setEmail(user.email || '')
+      setStudentCode(user.prefs?.studentCode || '')
+      setCredit(user.prefs?.credit || 0)
+      setPhone(user.prefs?.phone || user.phone || '')
+    }
+
+    // Load role from localStorage
     const storedRole = localStorage.getItem('userRole') as 'customer' | 'delivery'
     if (storedRole) setRole(storedRole)
-  }, [checkUser])
+  }, [user, authLoading, router])
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,13 +50,13 @@ export default function AccountPage() {
     setError('')
     
     try {
-      // Update name
-      if (name.trim()) {
-        await account.updateName(name)
+      // Update name if changed
+      if (name.trim() && name !== user?.name) {
+        await updateName(name)
       }
       
       // Update preferences
-      await account.updatePrefs({
+      await updatePreferences({
         studentCode,
         credit,
         phone
@@ -90,12 +74,9 @@ export default function AccountPage() {
 
   const handleLogout = async () => {
     try {
-      await account.deleteSession('current')
-      localStorage.removeItem('userRole')
-      router.push('/auth')
+      await logout()
     } catch (err) {
       console.error('Logout failed:', err)
-      router.push('/auth')
     }
   }
 
