@@ -181,7 +181,7 @@ export default function MyDeliveries() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-bold text-gray-800">
-                        {order.orderCode || order.$id?.slice(0, 8)}
+                        {order.restaurantLocation === 'Self' ? 'سلف سرویس' : (order.orderCode || order.$id?.slice(0, 8))}
                       </h3>
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
@@ -234,15 +234,26 @@ export default function MyDeliveries() {
                         <p className="text-sm text-gray-800 mt-1">{order.deliveryLocation}</p>
                       </div>
 
-                      {order.orderCode && (
+                      {order.restaurantLocation === 'Self' ? (
                         <div>
                           <p className="text-xs font-semibold text-gray-500 uppercase">
                             Order Code
                           </p>
                           <p className="text-sm text-gray-800 mt-1 font-mono bg-gray-100 px-2 py-1 rounded inline-block">
-                            {order.orderCode}
+                            {order.orderCode || 'Not available'}
                           </p>
                         </div>
+                      ) : (
+                        order.orderCode && (
+                          <div>
+                            <p className="text-xs font-semibold text-gray-500 uppercase">
+                              Order Code
+                            </p>
+                            <p className="text-sm text-gray-800 mt-1 font-mono bg-gray-100 px-2 py-1 rounded inline-block">
+                              {order.orderCode}
+                            </p>
+                          </div>
+                        )
                       )}
 
                       <div>

@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     /**
      * Sign up a new user
      */
-    const signup = async (email: string, password: string, name: string) => {
+    const signup = useCallback(async (email: string, password: string, name: string) => {
         try {
             setError(null);
             setLoading(true);
@@ -121,12 +121,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [router, refreshUser]);
 
     /**
      * Log in an existing user
      */
-    const login = async (email: string, password: string) => {
+    const login = useCallback(async (email: string, password: string) => {
         try {
             setError(null);
             setLoading(true);
@@ -166,12 +166,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [router, refreshUser]);
 
     /**
      * Log out the current user
      */
-    const logout = async () => {
+    const logout = useCallback(async () => {
         try {
             setError(null);
             setLoading(true);
@@ -212,12 +212,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [router]);
 
     /**
      * Update user's name
      */
-    const updateName = async (name: string) => {
+    const updateName = useCallback(async (name: string) => {
         try {
             setError(null);
             await account.updateName(name);
@@ -227,12 +227,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setError(message);
             throw new Error(message);
         }
-    };
+    }, [refreshUser]);
 
     /**
      * Update user's email
      */
-    const updateEmail = async (email: string, password: string) => {
+    const updateEmail = useCallback(async (email: string, password: string) => {
         try {
             setError(null);
             await account.updateEmail(email, password);
@@ -242,12 +242,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setError(message);
             throw new Error(message);
         }
-    };
+    }, [refreshUser]);
 
     /**
      * Update user's password
      */
-    const updatePassword = async (newPassword: string, oldPassword: string) => {
+    const updatePassword = useCallback(async (newPassword: string, oldPassword: string) => {
         try {
             setError(null);
             await account.updatePassword(newPassword, oldPassword);
@@ -256,12 +256,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setError(message);
             throw new Error(message);
         }
-    };
+    }, []);
 
     /**
      * Update user's phone number
      */
-    const updatePhone = async (phone: string, password: string) => {
+    const updatePhone = useCallback(async (phone: string, password: string) => {
         try {
             setError(null);
             await account.updatePhone(phone, password);
@@ -271,12 +271,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setError(message);
             throw new Error(message);
         }
-    };
+    }, [refreshUser]);
 
     /**
      * Update user preferences
      */
-    const updatePreferences = async (prefs: Partial<UserPreferences>) => {
+    const updatePreferences = useCallback(async (prefs: Partial<UserPreferences>) => {
         try {
             setError(null);
             
@@ -291,9 +291,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setError(message);
             throw new Error(message);
         }
-    };
+    }, [user, refreshUser]);
 
-    const value: AuthContextType = {
+    const value: AuthContextType = React.useMemo(() => ({
         user,
         loading,
         error,
@@ -307,7 +307,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updatePreferences,
         refreshUser,
         checkSession,
-    };
+    }), [user, loading, error, signup, login, logout, updateName, updateEmail, updatePassword, updatePhone, updatePreferences, refreshUser, checkSession]);
 
     return (
         <AuthContext.Provider value={value}>

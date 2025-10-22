@@ -102,7 +102,7 @@ export default function CustomerHome() {
             <div
               key={service.name}
               onClick={() => handleOrderClick(service.location)}
-              className="bg-white bg-opacity-95 rounded-xl p-6 text-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl group"
+              className="bg-white bg-opacity-95 rounded-xl p-6 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group"
             >
               <div className="flex flex-col items-center gap-3">
                 <Image

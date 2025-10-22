@@ -2,12 +2,17 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  reactStrictMode: false,
-  // The 'optimizeFonts' and 'swcMinify' options are deprecated in recent versions of Next.js
-  // and can be safely removed. Font optimization is now a default feature.
+  reactStrictMode: true,
+  // Optimize CSS loading
   experimental: {
     optimizeCss: true,
   },
+  // Ensure proper CSS chunking and loading
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  // Optimize build output
+  poweredByHeader: false,
 };
 
 export default nextConfig;

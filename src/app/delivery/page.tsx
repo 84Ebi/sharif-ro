@@ -192,7 +192,7 @@ export default function Delivery() {
                   <div className="flex justify-between items-center mb-2">
                     <div className="flex flex-col gap-1">
                       <div className="font-bold text-gray-800 text-sm">
-                        {order.orderCode || order.$id?.slice(0, 8)}
+                        {order.restaurantLocation === 'Self' ? 'سلف سرویس' : (order.orderCode || order.$id?.slice(0, 8))}
                       </div>
                       <div className="text-xs text-gray-500">
                         {order.$createdAt && new Date(order.$createdAt).toLocaleDateString()} • {' '}
@@ -222,7 +222,16 @@ export default function Delivery() {
                       <div><strong>Phone:</strong> {order.phone}</div>
                       {order.email && <div><strong>Email:</strong> {order.email}</div>}
                       <div><strong>Restaurant:</strong> {order.restaurantLocation} ({order.restaurantType})</div>
-                      {order.orderCode && <div><strong>Order Code:</strong> {order.orderCode}</div>}
+                      {order.restaurantLocation === 'Self' ? (
+                        <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
+                          <div className="text-sm text-yellow-800">
+                            <strong>⚠️ Self Service Order</strong><br/>
+                            <span className="text-xs">Order code will be shown after acceptance</span>
+                          </div>
+                        </div>
+                      ) : (
+                        order.orderCode && <div><strong>Order Code:</strong> {order.orderCode}</div>
+                      )}
                       <div><strong>Delivery To:</strong> {order.deliveryLocation}</div>
                       {order.extraNotes && <div><strong>Notes:</strong> {order.extraNotes}</div>}
                       <div><strong>Price:</strong> ${order.price.toFixed(2)}</div>
