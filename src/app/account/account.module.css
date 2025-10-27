@@ -1,0 +1,197 @@
+/* Page background gradient */
+.background {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(to right, #0d47a1, #bbdefb);
+    color: #fff;
+    padding: 18px;
+}
+
+/* Profile Container */
+.profileContainer {
+    width: 100%;
+    max-width: 920px;
+    padding: 20px;
+}
+
+.profileContainer h1 {
+    margin-bottom: 30px;
+    font-size: 24px;
+}
+
+/* Profile Section */
+.profileSection {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.infoGroup {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.infoGroup:last-child {
+    border-bottom: none;
+}
+
+.infoGroup label {
+    flex: 0 0 200px;
+    color: #02243a;
+    font-weight: 600;
+}
+
+.infoValue {
+    flex: 1;
+    color: #02243a;
+}
+
+.infoInput {
+    flex: 1;
+    padding: 8px 12px;
+    border: 2px solid #4f7bff;
+    border-radius: 6px;
+    color: #02243a;
+    font-size: 14px;
+    outline: none;
+}
+
+.infoInput:focus {
+    border-color: #3b5fe6;
+    box-shadow: 0 0 0 3px rgba(79, 123, 255, 0.1);
+}
+
+.editBtn {
+    background: linear-gradient(180deg, #4f7bff 0%, #3b5fe6 100%);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.editBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 123, 255, 0.2);
+}
+
+.editBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Orders Section */
+.ordersSection {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 80px;
+}
+
+.ordersSection h2 {
+    color: #02243a;
+    margin-bottom: 20px;
+}
+
+.ordersList {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.orderItem {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.orderItem:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.orderHeader {
+    padding: 15px;
+    background: rgba(79, 123, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    color: #02243a;
+}
+
+.orderCode {
+    font-weight: 600;
+}
+
+.orderStatus {
+    font-weight: 500;
+}
+
+.orderDetails {
+    padding: 15px;
+    display: none;
+    color: #02243a;
+}
+
+.orderItem:hover .orderDetails {
+    display: block;
+}
+
+.orderDetails p {
+    margin: 5px 0;
+}
+
+/* Error message */
+.errorMessage {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid #ff6b6b;
+    color: #ff6b6b;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+/* Responsive Design */
+@media (max-width: 720px) {
+    .profileContainer {
+        padding: 15px;
+    }
+
+    .infoGroup {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .infoGroup label {
+        flex: none;
+    }
+
+    .infoValue,
+    .infoInput {
+        width: 100%;
+    }
+
+    .editBtn {
+        align-self: stretch;
+        text-align: center;
+    }
+
+    .orderHeader {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .ordersSection {
+        margin-bottom: 100px;
+    }
+}
+

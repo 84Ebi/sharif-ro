@@ -1,5 +1,5 @@
 /**
- * Middleware for security headers
+ * Middleware for security headers and CSS cache control
  * Note: Authentication is handled client-side via AuthContext and useAuth hook
  * Each protected page checks authentication using useEffect pattern (see role/page.tsx)
  */
@@ -7,7 +7,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export async function middleware(_request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // Allow all requests to continue
   // Authentication is handled on the client side by each page component
   const response = NextResponse.next();
@@ -16,6 +16,13 @@ export async function middleware(_request: NextRequest) {
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  // Force no-cache for all requests to ensure fresh CSS loads
+  const pathname = request.nextUrl.pathname;
+  
+  // Add no-cache headers to prevent CSS caching
+  response.headers.set('Cache-Control', 'no-store, max-age=0, must-revalidate');
+  response.headers.set('Pragma', 'no-cache');
 
   return response;
 }

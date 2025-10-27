@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import BottomDock from '../../components/BottomDock'
-import '../../styles/account-profile.css'
+import styles from './account.module.css'
 
 export default function AccountPage() {
   const { user, loading: authLoading, updateName, updatePreferences, logout } = useAuth()
@@ -89,27 +89,27 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="background">
-      <main className="profile-container">
+    <div className={styles.background}>
+      <main className={styles.profileContainer}>
         <h1>Account</h1>
         
-        {error && <p className="error-message" style={{color: '#ff6b6b', marginBottom: '15px'}}>{error}</p>}
+        {error && <p className={styles.errorMessage} style={{color: '#ff6b6b', marginBottom: '15px'}}>{error}</p>}
         
-        <div className="profile-section">
-          <div className="info-group">
+        <div className={styles.profileSection}>
+          <div className={styles.infoGroup}>
             <label>Name</label>
             {editMode.name ? (
               <input
                 type="text"
-                className="info-input"
+                className={styles.infoInput}
                 value={name}
                 onChange={e => setName(e.target.value)}
               />
             ) : (
-              <div className="info-value">{name}</div>
+              <div className={styles.infoValue}>{name}</div>
             )}
             <button 
-              className="edit-btn"
+              className={styles.editBtn}
               onClick={() => {
                 if (editMode.name) {
                   const form = document.createElement('form');
@@ -125,28 +125,28 @@ export default function AccountPage() {
             </button>
           </div>
 
-          <div className="info-group">
+          <div className={styles.infoGroup}>
             <label>Email</label>
-            <div className="info-value">{email}</div>
-            <button className="edit-btn" disabled style={{opacity: 0.5, cursor: 'not-allowed'}}>
+            <div className={styles.infoValue}>{email}</div>
+            <button className={styles.editBtn} disabled style={{opacity: 0.5, cursor: 'not-allowed'}}>
               Locked
             </button>
           </div>
 
-          <div className="info-group">
+          <div className={styles.infoGroup}>
             <label>University Student Code</label>
             {editMode.studentCode ? (
               <input
                 type="text"
-                className="info-input"
+                className={styles.infoInput}
                 value={studentCode}
                 onChange={e => setStudentCode(e.target.value)}
               />
             ) : (
-              <div className="info-value">{studentCode || 'Not set'}</div>
+              <div className={styles.infoValue}>{studentCode || 'Not set'}</div>
             )}
             <button 
-              className="edit-btn"
+              className={styles.editBtn}
               onClick={() => {
                 if (editMode.studentCode) {
                   const form = document.createElement('form');
@@ -162,26 +162,26 @@ export default function AccountPage() {
             </button>
           </div>
 
-          <div className="info-group">
+          <div className={styles.infoGroup}>
             <label>Credit</label>
-            <div className="info-value">${credit.toFixed(2)}</div>
-            <button className="edit-btn">Add Credit</button>
+            <div className={styles.infoValue}>${credit.toFixed(2)}</div>
+            <button className={styles.editBtn}>Add Credit</button>
           </div>
 
-          <div className="info-group">
+          <div className={styles.infoGroup}>
             <label>Phone Number</label>
             {editMode.phone ? (
               <input
                 type="tel"
-                className="info-input"
+                className={styles.infoInput}
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
               />
             ) : (
-              <div className="info-value">{phone || 'Not set'}</div>
+              <div className={styles.infoValue}>{phone || 'Not set'}</div>
             )}
             <button 
-              className="edit-btn"
+              className={styles.editBtn}
               onClick={() => {
                 if (editMode.phone) {
                   const form = document.createElement('form');
@@ -197,10 +197,10 @@ export default function AccountPage() {
             </button>
           </div>
 
-          <div className="info-group" style={{borderBottom: 'none'}}>
+          <div className={styles.infoGroup} style={{borderBottom: 'none'}}>
             <button 
               onClick={handleLogout}
-              className="edit-btn"
+              className={styles.editBtn}
               style={{
                 background: 'linear-gradient(180deg, #ff4f4f 0%, #e63b3b 100%)',
                 width: '100%'
@@ -210,13 +210,13 @@ export default function AccountPage() {
             </button>
           </div>
 
-          <div className="info-group" style={{borderBottom: 'none', paddingTop: '10px'}}>
+          <div className={styles.infoGroup} style={{borderBottom: 'none', paddingTop: '10px'}}>
             <button
               onClick={() => {
                 localStorage.removeItem('userRole')
                 router.push('/role')
               }}
-              className="edit-btn"
+              className={styles.editBtn}
               style={{
                 background: 'linear-gradient(180deg, #4CAF50 0%, #45a049 100%)',
                 width: '100%'

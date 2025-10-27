@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import '../../../styles/auth.css'
+import styles from './details.module.css'
 
 export default function DetailsPage() {
   const [name, setName] = useState('')
@@ -61,8 +61,8 @@ export default function DetailsPage() {
 
   if (loading || !user) {
     return (
-      <div className="background">
-        <div className="login-box">
+      <div className={styles.background}>
+        <div className={styles.loginBox}>
           <h2>Loading...</h2>
         </div>
       </div>
@@ -70,12 +70,12 @@ export default function DetailsPage() {
   }
 
   return (
-    <div className="background">
-      <div className="login-box">
+    <div className={styles.background}>
+      <div className={styles.loginBox}>
         <h2>Complete Your Profile</h2>
         <h3>Enter your details to finish sign up</h3>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className={styles.errorMessage}>{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <label htmlFor="name">Name</label>

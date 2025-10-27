@@ -3,9 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
-  // Optimize CSS loading
+  // Disable CSS optimization to prevent caching
   experimental: {
-    optimizeCss: true,
+    optimizeCss: false,
   },
   // Ensure proper CSS chunking and loading
   compiler: {
@@ -13,6 +13,23 @@ const nextConfig: NextConfig = {
   },
   // Optimize build output
   poweredByHeader: false,
+  // Force CSS to reload on every page navigation
+  webpack: (config) => {
+    // Disable CSS caching
+    config.module.rules.forEach((rule: any) => {
+      if (rule.test && rule.test.toString().includes('css')) {
+        rule.use.forEach((use: any) => {
+          if (use.loader && use.loader.includes('css-loader')) {
+            use.options = {
+              ...use.options,
+              modules: false,
+            };
+          }
+        });
+      }
+    });
+    return config;
+  },
 };
 
 export default nextConfig;
