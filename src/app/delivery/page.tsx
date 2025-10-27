@@ -148,7 +148,7 @@ export default function Delivery() {
           {/* Filter Pill */}
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white bg-opacity-10 border border-white border-opacity-10 text-black hover:bg-opacity-20 transition-all group cursor-pointer">
             <span className="font-bold text-sm">Filters</span>
-            <div className="hidden group-hover:flex group-focus-within:flex items-center gap-2">
+            <div className=" group-hover:flex group-focus-within:flex items-center gap-2">
               <input
                 type="text"
                 placeholder="Location"

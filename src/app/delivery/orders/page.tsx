@@ -105,7 +105,7 @@ export default function MyDeliveries() {
           <h1 className="text-3xl font-bold text-white">My Deliveries</h1>
           <button
             onClick={loadOrders}
-            className="px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-all"
+            className="px-4 py-2 bg-white bg-opacity-20 text-black rounded-lg hover:bg-opacity-30 transition-all"
           >
             Refresh
           </button>
@@ -118,7 +118,7 @@ export default function MyDeliveries() {
             className={`px-4 py-2 rounded-lg font-semibold transition-all ${
               filterStatus === 'all'
                 ? 'bg-white text-gray-800'
-                : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                : 'bg-gray-500 bg-opacity-20 text-black hover:bg-opacity-30'
             }`}
           >
             All
@@ -128,7 +128,7 @@ export default function MyDeliveries() {
             className={`px-4 py-2 rounded-lg font-semibold transition-all ${
               filterStatus === 'confirmed'
                 ? 'bg-white text-gray-800'
-                : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                : 'bg-gray-500 bg-opacity-20 text-black hover:bg-opacity-30'
             }`}
           >
             Active
@@ -138,7 +138,7 @@ export default function MyDeliveries() {
             className={`px-4 py-2 rounded-lg font-semibold transition-all ${
               filterStatus === 'delivered'
                 ? 'bg-white text-gray-800'
-                : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                : 'bg-gray-500 bg-opacity-20 text-black hover:bg-opacity-30'
             }`}
           >
             Completed
