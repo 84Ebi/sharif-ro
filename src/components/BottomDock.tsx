@@ -11,7 +11,7 @@ export default function BottomDock({ role }: BottomDockProps) {
   const isActive = (path: string) => pathname === path
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 flex justify-center p-4" style={{pointerEvents: 'none'}}>
+    <div className="fixed z-20 bottom-0 left-0 right-0 flex justify-center p-4" style={{pointerEvents: 'none'}}>
       <div className="flex justify-around items-center bg-white rounded-2xl shadow-lg border border-gray-200 p-3 gap-4" style={{maxWidth: '400px', width: '90%', pointerEvents: 'auto'}}>
         <Link href={role === 'customer' ? '/customer' : '/delivery'}>
           <div className={`flex flex-col items-center p-2 rounded-lg transition-all ${isActive(role === 'customer' ? '/customer' : '/delivery') ? 'bg-blue-100' : 'hover:bg-gray-100'}`}>

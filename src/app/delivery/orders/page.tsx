@@ -177,7 +177,7 @@ export default function MyDeliveries() {
                 className="bg-white rounded-lg shadow-lg p-5 cursor-pointer hover:shadow-xl transition-all"
                 onClick={() => setSelectedOrder(selectedOrder?.$id === order.$id ? null : order)}
               >
-                <div className="flex items-start justify-between mb-3">
+                <div className=" items-start mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-bold text-gray-800">
@@ -191,6 +191,17 @@ export default function MyDeliveries() {
                         {order.status.toUpperCase()}
                       </span>
                     </div>
+                    
+                    {/* Customer Info - Always Visible */}
+                    <div className="bg-blue-50 px-3 py-2 rounded-lg mb-2 border-l-4 border-blue-500">
+                      <p className="text-sm font-semibold text-gray-800">
+                        👤 {order.fullName}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        📱 {order.phone}
+                      </p>
+                    </div>
+                    
                     <p className="text-sm text-gray-600">
                       {order.restaurantLocation} → {order.deliveryLocation}
                     </p>
@@ -198,8 +209,8 @@ export default function MyDeliveries() {
                       Accepted: {formatDate(order.confirmedAt || order.$createdAt)}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xl font-bold text-blue-600">${order.price.toFixed(2)}</p>
+                  <div className="">
+                    <p className="text-xl font-bold text-blue-600">${order.price}</p>
                   </div>
                 </div>
 
@@ -259,7 +270,7 @@ export default function MyDeliveries() {
                       <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase">Price</p>
                         <p className="text-sm text-gray-800 mt-1 font-bold">
-                          ${order.price.toFixed(2)}
+                          ${order.price}
                         </p>
                       </div>
 

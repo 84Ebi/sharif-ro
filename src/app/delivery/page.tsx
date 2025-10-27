@@ -1,11 +1,41 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { getPendingOrders, confirmOrder, type Order } from '../../lib/orders'
 import BottomDock from '../../components/BottomDock'
 
+
+const deliveryLocations = [
+  'دانشکده فیزیک',
+  'دانشکده علوم ریاضی',
+  'دانشکده شیمی',
+  'دانشکده مهندسی برق',
+  'دانشکده مهندسی انرژی',
+  'دانشکده مدیریت و اقتصاد',
+  'دانشکده مهندسی عمران',
+  'دانشکده مهندسی صنایع',
+  'دانشکده مهندسی شیمی و نفت',
+  'دانشکده مهندسی و علم مواد',
+  'دانشکده مهندسی مکانیک',
+  'دانشکده مهندسی کامپیوتر',
+  'دانشکده مهندسی هوا فضا',
+  'مدیریت تربیت بدنی',
+  'مرکز زبان‌ها و زبان‌شناسی',
+  'گروه فلسفه علم',
+  'مرکز معارف اسلامی و علوم انسانی',
+  'مرکز آموزش مهارت‌های مهندسی',
+  'خوابگاه احمدی روشن (پسران)',
+  'خوابگاه طرشت ۲ (پسران)',
+  'خوابگاه طرشت ۳(دختران)',
+  'ساختمان ابن سینا',
+  'تالار ها',
+  'ساختمان روستا ازاد (پارک علم و فناوری )',
+  'مسجد',
+  'ساختمان اموزش',
+  'امفی تئاتر',
+]
 export default function Delivery() {
   const { user, loading: authLoading } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
@@ -15,6 +45,26 @@ export default function Delivery() {
   const [costMax, setCostMax] = useState('')
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [deliveryLocation, setDeliveryLocation] = useState('')
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (isDropdownOpen && !target.closest('.dropdown-container')) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [isDropdownOpen])
 
   const filterOrders = useCallback(() => {
     let filtered = orders
@@ -138,44 +188,85 @@ export default function Delivery() {
     <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 text-black py-6 px-4 pb-24">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <header className="mb-4">
+        <header className="mb-4 relative z-20">
           <div className="flex items-center gap-3 mb-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/gift.png" alt="Logo" className="w-14 h-14 object-contain" style={{mixBlendMode: 'screen'}} />
             <h1 className="text-lg font-bold text-white">Delivery Dashboard</h1>
           </div>
 
-          {/* Filter Pill */}
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white bg-opacity-10 border border-white border-opacity-10 text-black hover:bg-opacity-20 transition-all group cursor-pointer">
-            <span className="font-bold text-sm">Filters</span>
-            <div className=" group-hover:flex group-focus-within:flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Location"
-                value={locationFilter}
-                onChange={(e) => setLocationFilter(e.target.value)}
-                className="px-3 py-2 rounded-lg bg-white text-gray-800 text-sm outline-none w-32"
-              />
+          {/* Filter Section */}
+          <div className="flex flex-inline justify-around items-center gap-1 px-2 py-3 rounded-xl bg-white bg-opacity-15 border border-white border-opacity-30 backdrop-blur-sm relative">
+            
+            {/* Location Dropdown */}
+            <div className="relative dropdown-container z-50">
+              <button
+                ref={dropdownButtonRef}
+                type="button"
+                onClick={() => {
+                  console.log('Dropdown button clicked, current state:', isDropdownOpen)
+                  setIsDropdownOpen(!isDropdownOpen)
+                }}
+                className="px-2 py-2 rounded-lg bg-white shadow-md hover:shadow-lg text-gray-800 font-medium text-sm transition-all flex items-center justify-between gap-2 border border-gray-200"
+              >
+                <span className="text-right flex">
+                  {deliveryLocation || 'انتخاب محل'}
+                </span>
+                <span className="text-gray-600">▼</span>
+              </button>
+              
+              {isDropdownOpen && (
+                <div className="absolute z-[99999] top-full left-0 mt-1 bg-white rounded-lg shadow-2xl border border-gray-300 max-h-60 overflow-y-auto w-full min-w-[250px]">
+                  {deliveryLocations.map((loc) => (
+                    <div
+                      key={loc}
+                      onClick={() => {
+                        setDeliveryLocation(loc)
+                        setLocationFilter(loc)
+                        setIsDropdownOpen(false)
+                      }}
+                      className="px-4 py-3 hover:bg-blue-50 cursor-pointer text-right border-b border-gray-100 last:border-0 transition-colors text-gray-800"
+                    >
+                      {loc}
+                    </div>
+                  ))}
+                  <div
+                    onClick={() => {
+                      setDeliveryLocation('')
+                      setLocationFilter('')
+                      setIsDropdownOpen(false)
+                    }}
+                    className="px-4 py-3 hover:bg-red-50 cursor-pointer text-gray-800 border-t-2 border-gray-200 font-medium"
+                  >
+                    حذف فیلتر
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Cost Range Inputs */}
+            <div className="flex items-center ">
               <input
                 type="number"
                 placeholder="Min"
                 value={costMin}
                 onChange={(e) => setCostMin(e.target.value)}
-                className="px-3 py-2 rounded-lg bg-white text-gray-800 text-sm outline-none w-20"
+                className="px-3 py-2 rounded-lg bg-white shadow-md hover:shadow-lg text-gray-800 text-sm outline-none w-20 border border-gray-200"
               />
+              <span className="text-white font-medium text-lg">-</span>
               <input
                 type="number"
                 placeholder="Max"
                 value={costMax}
                 onChange={(e) => setCostMax(e.target.value)}
-                className="px-3 py-2 rounded-lg bg-white text-gray-800 text-sm outline-none w-20"
+                className="px-3 py-2 rounded-lg bg-white shadow-md hover:shadow-lg text-gray-800 text-sm outline-none w-20 border border-gray-200"
               />
             </div>
           </div>
         </header>
 
         {/* Orders Card */}
-        <main className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-h-[60vh] max-h-[calc(100vh-200px)] overflow-hidden flex flex-col">
+        <main className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-h-[60vh] max-h-[calc(100vh-200px)] overflow-hidden flex flex-col relative z-10">
           <div className="overflow-auto pr-2 flex flex-col gap-2 p-2">
             {loading ? (
               <div className="text-center text-white py-8">Loading orders...</div>
@@ -217,10 +308,7 @@ export default function Delivery() {
                       opacity: expandedOrder === order.$id ? '1' : '0'
                     }}
                   >
-                    <div className="mt-3 pt-3 border-t border-gray-200 space-y-1 text-sm text-gray-700">
-                      <div><strong>Customer:</strong> {order.fullName}</div>
-                      <div><strong>Phone:</strong> {order.phone}</div>
-                      {order.email && <div><strong>Email:</strong> {order.email}</div>}
+                    <div className="mt-3 pt-3 border-t border-gray-200 space-y-2 text-sm text-gray-700">
                       <div><strong>Restaurant:</strong> {order.restaurantLocation} ({order.restaurantType})</div>
                       {order.restaurantLocation === 'Self' ? (
                         <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
