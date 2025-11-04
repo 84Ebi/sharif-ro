@@ -72,3 +72,4 @@ Can contact customer for delivery
 - ✅ Clear visual distinction between pending and accepted orders
 - ✅ Easy access to customer contact after acceptance
 
+

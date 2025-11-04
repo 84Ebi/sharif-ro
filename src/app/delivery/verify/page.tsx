@@ -1,11 +1,15 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { storage, databases, ID } from '../../../lib/appwrite'
 import { useRouter } from 'next/navigation'
 import BottomDock from '../../../components/BottomDock'
 import Image from 'next/image'
+import { Query } from 'appwrite'
+
+// Bucket ID for verification images
+const VERIFICATION_BUCKET_ID = '6909fd2600093086c95b'
 
 export default function VerifyPage() {
   const { user } = useAuth()
@@ -18,9 +22,36 @@ export default function VerifyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [hasExistingVerification, setHasExistingVerification] = useState(false)
+  const [verificationStatus, setVerificationStatus] = useState<string>('')
 
   const studentCardInputRef = useRef<HTMLInputElement>(null)
   const selfieInputRef = useRef<HTMLInputElement>(null)
+
+  // Check for existing verification
+  useEffect(() => {
+    const checkExistingVerification = async () => {
+      if (!user) return
+      
+      try {
+        const response = await databases.listDocuments(
+          process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+          process.env.NEXT_PUBLIC_APPWRITE_VERIFICATION_COLLECTION_ID!,
+          [Query.equal('userId', user.$id)]
+        )
+        
+        if (response.documents.length > 0) {
+          const latestVerification = response.documents[0]
+          setHasExistingVerification(true)
+          setVerificationStatus(latestVerification.status || 'pending')
+        }
+      } catch (err) {
+        console.error('Error checking verification status:', err)
+      }
+    }
+    
+    checkExistingVerification()
+  }, [user])
 
   const handleStudentCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -64,10 +95,14 @@ export default function VerifyPage() {
     setMessage('Uploading documents...')
 
     try {
+      // Create unique file IDs linked to user
+      const studentCardFileId = `${user.$id}_studentcard_${Date.now()}`
+      const selfieFileId = `${user.$id}_selfie_${Date.now()}`
+
       // Upload student card to Appwrite Storage
       const studentCardUpload = await storage.createFile(
-        process.env.NEXT_PUBLIC_APPWRITE_VERIFICATION_BUCKET_ID!,
-        ID.unique(),
+        VERIFICATION_BUCKET_ID,
+        studentCardFileId,
         studentCardFile
       )
 
@@ -75,8 +110,8 @@ export default function VerifyPage() {
 
       // Upload selfie to Appwrite Storage
       const selfieUpload = await storage.createFile(
-        process.env.NEXT_PUBLIC_APPWRITE_VERIFICATION_BUCKET_ID!,
-        ID.unique(),
+        VERIFICATION_BUCKET_ID,
+        selfieFileId,
         selfieFile
       )
 
@@ -91,14 +126,22 @@ export default function VerifyPage() {
           userId: user.$id,
           userName: user.name,
           userEmail: user.email,
+          userPhone: user.phone || '',
           studentCardFileId: studentCardUpload.$id,
           selfieFileId: selfieUpload.$id,
+          bucketId: VERIFICATION_BUCKET_ID,
           status: 'pending',
-          submittedAt: new Date().toISOString()
+          submittedAt: new Date().toISOString(),
+          reviewedAt: null,
+          reviewedBy: null,
+          reviewNotes: null
         }
       )
 
       setMessage('✓ Verification request submitted successfully!')
+      setHasExistingVerification(true)
+      setVerificationStatus('pending')
+      
       setTimeout(() => {
         router.push('/delivery')
       }, 2000)
@@ -116,6 +159,111 @@ export default function VerifyPage() {
       <div className="min-h-screen flex items-center justify-center" style={{background: 'linear-gradient(to right, #0d47a1, #bbdefb)'}}>
         <div className="text-white text-xl">Please log in to access verification.</div>
       </div>
+    )
+  }
+
+  // Show status if verification already exists
+  if (hasExistingVerification && verificationStatus !== 'rejected') {
+    const statusColors = {
+      pending: { bg: 'rgba(255, 193, 7, 0.1)', border: '#ffc107', text: '#f57c00' },
+      approved: { bg: 'rgba(76, 175, 80, 0.1)', border: '#4caf50', text: '#2e7d32' },
+      rejected: { bg: 'rgba(244, 67, 54, 0.1)', border: '#f44336', text: '#c62828' }
+    }
+    
+    const colors = statusColors[verificationStatus as keyof typeof statusColors] || statusColors.pending
+
+    return (
+      <>
+        <style jsx>{`
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          
+          .background {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to right, #0d47a1, #bbdefb);
+            color: #fff;
+            padding: 18px;
+            padding-bottom: 100px;
+          }
+
+          .status-card {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 32px;
+            margin-top: 20px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+            color: #02243a;
+            text-align: center;
+          }
+
+          .status-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+          }
+
+          .status-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #034066;
+          }
+
+          .status-message {
+            font-size: 1rem;
+            color: rgba(2, 36, 58, 0.7);
+            margin-bottom: 24px;
+            line-height: 1.6;
+          }
+
+          .btn-back {
+            background: linear-gradient(180deg, #4f7bff 0%, #3b5fe6 100%);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.12s ease;
+            box-shadow: 0 8px 20px rgba(79, 123, 255, 0.3);
+          }
+
+          .btn-back:hover {
+            transform: translateY(-2px);
+          }
+        `}</style>
+
+        <div className="background">
+          <div className="status-card">
+            <div className="status-icon">
+              {verificationStatus === 'pending' && '⏳'}
+              {verificationStatus === 'approved' && '✅'}
+            </div>
+            <h1 className="status-title">
+              {verificationStatus === 'pending' && 'Verification Pending'}
+              {verificationStatus === 'approved' && 'Verification Approved'}
+            </h1>
+            <p className="status-message">
+              {verificationStatus === 'pending' && 
+                'Your verification request is currently being reviewed by our admin team. This process typically takes 24-48 hours. You will be notified once your account is approved.'}
+              {verificationStatus === 'approved' && 
+                'Your account has been verified! You can now accept delivery orders.'}
+            </p>
+            <button 
+              className="btn-back"
+              onClick={() => router.push('/delivery')}
+            >
+              Back to Dashboard
+            </button>
+          </div>
+
+          <BottomDock role="delivery" />
+        </div>
+      </>
     )
   }
 
