@@ -95,23 +95,19 @@ export default function VerifyPage() {
     setMessage('Uploading documents...')
 
     try {
-      // Create unique file IDs linked to user
-      const studentCardFileId = `${user.$id}_studentcard_${Date.now()}`
-      const selfieFileId = `${user.$id}_selfie_${Date.now()}`
-
-      // Upload student card to Appwrite Storage
+      // Upload student card to Appwrite Storage with auto-generated ID
       const studentCardUpload = await storage.createFile(
         VERIFICATION_BUCKET_ID,
-        studentCardFileId,
+        ID.unique(), // Let Appwrite generate a valid unique ID
         studentCardFile
       )
 
       setMessage('Student card uploaded, uploading selfie...')
 
-      // Upload selfie to Appwrite Storage
+      // Upload selfie to Appwrite Storage with auto-generated ID
       const selfieUpload = await storage.createFile(
         VERIFICATION_BUCKET_ID,
-        selfieFileId,
+        ID.unique(), // Let Appwrite generate a valid unique ID
         selfieFile
       )
 

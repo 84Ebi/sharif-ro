@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { storage } from '@/lib/appwrite'
 
 type Verification = {
@@ -25,8 +23,9 @@ type Verification = {
 const VERIFICATION_BUCKET_ID = '6909fd2600093086c95b'
 
 export default function AdminVerificationsPage() {
-  const { user } = useAuth()
   const router = useRouter()
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false)
+  const [adminUsername, setAdminUsername] = useState('')
   const [verifications, setVerifications] = useState<Verification[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
@@ -34,10 +33,25 @@ export default function AdminVerificationsPage() {
   const [reviewNotes, setReviewNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  // Fetch verifications
+  // Check admin authentication
   useEffect(() => {
-    loadVerifications()
-  }, [filter])
+    const adminAuth = localStorage.getItem('adminAuth')
+    const username = localStorage.getItem('adminUsername')
+    
+    if (adminAuth === 'true' && username) {
+      setIsAdminLoggedIn(true)
+      setAdminUsername(username)
+    } else {
+      router.push('/admin/login')
+    }
+  }, [router])
+
+  // Fetch verifications when admin is logged in
+  useEffect(() => {
+    if (isAdminLoggedIn) {
+      loadVerifications()
+    }
+  }, [filter, isAdminLoggedIn])
 
   const loadVerifications = async () => {
     try {
@@ -66,7 +80,7 @@ export default function AdminVerificationsPage() {
   }
 
   const handleReview = async (verificationId: string, status: 'approved' | 'rejected') => {
-    if (!user) return
+    if (!isAdminLoggedIn) return
 
     setSubmitting(true)
     try {
@@ -78,8 +92,8 @@ export default function AdminVerificationsPage() {
         body: JSON.stringify({
           status,
           reviewNotes,
-          reviewerId: user.$id,
-          reviewerName: user.name
+          reviewerId: 'admin',
+          reviewerName: adminUsername
         })
       })
 
@@ -101,11 +115,18 @@ export default function AdminVerificationsPage() {
     }
   }
 
-  // Check if user is admin (you might want to implement proper admin role checking)
-  if (!user) {
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('adminAuth')
+    localStorage.removeItem('adminUsername')
+    router.push('/admin/login')
+  }
+
+  // Check if admin is logged in
+  if (!isAdminLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Please log in to access admin panel.</div>
+        <div className="text-white text-xl">Checking authentication...</div>
       </div>
     )
   }
@@ -138,7 +159,35 @@ export default function AdminVerificationsPage() {
           font-size: 2rem;
           font-weight: 700;
           color: #034066;
+          margin-bottom: 8px;
+        }
+
+        .header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
           margin-bottom: 16px;
+        }
+
+        .admin-info {
+          color: rgba(3, 64, 102, 0.7);
+          font-size: 0.9rem;
+        }
+
+        .btn-logout {
+          background: linear-gradient(180deg, #f44336 0%, #d32f2f 100%);
+          color: white;
+          padding: 8px 16px;
+          border-radius: 6px;
+          font-weight: 600;
+          font-size: 0.9rem;
+          border: none;
+          cursor: pointer;
+          transition: transform 0.12s ease;
+        }
+
+        .btn-logout:hover {
+          transform: translateY(-2px);
         }
 
         .filters {
@@ -421,7 +470,15 @@ export default function AdminVerificationsPage() {
         <div className="container">
           {/* Header */}
           <div className="header">
-            <h1 className="title">🔍 Verification Management</h1>
+            <div className="header-top">
+              <div>
+                <h1 className="title">🔍 Verification Management</h1>
+                <div className="admin-info">Logged in as: <strong>{adminUsername}</strong></div>
+              </div>
+              <button className="btn-logout" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
             <div className="filters">
               <button
                 className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
@@ -523,25 +580,23 @@ export default function AdminVerificationsPage() {
                 {/* Images */}
                 <div className="images-section">
                   <div className="image-container">
-                    <div className="image-label">Student Card</div>
-                    <Image
+                    <div className="image-label">📇 Student Card</div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={getImageUrl(selectedVerification.studentCardFileId)}
                       alt="Student Card"
-                      width={400}
-                      height={300}
                       className="verification-image"
-                      style={{ objectFit: 'contain' }}
+                      style={{ width: '100%', height: 'auto', maxHeight: '400px', objectFit: 'contain' }}
                     />
                   </div>
                   <div className="image-container">
-                    <div className="image-label">Selfie</div>
-                    <Image
+                    <div className="image-label">🤳 Selfie</div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={getImageUrl(selectedVerification.selfieFileId)}
                       alt="Selfie"
-                      width={400}
-                      height={300}
                       className="verification-image"
-                      style={{ objectFit: 'contain' }}
+                      style={{ width: '100%', height: 'auto', maxHeight: '400px', objectFit: 'contain' }}
                     />
                   </div>
                 </div>
