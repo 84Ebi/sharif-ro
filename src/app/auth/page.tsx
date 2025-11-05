@@ -14,12 +14,14 @@ function AuthPageContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [studentCode, setStudentCode] = useState('')
   
   const [localError, setLocalError] = useState('')
   const [redirectMessage, setRedirectMessage] = useState('')
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user, loading, login, signup } = useAuth()
+  const { user, loading, login, signup, updatePreferences } = useAuth()
 
   // Check for redirect parameter and show message
   useEffect(() => {
@@ -62,6 +64,8 @@ function AuthPageContent() {
         // Sign up new user
         console.log('Attempting signup...');
         await signup(email, password, name)
+        // Save additional info
+        await updatePreferences({ phone, studentCode })
         console.log('Signup successful');
       }
     } catch (err: unknown) {
@@ -113,6 +117,36 @@ function AuthPageContent() {
               />
             </div>
           )}
+
+          {!isLogin && (
+            <div>
+              <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-200">{t('auth.phone')}</label>
+              <input
+                type="tel"
+                id="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder={t('auth.placeholder.phone')}
+                required
+                className="w-full px-4 py-2 text-gray-900 bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
+
+          {!isLogin && (
+            <div>
+              <label htmlFor="studentCode" className="block mb-2 text-sm font-medium text-gray-200">{t('auth.student_code')}</label>
+              <input
+                type="text"
+                id="studentCode"
+                value={studentCode}
+                onChange={(e) => setStudentCode(e.target.value)}
+                placeholder={t('auth.placeholder.student_code')}
+                required
+                className="w-full px-4 py-2 text-gray-900 bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
           
           <div>
             <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-200">{t('auth.email')}</label>
@@ -157,6 +191,8 @@ function AuthPageContent() {
               setPassword('')
               setName('')
               setLocalError('')
+              setPhone('')
+              setStudentCode('')
             }}
             className="font-medium text-white hover:underline"
           >
