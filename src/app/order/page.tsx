@@ -7,33 +7,33 @@ import { createOrder } from '../../lib/orders'
 import BottomDock from '../../components/BottomDock'
 
 const deliveryLocations = [
-  'دانشکده فیزیک',
-  'دانشکده علوم ریاضی',
-  'دانشکده شیمی',
-  'دانشکده مهندسی برق',
-  'دانشکده مهندسی انرژی',
-  'دانشکده مدیریت و اقتصاد',
-  'دانشکده مهندسی عمران',
-  'دانشکده مهندسی صنایع',
-  'دانشکده مهندسی شیمی و نفت',
-  'دانشکده مهندسی و علم مواد',
-  'دانشکده مهندسی مکانیک',
-  'دانشکده مهندسی کامپیوتر',
-  'دانشکده مهندسی هوا فضا',
-  'مدیریت تربیت بدنی',
-  'مرکز زبان‌ها و زبان‌شناسی',
-  'گروه فلسفه علم',
-  'مرکز معارف اسلامی و علوم انسانی',
-  'مرکز آموزش مهارت‌های مهندسی',
-  'خوابگاه احمدی روشن (پسران)',
-  'خوابگاه طرشت ۲ (پسران)',
-  'خوابگاه طرشت ۳(دختران)',
-  'ساختمان ابن سینا',
-  'تالار ها',
-  'ساختمان روستا ازاد (پارک علم و فناوری )',
-  'مسجد',
-  'ساختمان اموزش',
-  'امفی تئاتر',
+  { name: 'دانشکده فیزیک', price: 20000 },
+  { name: 'دانشکده علوم ریاضی', price: 20000 },
+  { name: 'دانشکده شیمی', price: 25000 },
+  { name: 'دانشکده مهندسی برق', price: 20000 },
+  { name: 'دانشکده مهندسی انرژی', price: 30000 },
+  { name: 'دانشکده مدیریت و اقتصاد', price: 30000 },
+  { name: 'دانشکده مهندسی عمران', price: 25000 },
+  { name: 'دانشکده مهندسی صنایع', price: 20000 },
+  { name: 'دانشکده مهندسی شیمی و نفت', price: 15000 },
+  { name: 'دانشکده مهندسی و علم مواد', price: 25000 },
+  { name: 'دانشکده مهندسی مکانیک', price: 30000 },
+  { name: 'دانشکده مهندسی کامپیوتر', price: 15000 },
+  { name: 'دانشکده مهندسی هوا فضا', price: 30000 },
+  { name: 'مدیریت تربیت بدنی', price: 30000 },
+  { name: 'مرکز زبان‌ها و زبان‌شناسی', price: 10000 },
+  { name: 'گروه فلسفه علم', price: 25000 },
+  { name: 'مرکز معارف اسلامی و علوم انسانی', price: 10000 },
+  { name: 'مرکز آموزش مهارت‌های مهندسی', price: 10000 },
+  { name: 'خوابگاه احمدی روشن (پسران)', price: 45000 },
+  { name: 'خوابگاه طرشت ۲ (پسران)', price: 50000 },
+  { name: 'خوابگاه طرشت ۳(دختران)', price: 45000 },
+  { name: 'ساختمان ابن سینا', price: 10000 },
+  { name: 'تالار ها', price: 25000 },
+  { name: 'ساختمان روستا ازاد (پارک علم و فناوری )', price: 20000 },
+  { name: 'مسجد', price: 25000 },
+  { name: 'ساختمان اموزش', price: 30000 },
+  { name: 'امفی تئاتر', price: 25000 },
 ]
 
 const drinksAndAddons = [
@@ -60,9 +60,11 @@ function OrderFormContent() {
     phone: '',
     extraNotes: '',
     price: 0,
-    needsContainer: false,
+    needsContainer: true,
     needsUtensils: false,
     selectedDrink: '',
+    cafeteria: '',
+    deliveryFee: 0,
   })
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -95,6 +97,11 @@ function OrderFormContent() {
       }
     }
     
+    // Add delivery fee
+    if (isSelfOrder) {
+      finalPrice += form.deliveryFee
+    }
+    
     // Build order details for Self orders
     let orderDetails = form.orderCode
     if (isSelfOrder) {
@@ -102,6 +109,7 @@ function OrderFormContent() {
       if (form.needsContainer) additions.push('ظرف')
       if (form.needsUtensils) additions.push('قاشق چنگال')
       if (form.selectedDrink) additions.push(`نوشیدنی: ${form.selectedDrink}`)
+      if (form.cafeteria) additions.push(`سالن: ${form.cafeteria}`)
       
       if (additions.length > 0) {
         orderDetails += `\n\nموارد اضافی:\n${additions.join('\n')}`
@@ -255,6 +263,20 @@ function OrderFormContent() {
                 </select>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">انتخاب سالن *</label>
+                <select
+                  value={form.cafeteria}
+                  onChange={e => setForm({ ...form, cafeteria: e.target.value })}
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                >
+                  <option value="" disabled>سالن را انتخاب کنید</option>
+                  <option value="سلف دختران">سلف دختران</option>
+                  <option value="سلف پسران">سلف پسران</option>
+                </select>
+              </div>
+
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   موارد اضافی
@@ -264,7 +286,7 @@ function OrderFormContent() {
                     type="checkbox"
                     id="container"
                     checked={form.needsContainer}
-                    onChange={e => setForm({ ...form, needsContainer: e.target.checked })}
+                    disabled
                     className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
                   <label htmlFor="container" className="text-sm text-gray-700 cursor-pointer">
@@ -331,14 +353,14 @@ function OrderFormContent() {
                   <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto border border-gray-200">
                     {deliveryLocations.map((loc) => (
                       <div
-                        key={loc}
+                        key={loc.name}
                         onClick={() => {
-                          setForm({ ...form, deliveryLocation: loc })
+                          setForm({ ...form, deliveryLocation: loc.name, deliveryFee: loc.price })
                           setIsDropdownOpen(false)
                         }}
                         className="p-3 hover:bg-blue-50 cursor-pointer text-right"
                       >
-                        {loc}
+                        {loc.name} - {loc.price.toLocaleString()} تومان
                       </div>
                     ))}
                   </div>
@@ -369,28 +391,40 @@ function OrderFormContent() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {isSelfOrder ? 'مبلغ (تومان) *' : 'Price *'}
-            </label>
-            <input
-              type="number"
-              placeholder={isSelfOrder ? 'مبلغ سفارش' : 'Order price'}
-              value={form.price || ''}
-              onChange={e => setForm({ ...form, price: Number(e.target.value) })}
-              required
-              min="0"
-              step="1000"
-              className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isSelfOrder ? 'text-right' : ''}`}
-            />
-          </div>
+          {!isSelfOrder && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price *
+              </label>
+              <input
+                type="number"
+                placeholder={'Order price'}
+                value={form.price || ''}
+                onChange={e => setForm({ ...form, price: Number(e.target.value) })}
+                required
+                min="0"
+                step="1000"
+                className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+              />
+            </div>
+          )}
 
-          {isSelfOrder && form.selectedDrink && (
+          {isSelfOrder && (
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-700">مبلغ نهایی با نوشیدنی:</span>
+                <span className="text-gray-700">مبلغ قابل پرداخت (فقط نوشیدنی/افزودنی):</span>
                 <span className="font-bold text-blue-600">
-                  {(form.price + (drinksAndAddons.find(d => d.name === form.selectedDrink)?.price || 0)).toLocaleString()} تومان
+                  {(drinksAndAddons.find(d => d.name === form.selectedDrink)?.price || 0).toLocaleString()} تومان
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm mt-2">
+                <span className="text-gray-700">هزینه ارسال:</span>
+                <span className="font-bold text-blue-600">{form.deliveryFee.toLocaleString()} تومان</span>
+              </div>
+              <div className="flex justify-between items-center text-sm mt-2 border-t pt-2">
+                <span className="text-gray-700">جمع کل:</span>
+                <span className="font-bold text-blue-600">
+                  {((drinksAndAddons.find(d => d.name === form.selectedDrink)?.price || 0) + form.deliveryFee).toLocaleString()} تومان
                 </span>
               </div>
             </div>
@@ -405,6 +439,28 @@ function OrderFormContent() {
           </button>
         </form>
       </div>
+
+      {isSelfOrder && (
+        <div className="max-w-md mx-auto mt-4">
+          <div className="bg-white rounded-lg shadow-md p-4 space-y-2 text-right">
+            <h2 className="font-bold text-gray-800 mb-2">خلاصه سفارش</h2>
+            <div className="text-sm text-gray-700">
+              <div>کد سفارش: {form.orderCode || '-'}</div>
+              <div>نام غذا: {form.orderName || '-'}</div>
+              <div>سالن: {form.cafeteria || '-'}</div>
+              <div>محل دریافت: {form.deliveryLocation || '-'}</div>
+              <div>تلفن: {form.phone || '-'}</div>
+              <div>موارد اضافی: {['ظرف', form.needsUtensils ? 'قاشق چنگال' : null, form.selectedDrink ? `نوشیدنی: ${form.selectedDrink}` : null].filter(Boolean).join('، ') || '-'}</div>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t text-sm">
+              <span className="text-gray-700">جمع پرداختی (نوشیدنی/افزودنی):</span>
+              <span className="font-bold text-blue-600">
+                {((drinksAndAddons.find(d => d.name === form.selectedDrink)?.price || 0) + form.deliveryFee).toLocaleString()} تومان
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomDock role="customer" />
     </div>
