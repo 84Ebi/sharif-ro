@@ -316,8 +316,7 @@ function OrderFormContent() {
             <input
               type="text"
               value={user.name}
-              disabled
-              className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+              className="w-full p-3 border border-gray-300 rounded-lg text-gray-600"
             />
           </div>
 

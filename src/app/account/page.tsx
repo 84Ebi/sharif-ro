@@ -90,11 +90,13 @@ export default function AccountPage() {
 
   return (
     <div className={styles.background}>
-      <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 50 }}>
+      <h1 className={styles.profileContainer}>{t('account.title')}</h1>
+      <div className='w-fit px-10 justify-around text-center text-black bg-white p-2  rounded-2xl z-50'>
+        <h1>زبان</h1>
         <LanguageSwitcher />
       </div>
       <main className={styles.profileContainer}>
-        <h1>{t('account.title')}</h1>
+        
         
         {error && <p className={styles.errorMessage} style={{color: '#ff6b6b', marginBottom: '15px'}}>{error}</p>}
         

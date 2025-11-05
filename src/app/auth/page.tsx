@@ -86,7 +86,7 @@ function AuthPageContent() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-700 to-blue-900 relative">
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed text-black bg-white p-2  rounded-2xl top-2 right-2 z-50">
         <LanguageSwitcher />
       </div>
       <div className="w-full max-w-sm p-8 space-y-6 bg-white/10 rounded-xl shadow-2xl backdrop-blur-lg">
