@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import BottomDock from '../../../components/BottomDock'
 import Image from 'next/image'
 import { Query } from 'appwrite'
+import { useI18n } from '@/lib/i18n'
 
 // Bucket ID for verification images
 const VERIFICATION_BUCKET_ID = '6909fd2600093086c95b'
@@ -14,6 +15,7 @@ const VERIFICATION_BUCKET_ID = '6909fd2600093086c95b'
 export default function VerifyPage() {
   const { user } = useAuth()
   const router = useRouter()
+  const { t } = useI18n()
   
   const [studentCardFile, setStudentCardFile] = useState<File | null>(null)
   const [selfieFile, setSelfieFile] = useState<File | null>(null)
@@ -81,18 +83,18 @@ export default function VerifyPage() {
     e.preventDefault()
     
     if (!studentCardFile || !selfieFile) {
-      setError('Please upload both images.')
+      setError(t('verify.need_both'))
       return
     }
 
     if (!user) {
-      setError('You must be logged in to submit verification.')
+      setError(t('verify.must_login'))
       return
     }
 
     setIsSubmitting(true)
     setError('')
-    setMessage('Uploading documents...')
+    setMessage(t('verify.uploading'))
 
     try {
       // Upload student card to Appwrite Storage with auto-generated ID
@@ -102,7 +104,7 @@ export default function VerifyPage() {
         studentCardFile
       )
 
-      setMessage('Student card uploaded, uploading selfie...')
+      setMessage(t('verify.student_uploaded'))
 
       // Upload selfie to Appwrite Storage with auto-generated ID
       const selfieUpload = await storage.createFile(
@@ -111,7 +113,7 @@ export default function VerifyPage() {
         selfieFile
       )
 
-      setMessage('Creating verification request...')
+      setMessage(t('verify.creating_request'))
 
       // Create verification request document in database
       await databases.createDocument(
@@ -134,7 +136,7 @@ export default function VerifyPage() {
         }
       )
 
-      setMessage('✓ Verification request submitted successfully!')
+      setMessage(t('verify.success'))
       setHasExistingVerification(true)
       setVerificationStatus('pending')
       
@@ -145,7 +147,7 @@ export default function VerifyPage() {
     } catch (err: unknown) {
       console.error('Verification submission error:', err)
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
-      setError(`Failed to submit verification: ${errorMessage}`)
+      setError(`${t('verify.fail_prefix')}${errorMessage}`)
       setIsSubmitting(false)
     }
   }
@@ -153,7 +155,7 @@ export default function VerifyPage() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{background: 'linear-gradient(to right, #0d47a1, #bbdefb)'}}>
-        <div className="text-white text-xl">Please log in to access verification.</div>
+        <div className="text-white text-xl">{t('verify.please_login')}</div>
       </div>
     )
   }
@@ -240,20 +242,18 @@ export default function VerifyPage() {
               {verificationStatus === 'approved' && '✅'}
             </div>
             <h1 className="status-title">
-              {verificationStatus === 'pending' && 'Verification Pending'}
-              {verificationStatus === 'approved' && 'Verification Approved'}
+              {verificationStatus === 'pending' && t('verify.status.pending')}
+              {verificationStatus === 'approved' && t('verify.status.approved')}
             </h1>
             <p className="status-message">
-              {verificationStatus === 'pending' && 
-                'Your verification request is currently being reviewed by our admin team. This process typically takes 24-48 hours. You will be notified once your account is approved.'}
-              {verificationStatus === 'approved' && 
-                'Your account has been verified! You can now accept delivery orders.'}
+              {verificationStatus === 'pending' && t('verify.status.pending_msg')}
+              {verificationStatus === 'approved' && t('verify.status.approved_msg')}
             </p>
             <button 
               className="btn-back"
               onClick={() => router.push('/delivery')}
             >
-              Back to Dashboard
+              {t('verify.back_to_dashboard')}
             </button>
           </div>
 
@@ -449,22 +449,21 @@ export default function VerifyPage() {
 
       <div className="background">
         <div className="verification-card">
-          <h1 className="card-title">🎓 Delivery Partner Verification</h1>
+          <h1 className="card-title">{t('verify.title')}</h1>
           <p className="card-subtitle">
-            Submit your documents for manual review by our admin team
+            {t('verify.subtitle')}
           </p>
 
           <div className="info-box">
-            <div className="info-box-title">⚠️ Important Information</div>
+            <div className="info-box-title">{t('verify.info_title')}</div>
             <div className="info-box-text">
-              Your verification will be manually reviewed by admins. This process may take 24-48 hours.
-              You will receive a notification once your account is approved.
+              {t('verify.info_text')}
             </div>
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Student Card Photo</label>
+              <label className="form-label">{t('verify.student_card')}</label>
               <div 
                 className={`upload-area ${studentCardFile ? 'has-file' : ''}`}
                 onClick={() => studentCardInputRef.current?.click()}
@@ -473,10 +472,10 @@ export default function VerifyPage() {
                   {studentCardFile ? '✓' : '📇'}
                 </div>
                 <div className="upload-text">
-                  {studentCardFile ? studentCardFile.name : 'Click to upload student card'}
+                  {studentCardFile ? studentCardFile.name : t('verify.click_to_upload_student_card')}
                 </div>
                 <div className="upload-hint">
-                  {studentCardFile ? 'Click to change' : 'JPG, PNG or HEIC (max 10MB)'}
+                  {studentCardFile ? t('verify.click_to_change') : t('verify.hint')}
                 </div>
                 {studentCardPreview && (
                   <Image 
@@ -500,7 +499,7 @@ export default function VerifyPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Self-Portrait (Selfie)</label>
+              <label className="form-label">{t('verify.selfie')}</label>
               <div 
                 className={`upload-area ${selfieFile ? 'has-file' : ''}`}
                 onClick={() => selfieInputRef.current?.click()}
@@ -509,10 +508,10 @@ export default function VerifyPage() {
                   {selfieFile ? '✓' : '🤳'}
                 </div>
                 <div className="upload-text">
-                  {selfieFile ? selfieFile.name : 'Click to upload your selfie'}
+                  {selfieFile ? selfieFile.name : t('verify.click_to_upload_selfie')}
                 </div>
                 <div className="upload-hint">
-                  {selfieFile ? 'Click to change' : 'JPG, PNG or HEIC (max 10MB)'}
+                  {selfieFile ? t('verify.click_to_change') : t('verify.hint')}
                 </div>
                 {selfiePreview && (
                   <Image 
@@ -540,7 +539,7 @@ export default function VerifyPage() {
               className="btn-submit"
               disabled={isSubmitting || !studentCardFile || !selfieFile}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit for Verification'}
+              {isSubmitting ? t('verify.submitting') : t('verify.submit')}
             </button>
 
             {message && (

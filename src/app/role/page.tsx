@@ -4,10 +4,12 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
+import { useI18n } from '@/lib/i18n'
 
 export default function RoleSelectionPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
+  const { t } = useI18n()
 
   useEffect(() => {
     // Redirect to auth if not logged in
@@ -29,7 +31,7 @@ export default function RoleSelectionPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-[#0d47a1] to-[#bbdefb] text-white">
-        <p className="text-xl">Loading user information...</p>
+        <p className="text-xl">{t('role.loading_user')}</p>
       </div>
     )
   }
@@ -37,7 +39,7 @@ export default function RoleSelectionPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-[#0d47a1] to-[#bbdefb] text-white">
-        <p className="text-xl">Redirecting to login...</p>
+        <p className="text-xl">{t('role.redirecting_login')}</p>
       </div>
     )
   }
@@ -70,7 +72,7 @@ export default function RoleSelectionPage() {
               height={100}
             />
           </div>
-          <h2 className="text-2xl font-bold text-[#001f3f]">SharifGir</h2>
+          <h2 className="text-2xl font-bold text-[#001f3f]">{t('role.customer')}</h2>
         </div>
 
         {/* Customer - SharifBar */}
@@ -86,7 +88,7 @@ export default function RoleSelectionPage() {
               height={100}
             />
           </div>
-          <h2 className="text-2xl font-bold text-[#001f3f]">SharifBar</h2>
+          <h2 className="text-2xl font-bold text-[#001f3f]">{t('role.delivery')}</h2>
         </div>
       </div>
     </div>

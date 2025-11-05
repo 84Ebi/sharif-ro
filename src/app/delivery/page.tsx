@@ -152,36 +152,20 @@ export default function Delivery() {
       <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-6 px-4 pb-24">
         <div className="max-w-4xl mx-auto">
           <div className="bg-yellow-100 rounded-xl p-6 text-center shadow-xl mt-20">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">⚠️ Verification Required</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('delivery.verification_required_title')}</h2>
             <p className="text-gray-700 mb-6">
-              Your account is not yet verified to accept delivery orders. 
-              Please complete the verification process to start delivering.
+              {t('delivery.verification_required_text')}
             </p>
             <Link href="/delivery/verify">
               <button className="bg-gradient-to-b from-blue-500 to-blue-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all">
-                Go to Verification
+                {t('delivery.go_to_verification')}
               </button>
             </Link>
           </div>
 
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 mt-6">
-            <h3 className="text-xl font-bold text-white mb-4">Why Verification?</h3>
-            <ul className="space-y-2 text-white">
-              <li className="flex items-center gap-2">
-                <span>✓</span> Ensures safe and reliable deliveries
-              </li>
-              <li className="flex items-center gap-2">
-                <span>✓</span> Protects customers and delivery partners
-              </li>
-              <li className="flex items-center gap-2">
-                <span>✓</span> Verifies student identity
-              </li>
-              <li className="flex items-center gap-2">
-                <span>✓</span> Manual review by admins for security
-              </li>
-            </ul>
-          </div>
+          {/* Removed extra info box under the verification message as requested */}
         </div>
+        <BottomDock role="delivery" />
       </div>
     )
   }
@@ -212,7 +196,7 @@ export default function Delivery() {
                 className="px-2 py-2 rounded-lg bg-white shadow-md hover:shadow-lg text-gray-800 font-medium text-sm transition-all flex items-center justify-between gap-2 border border-gray-200"
               >
                 <span className="text-right flex">
-                  {deliveryLocation || 'انتخاب محل'}
+                  {deliveryLocation || t('delivery.select_location')}
                 </span>
                 <span className="text-gray-600">▼</span>
               </button>
@@ -240,7 +224,7 @@ export default function Delivery() {
                     }}
                     className="px-4 py-3 hover:bg-red-50 cursor-pointer text-gray-800 border-t-2 border-gray-200 font-medium"
                   >
-                    حذف فیلتر
+                    {t('delivery.clear_filter')}
                   </div>
                 </div>
               )}
@@ -250,7 +234,7 @@ export default function Delivery() {
             <div className="flex items-center ">
               <input
                 type="number"
-                placeholder="Min"
+                placeholder={t('delivery.cost_min')}
                 value={costMin}
                 onChange={(e) => setCostMin(e.target.value)}
                 className="px-3 py-2 rounded-lg bg-white shadow-md hover:shadow-lg text-gray-800 text-sm outline-none w-20 border border-gray-200"
@@ -258,7 +242,7 @@ export default function Delivery() {
               <span className="text-white font-medium text-lg">-</span>
               <input
                 type="number"
-                placeholder="Max"
+                placeholder={t('delivery.cost_max')}
                 value={costMax}
                 onChange={(e) => setCostMax(e.target.value)}
                 className="px-3 py-2 rounded-lg bg-white shadow-md hover:shadow-lg text-gray-800 text-sm outline-none w-20 border border-gray-200"
@@ -271,9 +255,9 @@ export default function Delivery() {
         <main className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-h-[60vh] max-h-[calc(100vh-200px)] overflow-hidden flex flex-col relative z-10">
           <div className="overflow-auto pr-2 flex flex-col gap-2 p-2">
             {loading ? (
-              <div className="text-center text-white py-8">{t('cart.loading_orders')}</div>
+              <div className="text-center text-white py-8">{t('delivery.loading_orders')}</div>
             ) : filteredOrders.length === 0 ? (
-              <div className="text-center text-white py-8">No pending orders available.</div>
+              <div className="text-center text-white py-8">{t('delivery.no_pending')}</div>
             ) : (
               filteredOrders.map(order => (
                 <article
@@ -311,7 +295,7 @@ export default function Delivery() {
                     }}
                   >
                     <div className="mt-3 pt-3 border-t border-gray-200 space-y-2 text-sm text-gray-700">
-                      <div><strong>Restaurant:</strong> {order.restaurantLocation} ({order.restaurantType})</div>
+                      <div><strong>{t('deliveries.pickup_from')}:</strong> {order.restaurantLocation} ({order.restaurantType})</div>
                       {order.restaurantLocation === 'Self' ? (
                         <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
                           <div className="text-sm text-yellow-800">
@@ -320,11 +304,11 @@ export default function Delivery() {
                           </div>
                         </div>
                       ) : (
-                        order.orderCode && <div><strong>Order Code:</strong> {order.orderCode}</div>
+                        order.orderCode && <div><strong>{t('deliveries.order_code')}:</strong> {order.orderCode}</div>
                       )}
-                      <div><strong>Delivery To:</strong> {order.deliveryLocation}</div>
-                      {order.extraNotes && <div><strong>Notes:</strong> {order.extraNotes}</div>}
-                      <div><strong>Price:</strong> ${order.price.toFixed(2)}</div>
+                      <div><strong>{t('deliveries.deliver_to')}:</strong> {order.deliveryLocation}</div>
+                      {order.extraNotes && <div><strong>{t('deliveries.notes')}:</strong> {order.extraNotes}</div>}
+                      <div><strong>{t('deliveries.price')}:</strong> ${order.price.toFixed(2)}</div>
                     </div>
 
                     <div className="flex justify-center mt-3">
