@@ -264,3 +264,4 @@ If you prefer, you can use the Appwrite CLI. See `APPWRITE_SETUP_COMMANDS.md` fo
 
 Good luck! The collection creation takes about 5-10 minutes if done carefully.
 
+

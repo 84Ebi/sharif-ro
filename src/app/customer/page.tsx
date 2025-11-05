@@ -7,10 +7,12 @@ import BottomDock from '../../components/BottomDock'
 import SharifPlusMenu from '../../components/SharifPlusMenu'
 import SharifFastFoodMenu from '../../components/SharifFastFoodMenu'
 import Image from 'next/image'
+import { useI18n } from '@/lib/i18n'
 
 export default function CustomerHome() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const { t } = useI18n()
   const [filterLocation, setFilterLocation] = useState('')
   const [minCost, setMinCost] = useState('')
   const [maxCost, setMaxCost] = useState('')
@@ -37,14 +39,13 @@ export default function CustomerHome() {
   }
 
   const handleOrderSuccess = () => {
-    // Show success message or redirect
-    alert('Order submitted successfully!')
+    alert(t('order.success_submit'))
   }
 
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-white text-xl">{t('customer.loading')}</div>
       </div>
     )
   }
@@ -53,7 +54,7 @@ export default function CustomerHome() {
     router.push('/auth')
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Redirecting to login...</div>
+        <div className="text-white text-xl">{t('customer.redirecting_login')}</div>
       </div>
     )
   }
@@ -69,11 +70,11 @@ export default function CustomerHome() {
 
           {/* Filter Pill */}
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white bg-opacity-10 border border-white border-opacity-10 text-white hover:bg-opacity-20 transition-all group cursor-pointer">
-            <span className="font-bold text-black text-sm">Filters</span>
+            <span className="font-bold text-black text-sm">{t('customer.filters')}</span>
             <div className=" group-hover:flex group-focus-within:flex items-center gap-2">
               <input
                 type="text"
-                placeholder="Location"
+                placeholder={t('customer.location')}
                 value={filterLocation}
                 onChange={(e) => setFilterLocation(e.target.value)}
                 className="px-3 py-2 rounded-lg bg-white text-gray-800 text-sm outline-none w-32"
@@ -100,7 +101,7 @@ export default function CustomerHome() {
                 />
                 <span className="text-gray-800 font-semibold">{service.name}</span>
                 <button className="hidden group-hover:block bg-gradient-to-b from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all hover:from-blue-600 hover:to-blue-700">
-                  Order Now
+                  {t('customer.order_now')}
                 </button>
               </div>
             </div>

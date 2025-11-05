@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { getPendingOrders, confirmOrder, type Order } from '../../lib/orders'
 import BottomDock from '../../components/BottomDock'
+import { useI18n } from '@/lib/i18n'
 
 
 const deliveryLocations = [
@@ -38,6 +39,7 @@ const deliveryLocations = [
 ]
 export default function Delivery() {
   const { user, loading: authLoading } = useAuth()
+  const { t } = useI18n()
   const [orders, setOrders] = useState<Order[]>([])
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
   const [locationFilter, setLocationFilter] = useState('')
@@ -117,10 +119,10 @@ export default function Delivery() {
       
       // Remove order from list
       setOrders(orders.filter(order => order.$id !== orderId))
-      alert('Order confirmed! Check "My Deliveries" to view details.')
+      alert(t('delivery.order_confirmed'))
     } catch (error) {
       console.error('Error accepting order:', error)
-      alert('Failed to accept order. Please try again.')
+      alert(t('delivery.accept_failed'))
     }
   }
 
@@ -131,7 +133,7 @@ export default function Delivery() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-white text-xl">{t('delivery.loading')}</div>
       </div>
     )
   }
@@ -139,7 +141,7 @@ export default function Delivery() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Please log in to access delivery dashboard.</div>
+        <div className="text-white text-xl">{t('delivery.login_required')}</div>
       </div>
     )
   }
@@ -192,7 +194,7 @@ export default function Delivery() {
           <div className="flex items-center gap-3 mb-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/gift.png" alt="Logo" className="w-14 h-14 object-contain" style={{mixBlendMode: 'screen'}} />
-            <h1 className="text-lg font-bold text-white">Delivery Dashboard</h1>
+            <h1 className="text-lg font-bold text-white">{t('delivery.dashboard')}</h1>
           </div>
 
           {/* Filter Section */}
@@ -269,7 +271,7 @@ export default function Delivery() {
         <main className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-h-[60vh] max-h-[calc(100vh-200px)] overflow-hidden flex flex-col relative z-10">
           <div className="overflow-auto pr-2 flex flex-col gap-2 p-2">
             {loading ? (
-              <div className="text-center text-white py-8">Loading orders...</div>
+              <div className="text-center text-white py-8">{t('cart.loading_orders')}</div>
             ) : filteredOrders.length === 0 ? (
               <div className="text-center text-white py-8">No pending orders available.</div>
             ) : (
@@ -333,7 +335,7 @@ export default function Delivery() {
                           if (order.$id) acceptOrder(order.$id)
                         }}
                       >
-                        Accept Order
+                        {t('delivery.accept_order')}
                       </button>
                     </div>
                   </div>

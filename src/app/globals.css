@@ -39,6 +39,10 @@ body {
   color: var(--foreground);
 }
 
+/* Language direction helpers (html[dir] controls direction; these classes reinforce it) */
+body.rtl { direction: rtl; }
+body.ltr { direction: ltr; }
+
 a {
   color: #0070f3;
   text-decoration: none;

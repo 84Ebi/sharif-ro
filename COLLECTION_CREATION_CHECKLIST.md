@@ -69,3 +69,4 @@ Use this as a quick checklist while creating the `verifications` collection.
 
 Once all boxes are checked, the verification system will be fully operational! 🚀
 
+

@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { useI18n } from '@/lib/i18n'
 
 function AuthPageContent() {
   const [isLogin, setIsLogin] = useState(true)
+  const { t } = useI18n()
   
   // Email/password states
   const [email, setEmail] = useState('')
@@ -22,7 +25,7 @@ function AuthPageContent() {
   useEffect(() => {
     const redirect = searchParams.get('redirect')
     if (redirect) {
-      setRedirectMessage('Please login to access that page')
+      setRedirectMessage(t('auth.redirect'))
     }
   }, [searchParams])
 
@@ -47,12 +50,12 @@ function AuthPageContent() {
       } else {
         // Register with email and password
         if (password.length < 8) {
-          setLocalError('Password must be at least 8 characters')
+          setLocalError(t('auth.password_min'))
           return
         }
         
         if (!name.trim()) {
-          setLocalError('Name is required')
+          setLocalError(t('auth.name_required'))
           return
         }
         
@@ -78,11 +81,14 @@ function AuthPageContent() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-700 to-blue-900">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-700 to-blue-900 relative">
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-sm p-8 space-y-6 bg-white/10 rounded-xl shadow-2xl backdrop-blur-lg">
         <div className="text-center text-white">
-          <h2 className="text-2xl font-bold">Welcome to SharifRo</h2>
-          <h3 className="text-xl">{isLogin ? 'Login' : 'Register'}</h3>
+          <h2 className="text-2xl font-bold">{t('auth.welcome')}</h2>
+          <h3 className="text-xl">{isLogin ? t('auth.login') : t('auth.register')}</h3>
         </div>
 
         {redirectMessage && (
@@ -95,13 +101,13 @@ function AuthPageContent() {
         <form onSubmit={handleCredentialAuth} className="space-y-4">
           {!isLogin && (
             <div>
-              <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-200">Name</label>
+              <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-200">{t('auth.name')}</label>
               <input
                 type="text"
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your Name"
+                placeholder={t('auth.placeholder.name')}
                 required
                 className="w-full px-4 py-2 text-gray-900 bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -109,49 +115,39 @@ function AuthPageContent() {
           )}
           
           <div>
-            <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-200">Email</label>
+            <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-200">{t('auth.email')}</label>
             <input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="email@example.com"
+              placeholder={t('auth.placeholder.email')}
               required
               className="w-full px-4 py-2 text-gray-900 bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           
           <div>
-            <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-200">Password</label>
+            <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-200">{t('auth.password')}</label>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
+              placeholder={t('auth.placeholder.password')}
               required
               className="w-full px-4 py-2 text-gray-900 bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <button type="submit" disabled={loading} className="w-full px-4 py-2 font-bold text-white bg-blue-800 rounded-md hover:bg-blue-700 disabled:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-900">
-            {loading ? 'Processing...' : isLogin ? 'Sign in' : 'Sign up'}
+            {loading ? t('auth.processing') : isLogin ? t('auth.signin') : t('auth.signup')}
           </button>
         </form>
         
-        {isLogin && (
-          <div className="text-center">
-            <a href="#" className="text-sm text-gray-300 hover:underline" onClick={(e) => {
-              e.preventDefault()
-              alert('Password recovery feature coming soon!')
-            }}>
-              Forgot Password?
-            </a>
-          </div>
-        )}
             
         <p className="text-sm text-center text-gray-300">
-          {isLogin ? "Don't have an account yet? " : "Already have an account? "}
+          {isLogin ? t('auth.have_no_account') : t('auth.have_account')}
           <a
             href="#"
             onClick={(e) => {
@@ -164,7 +160,7 @@ function AuthPageContent() {
             }}
             className="font-medium text-white hover:underline"
           >
-            {isLogin ? 'Register for free' : 'Sign in'}
+            {isLogin ? t('auth.register_free') : t('auth.signin_link')}
           </a>
         </p>
       </div>

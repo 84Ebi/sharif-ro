@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { createOrder, getOrdersByUser, Order } from '../../../lib/orders'
 import BottomDock from '../../../components/BottomDock'
+import { useI18n } from '@/lib/i18n'
 
 interface MenuItem {
   name: string
@@ -51,6 +52,7 @@ const deliveryLocations = [
 function ShoppingCartContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const { t } = useI18n()
 
   const [orderData, setOrderData] = useState<OrderData | null>(null)
   const [deliveryLocation, setDeliveryLocation] = useState('')
@@ -84,7 +86,7 @@ function ShoppingCartContent() {
           setOrderData(parsedData)
         }
       } catch {
-        setError('Invalid cart data.')
+        setError(t('errors.invalid_cart_data'))
         sessionStorage.removeItem('shoppingCart')
       }
     }
@@ -95,7 +97,7 @@ function ShoppingCartContent() {
       setHistoryLoading(true)
       getOrdersByUser(user.$id)
         .then(setPastOrders)
-        .catch(() => setHistoryError('Failed to fetch past orders.'))
+        .catch(() => setHistoryError(t('errors.fetch_past_orders')))
         .finally(() => setHistoryLoading(false))
     }
   }, [user])
@@ -174,7 +176,7 @@ function ShoppingCartContent() {
       // Clear the cart and redirect
       sessionStorage.removeItem('shoppingCart')
       router.push('/customer')
-      alert('Your order has been placed successfully!')
+      alert(t('order.success_submit'))
     } catch (err: unknown) {
       console.error('Order submission error:', err)
       setError(err instanceof Error ? err.message : 'Failed to create order. Please try again.')
@@ -184,7 +186,7 @@ function ShoppingCartContent() {
   }
 
   if (authLoading) {
-    return <div className="text-center p-8 text-white">Loading...</div>
+    return <div className="text-center p-8 text-white">{t('customer.loading')}</div>
   }
 
   const deliveryFee = 15000
@@ -196,7 +198,7 @@ function ShoppingCartContent() {
         {orderData && orderData.items.length > 0 ? (
           <div className="bg-white bg-opacity-95 rounded-2xl shadow-xl p-6 space-y-6">
             <header className="text-center">
-              <h1 className="text-2xl font-bold text-gray-800">سبد خرید</h1>
+              <h1 className="text-2xl font-bold text-gray-800">{t('cart.title')}</h1>
             </header>
 
             {error && (
@@ -333,9 +335,9 @@ function ShoppingCartContent() {
           </div>
         ) : (
           <div className="max-w-md mx-auto text-center">
-            <h1 className="text-2xl font-bold text-white mb-6">Shopping Cart</h1>
+            <h1 className="text-2xl font-bold text-white mb-6">{t('cart.empty_title')}</h1>
             <div className="bg-white bg-opacity-20 p-8 rounded-xl">
-              <p className="text-white">Your shopping cart is empty.</p>
+              <p className="text-white">{t('cart.empty_text')}</p>
             </div>
           </div>
         )}
@@ -343,9 +345,9 @@ function ShoppingCartContent() {
         {/* Past Orders */}
         <div className="max-w-md mx-auto">
           <header className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-white">My Past Orders</h1>
+            <h1 className="text-2xl font-bold text-white">{t('cart.past_orders_title')}</h1>
           </header>
-          {historyLoading && <div className="text-center text-white">Loading orders...</div>}
+          {historyLoading && <div className="text-center text-white">{t('cart.loading_orders')}</div>}
           {historyError && <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">{historyError}</div>}
           <div className="space-y-4">
             {pastOrders.length > 0 ? (
@@ -366,7 +368,7 @@ function ShoppingCartContent() {
             ) : (
               !historyLoading && (
                 <div className="text-center text-white bg-white bg-opacity-20 p-6 rounded-xl">
-                  You have no past orders.
+                  {t('cart.no_past_orders')}
                 </div>
               )
             )}

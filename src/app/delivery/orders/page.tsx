@@ -4,9 +4,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { getOrders, updateOrderStatus, Order } from '../../../lib/orders'
 import BottomDock from '../../../components/BottomDock'
+import { useI18n } from '@/lib/i18n'
 
 export default function MyDeliveries() {
   const { user, loading: authLoading } = useAuth()
+  const { t } = useI18n()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -29,7 +31,7 @@ export default function MyDeliveries() {
       setError('')
     } catch (err) {
       console.error('Error loading orders:', err)
-      setError('Failed to load deliveries')
+      setError(t('deliveries.error_load'))
     } finally {
       setLoading(false)
     }
@@ -46,10 +48,10 @@ export default function MyDeliveries() {
       await updateOrderStatus(orderId, 'delivered')
       await loadOrders()
       setSelectedOrder(null)
-      alert('Order marked as delivered!')
+      alert(t('deliveries.mark_delivered_success'))
     } catch (error) {
       console.error('Error marking order as delivered:', error)
-      alert('Failed to mark order as delivered. Please try again.')
+      alert(t('deliveries.mark_delivered_failed'))
     }
   }
 
@@ -85,7 +87,7 @@ export default function MyDeliveries() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-white text-xl">{t('deliveries.loading')}</div>
       </div>
     )
   }
@@ -93,7 +95,7 @@ export default function MyDeliveries() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Please log in to view your deliveries.</div>
+        <div className="text-white text-xl">{t('deliveries.login_required')}</div>
       </div>
     )
   }
@@ -102,12 +104,12 @@ export default function MyDeliveries() {
     <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-6 px-4 pb-24">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-white">My Deliveries</h1>
+          <h1 className="text-3xl font-bold text-white">{t('deliveries.title')}</h1>
           <button
             onClick={loadOrders}
             className="px-4 py-2 bg-white bg-opacity-20 text-black rounded-lg hover:bg-opacity-30 transition-all"
           >
-            Refresh
+            {t('deliveries.refresh')}
           </button>
         </div>
 
@@ -121,7 +123,7 @@ export default function MyDeliveries() {
                 : 'bg-gray-500 bg-opacity-20 text-black hover:bg-opacity-30'
             }`}
           >
-            All
+            {t('deliveries.tab.all')}
           </button>
           <button
             onClick={() => setFilterStatus('confirmed')}
@@ -131,7 +133,7 @@ export default function MyDeliveries() {
                 : 'bg-gray-500 bg-opacity-20 text-black hover:bg-opacity-30'
             }`}
           >
-            Active
+            {t('deliveries.tab.active')}
           </button>
           <button
             onClick={() => setFilterStatus('delivered')}
@@ -141,7 +143,7 @@ export default function MyDeliveries() {
                 : 'bg-gray-500 bg-opacity-20 text-black hover:bg-opacity-30'
             }`}
           >
-            Completed
+            {t('deliveries.tab.completed')}
           </button>
         </div>
 
@@ -166,8 +168,8 @@ export default function MyDeliveries() {
                 d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
               />
             </svg>
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">No deliveries yet</h2>
-            <p className="text-gray-500">Start accepting orders to see them here!</p>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">{t('deliveries.none_title')}</h2>
+            <p className="text-gray-500">{t('deliveries.none_text')}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -206,7 +208,7 @@ export default function MyDeliveries() {
                       {order.restaurantLocation} → {order.deliveryLocation}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
-                      Accepted: {formatDate(order.confirmedAt || order.$createdAt)}
+                      {t('deliveries.timeline.confirmed')}: {formatDate(order.confirmedAt || order.$createdAt)}
                     </p>
                   </div>
                   <div className="">
@@ -219,18 +221,18 @@ export default function MyDeliveries() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2 bg-green-50 p-3 rounded-lg">
                         <p className="text-xs font-semibold text-green-700 uppercase mb-2">
-                          Customer Information
+                          {t('deliveries.customer_info')}
                         </p>
                         <div className="space-y-1">
-                          <div><strong>Name:</strong> {order.fullName}</div>
-                          <div><strong>Phone:</strong> {order.phone}</div>
-                          {order.email && <div><strong>Email:</strong> {order.email}</div>}
+                          <div><strong>{t('deliveries.name')}:</strong> {order.fullName}</div>
+                          <div><strong>{t('deliveries.phone')}:</strong> {order.phone}</div>
+                          {order.email && <div><strong>{t('deliveries.email')}:</strong> {order.email}</div>}
                         </div>
                       </div>
 
                       <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase">
-                          Pick Up From
+                          {t('deliveries.pickup_from')}
                         </p>
                         <p className="text-sm text-gray-800 mt-1">
                           {order.restaurantLocation}
@@ -240,7 +242,7 @@ export default function MyDeliveries() {
 
                       <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase">
-                          Deliver To
+                          {t('deliveries.deliver_to')}
                         </p>
                         <p className="text-sm text-gray-800 mt-1">{order.deliveryLocation}</p>
                       </div>
@@ -248,17 +250,17 @@ export default function MyDeliveries() {
                       {order.restaurantLocation === 'Self' ? (
                         <div>
                           <p className="text-xs font-semibold text-gray-500 uppercase">
-                            Order Code
+                            {t('deliveries.order_code')}
                           </p>
                           <p className="text-sm text-gray-800 mt-1 font-mono bg-gray-100 px-2 py-1 rounded inline-block">
-                            {order.orderCode || 'Not available'}
+                            {order.orderCode || t('deliveries.not_available')}
                           </p>
                         </div>
                       ) : (
                         order.orderCode && (
                           <div>
                             <p className="text-xs font-semibold text-gray-500 uppercase">
-                              Order Code
+                              {t('deliveries.order_code')}
                             </p>
                             <p className="text-sm text-gray-800 mt-1 font-mono bg-gray-100 px-2 py-1 rounded inline-block">
                               {order.orderCode}
@@ -268,7 +270,7 @@ export default function MyDeliveries() {
                       )}
 
                       <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase">Price</p>
+                        <p className="text-xs font-semibold text-gray-500 uppercase">{t('deliveries.price')}</p>
                         <p className="text-sm text-gray-800 mt-1 font-bold">
                           ${order.price}
                         </p>
@@ -277,7 +279,7 @@ export default function MyDeliveries() {
                       {order.extraNotes && (
                         <div className="md:col-span-2">
                           <p className="text-xs font-semibold text-gray-500 uppercase">
-                            Delivery Notes
+                            {t('deliveries.notes')}
                           </p>
                           <p className="text-sm text-gray-800 mt-1 bg-yellow-50 p-2 rounded">
                             {order.extraNotes}
@@ -286,22 +288,22 @@ export default function MyDeliveries() {
                       )}
 
                       <div className="md:col-span-2">
-                        <p className="text-xs font-semibold text-gray-500 uppercase">Timeline</p>
+                        <p className="text-xs font-semibold text-gray-500 uppercase">{t('deliveries.timeline')}</p>
                         <div className="mt-2 space-y-1 text-sm">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                            <span>Order placed: {formatDate(order.$createdAt)}</span>
+                            <span>{t('deliveries.timeline.placed')}: {formatDate(order.$createdAt)}</span>
                           </div>
                           {order.confirmedAt && (
                             <div className="flex items-center gap-2">
                               <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                              <span>Confirmed: {formatDate(order.confirmedAt)}</span>
+                              <span>{t('deliveries.timeline.confirmed')}: {formatDate(order.confirmedAt)}</span>
                             </div>
                           )}
                           {order.deliveredAt && (
                             <div className="flex items-center gap-2">
                               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                              <span>Delivered: {formatDate(order.deliveredAt)}</span>
+                              <span>{t('deliveries.timeline.delivered')}: {formatDate(order.deliveredAt)}</span>
                             </div>
                           )}
                         </div>
@@ -317,7 +319,7 @@ export default function MyDeliveries() {
                             if (order.$id) markAsDelivered(order.$id)
                           }}
                         >
-                          ✓ Mark as Delivered
+                          {t('deliveries.mark_as_delivered')}
                         </button>
                       </div>
                     )}

@@ -3,15 +3,17 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { useI18n } from '@/lib/i18n'
 import BottomDock from '../../components/BottomDock'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import styles from './account.module.css'
 
 export default function AccountPage() {
   const { user, loading: authLoading, updateName, updatePreferences, logout } = useAuth()
+  const { t } = useI18n()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [studentCode, setStudentCode] = useState('')
-  const [credit, setCredit] = useState(0)
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -35,7 +37,6 @@ export default function AccountPage() {
       setName(user.name || '')
       setEmail(user.email || '')
       setStudentCode(user.prefs?.studentCode || '')
-      setCredit(user.prefs?.credit || 0)
       setPhone(user.prefs?.phone || user.phone || '')
     }
 
@@ -58,14 +59,13 @@ export default function AccountPage() {
       // Update preferences
       await updatePreferences({
         studentCode,
-        credit,
         phone
       })
       
-      alert('Profile updated successfully')
+      alert(t('account.updated'))
       setEditMode({ name: false, studentCode: false, phone: false })
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
+      const errorMessage = error instanceof Error ? error.message : t('account.update_failed')
       setError(errorMessage)
     } finally {
       setLoading(false)
@@ -83,21 +83,24 @@ export default function AccountPage() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div>Loading...</div>
+        <div>{t('account.loading')}</div>
       </div>
     )
   }
 
   return (
     <div className={styles.background}>
+      <div style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 50 }}>
+        <LanguageSwitcher />
+      </div>
       <main className={styles.profileContainer}>
-        <h1>Account</h1>
+        <h1>{t('account.title')}</h1>
         
         {error && <p className={styles.errorMessage} style={{color: '#ff6b6b', marginBottom: '15px'}}>{error}</p>}
         
         <div className={styles.profileSection}>
           <div className={styles.infoGroup}>
-            <label>Name</label>
+            <label>{t('account.name')}</label>
             {editMode.name ? (
               <input
                 type="text"
@@ -121,20 +124,20 @@ export default function AccountPage() {
               }}
               disabled={loading}
             >
-              {editMode.name ? 'Save' : 'Edit'}
+              {editMode.name ? t('account.save') : t('account.edit')}
             </button>
           </div>
 
           <div className={styles.infoGroup}>
-            <label>Email</label>
+            <label>{t('account.email')}</label>
             <div className={styles.infoValue}>{email}</div>
             <button className={styles.editBtn} disabled style={{opacity: 0.5, cursor: 'not-allowed'}}>
-              Locked
+              {t('account.locked')}
             </button>
           </div>
 
           <div className={styles.infoGroup}>
-            <label>University Student Code</label>
+            <label>{t('account.studentCode')}</label>
             {editMode.studentCode ? (
               <input
                 type="text"
@@ -143,7 +146,7 @@ export default function AccountPage() {
                 onChange={e => setStudentCode(e.target.value)}
               />
             ) : (
-              <div className={styles.infoValue}>{studentCode || 'Not set'}</div>
+              <div className={styles.infoValue}>{studentCode || t('account.not_set')}</div>
             )}
             <button 
               className={styles.editBtn}
@@ -158,18 +161,12 @@ export default function AccountPage() {
               }}
               disabled={loading}
             >
-              {editMode.studentCode ? 'Save' : 'Edit'}
+              {editMode.studentCode ? t('account.save') : t('account.edit')}
             </button>
           </div>
 
           <div className={styles.infoGroup}>
-            <label>Credit</label>
-            <div className={styles.infoValue}>${credit.toFixed(2)}</div>
-            <button className={styles.editBtn}>Add Credit</button>
-          </div>
-
-          <div className={styles.infoGroup}>
-            <label>Phone Number</label>
+            <label>{t('account.phone')}</label>
             {editMode.phone ? (
               <input
                 type="tel"
@@ -178,7 +175,7 @@ export default function AccountPage() {
                 onChange={e => setPhone(e.target.value)}
               />
             ) : (
-              <div className={styles.infoValue}>{phone || 'Not set'}</div>
+              <div className={styles.infoValue}>{phone || t('account.not_set')}</div>
             )}
             <button 
               className={styles.editBtn}
@@ -193,7 +190,7 @@ export default function AccountPage() {
               }}
               disabled={loading}
             >
-              {editMode.phone ? 'Save' : 'Edit'}
+              {editMode.phone ? t('account.save') : t('account.edit')}
             </button>
           </div>
 
@@ -206,7 +203,7 @@ export default function AccountPage() {
                 width: '100%'
               }}
             >
-              Logout
+              {t('account.logout')}
             </button>
           </div>
 
@@ -222,7 +219,7 @@ export default function AccountPage() {
                 width: '100%'
               }}
             >
-              Change Role
+              {t('account.change_role')}
             </button>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useI18n } from '@/lib/i18n'
 
 /**
  * Landing Page - Checks authentication and redirects
@@ -12,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function Home() {
   const router = useRouter();
   const { user, loading, checkSession } = useAuth();
+  const { t } = useI18n();
 
   useEffect(() => {
     const handleInitialRoute = async () => {
@@ -61,7 +63,7 @@ export default function Home() {
         borderRadius: '50%',
         animation: 'spin 1s linear infinite'
       }} />
-      <div>Checking authentication...</div>
+      <div>{t('home.checking_auth')}</div>
       <style jsx>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
