@@ -47,6 +47,7 @@ export default function Delivery() {
   const [costMax, setCostMax] = useState('')
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const [deliveryLocation, setDeliveryLocation] = useState('')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownButtonRef = useRef<HTMLButtonElement>(null)
@@ -122,6 +123,24 @@ export default function Delivery() {
     }
   }, [user])
 
+  const handleRefresh = async () => {
+    if (!user || !user.emailVerification) return
+    
+    setRefreshing(true)
+    try {
+      // Reload pending orders
+      await loadOrders()
+      
+      // Reload active deliveries
+      const deliveryOrders = await getOrders({ deliveryPersonId: user.$id, status: 'confirmed' })
+      setMyActiveDeliveries(deliveryOrders)
+    } catch (error) {
+      console.error('Error refreshing:', error)
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
   const acceptOrder = async (orderId: string) => {
     if (!user) return
     
@@ -190,10 +209,21 @@ export default function Delivery() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <header className="mb-4 relative z-20">
-          <div className="flex items-center gap-3 mb-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/gift.png" alt="Logo" className="w-14 h-14 object-contain" style={{mixBlendMode: 'screen'}} />
-            <h1 className="text-lg font-bold text-white">{t('delivery.dashboard')}</h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3 flex-1">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/gift.png" alt="Logo" className="w-14 h-14 object-contain" style={{mixBlendMode: 'screen'}} />
+              <h1 className="text-lg font-bold text-white">{t('delivery.dashboard')}</h1>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing || !user?.emailVerification}
+              className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2 border border-white border-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={t('delivery.refresh')}
+            >
+              <span className={refreshing ? 'animate-spin' : ''}> 🔄</span>
+              <span className="hidden sm:inline">{refreshing ? t('delivery.refreshing') : t('delivery.refresh')}</span>
+            </button>
           </div>
 
           {/* Filter Section */}

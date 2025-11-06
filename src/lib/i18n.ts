@@ -223,7 +223,9 @@ const fa: Dict = {
   'delivery.reminder_title': 'یادآوری:',
   'delivery.reminder_text': 'پس از تحویل سفارش، از صفحه "تحویل‌های من" وضعیت را به تحویل شده تغییر دهید.',
   'delivery.toman': 'تومان',
-  'delivery.order_code_will_be_shown_after_acceptance': 'کد سفارش بعد از پذیرش نمایش داده می‌شود'
+  'delivery.order_code_will_be_shown_after_acceptance': 'کد سفارش بعد از پذیرش نمایش داده می‌شود',
+  'delivery.refresh': 'بروزرسانی',
+  'delivery.refreshing': 'در حال بروزرسانی...'
 }
 
 const en: Dict = {
@@ -447,7 +449,9 @@ const en: Dict = {
   'delivery.reminder_title': 'Reminder:',
   'delivery.reminder_text': 'After delivering the order, change the status to delivered from the "My Deliveries" page.',
   'delivery.toman': 'Toman',
-  'delivery.order_code_will_be_shown_after_acceptance': 'Order code will be shown after acceptance'
+  'delivery.order_code_will_be_shown_after_acceptance': 'Order code will be shown after acceptance',
+  'delivery.refresh': 'Refresh',
+  'delivery.refreshing': 'Refreshing...'
 }
 
 const dicts: Record<'fa' | 'en', Dict> = { fa, en }
