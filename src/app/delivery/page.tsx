@@ -400,7 +400,7 @@ export default function Delivery() {
                       {order.restaurantLocation === 'Self' ? (
                         <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
                           <div className="text-sm text-yellow-800">
-                            <strong>⚠️ Self Order</strong><br/>
+                           
                             <span className="text-xs">{t('delivery.order_code_will_be_shown_after_acceptance')}</span>
                           </div>
                         </div>
