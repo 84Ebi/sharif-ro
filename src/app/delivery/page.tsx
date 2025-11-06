@@ -370,7 +370,7 @@ export default function Delivery() {
                   <div className="flex justify-between items-center mb-2">
                     <div className="flex flex-col gap-1">
                       <div className="font-bold text-gray-800 text-sm">
-                        {order.restaurantLocation === 'Self' ? 'سلف سرویس' : (order.orderCode || order.$id?.slice(0, 8))}
+                        {order.restaurantLocation === 'Self' ? 'سلف ' : (order.orderCode || order.$id?.slice(0, 8))}
                       </div>
                       <div className="text-xs text-gray-500">
                         {order.$createdAt && new Date(order.$createdAt).toLocaleDateString()} • {' '}
@@ -378,7 +378,7 @@ export default function Delivery() {
                       </div>
                     </div>
                     <div className="font-bold text-gray-800 text-sm">
-                      ${order.price.toFixed(2)}
+                      {order.price.toLocaleString()} {t('delivery.toman')}
                     </div>
                   </div>
 
@@ -400,8 +400,8 @@ export default function Delivery() {
                       {order.restaurantLocation === 'Self' ? (
                         <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
                           <div className="text-sm text-yellow-800">
-                            <strong>⚠️ Self Service Order</strong><br/>
-                            <span className="text-xs">Order code will be shown after acceptance</span>
+                            <strong>⚠️ Self Order</strong><br/>
+                            <span className="text-xs">{t('delivery.order_code_will_be_shown_after_acceptance')}</span>
                           </div>
                         </div>
                       ) : (
@@ -409,7 +409,7 @@ export default function Delivery() {
                       )}
                       <div><strong>{t('deliveries.deliver_to')}:</strong> {order.deliveryLocation}</div>
                       {order.extraNotes && <div><strong>{t('deliveries.notes')}:</strong> {order.extraNotes}</div>}
-                      <div><strong>{t('deliveries.price')}:</strong> ${order.price.toFixed(2)}</div>
+                      <div><strong>{t('deliveries.price')}:</strong> {order.price.toLocaleString()} {t('delivery.toman')}</div>
                     </div>
 
                     <div className="flex justify-center mt-3">
