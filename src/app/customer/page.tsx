@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 import BottomDock from '../../components/BottomDock'
 import SharifPlusMenu from '../../components/SharifPlusMenu'
 import SharifFastFoodMenu from '../../components/SharifFastFoodMenu'
+import OtherMenu from '../../components/OtherMenu'
+import KelanaMenu from '../../components/KelanaMenu'
+import CleanFoodMenu from '../../components/CleanFoodMenu'
 import Image from 'next/image'
 import { useI18n } from '@/lib/i18n'
 
@@ -18,6 +21,9 @@ export default function CustomerHome() {
   const [maxCost, setMaxCost] = useState('')
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false)
   const [isFastFoodMenuOpen, setIsFastFoodMenuOpen] = useState(false)
+  const [isOthderopen, setIsOtherOpen] = useState(false)
+  const [isKelanaOpen, setIsKelanaOpen] = useState(false)
+  const [isCleanFoodOpen, setIsCleanFoodOpen] = useState(false)
 
   const services = [
     { name: 'Sharif Plus', icon: '/delivery-icon.png', location: 'Sharif Plus' },
@@ -33,6 +39,12 @@ export default function CustomerHome() {
       setIsPlusMenuOpen(true)
     } else if (location === 'Sharif Fastfood') {
       setIsFastFoodMenuOpen(true)
+    } else if (location === 'Other') {
+      setIsOtherOpen(true)
+    } else if (location === 'Kelana') {
+      setIsKelanaOpen(true)
+    } else if (location === 'Clean Food') {
+      setIsCleanFoodOpen(true)
     } else {
       router.push(`/order?restaurant=${encodeURIComponent(location)}`)
     }
@@ -123,6 +135,25 @@ export default function CustomerHome() {
         isOpen={isFastFoodMenuOpen} 
         onClose={() => setIsFastFoodMenuOpen(false)}
       />
+
+      {/* Other Menu Popup */}
+      <OtherMenu 
+        isOpen={isOthderopen} 
+        onClose={() => setIsOtherOpen(false)}
+      />
+
+      {/* Kelana Menu Popup */}
+      <KelanaMenu 
+        isOpen={isKelanaOpen} 
+        onClose={() => setIsKelanaOpen(false)}
+      />
+
+      {/* Clean Food Menu Popup */}
+      <CleanFoodMenu 
+        isOpen={isCleanFoodOpen} 
+        onClose={() => setIsCleanFoodOpen(false)}
+      />
+      
     </div>
   )
 }

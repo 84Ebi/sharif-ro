@@ -34,6 +34,7 @@ const deliveryLocations = [
   { name: 'مسجد', price: 25000 },
   { name: 'ساختمان اموزش', price: 30000 },
   { name: 'امفی تئاتر', price: 25000 },
+  { name: 'کتابخانه مرکزی', price: 25000 },
 ]
 
 const drinksAndAddons = [
