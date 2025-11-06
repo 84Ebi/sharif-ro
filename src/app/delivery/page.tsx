@@ -354,12 +354,6 @@ export default function Delivery() {
                             <span className="font-bold text-gray-800 mr-2" dir="ltr">{order.phone}</span>
                           </div>
                         )}
-                        {order.deliveryPersonPhone && (
-                          <div className="bg-white bg-opacity-50 rounded p-2">
-                            <span className="text-gray-600">{t('delivery.delivery_person_phone')}</span>
-                            <span className="font-bold text-gray-800 mr-2" dir="ltr">{order.deliveryPersonPhone}</span>
-                          </div>
-                        )}
                       </div>
                     )}
                     
