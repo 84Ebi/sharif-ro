@@ -223,11 +223,11 @@ function OrderFormContent() {
                 </label>
                 <input
                   type="text"
-                  placeholder="کد سفارش سلف سرویس"
+                  placeholder="کد سفارش سلف "
                   value={form.orderCode}
                   onChange={e => setForm({ ...form, orderCode: e.target.value })}
                   required
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
                 />
               </div>
 
@@ -241,7 +241,7 @@ function OrderFormContent() {
                   value={form.orderName}
                   onChange={e => setForm({ ...form, orderName: e.target.value })}
                   required
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
                 />
               </div>
 
@@ -252,7 +252,7 @@ function OrderFormContent() {
                 <select
                   value={form.selectedDrink}
                   onChange={e => setForm({ ...form, selectedDrink: e.target.value })}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
                 >
                   <option value="">هیچکدام</option>
                   {drinksAndAddons.map(drink => (
@@ -269,7 +269,7 @@ function OrderFormContent() {
                   value={form.cafeteria}
                   onChange={e => setForm({ ...form, cafeteria: e.target.value })}
                   required
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
                 >
                   <option value="" disabled>سالن را انتخاب کنید</option>
                   <option value="سلف دختران">سلف دختران</option>
@@ -316,7 +316,8 @@ function OrderFormContent() {
             <input
               type="text"
               value={user.name}
-              className="w-full p-3 border border-gray-300 rounded-lg text-gray-600"
+              onChange={e => setForm({ ...form, phone: e.target.value })}
+              className="w-full p-3 border border-gray-300 rounded-lg bg-gray-200 text-gray-600"
             />
           </div>
 
@@ -330,7 +331,7 @@ function OrderFormContent() {
               value={form.phone}
               onChange={e => setForm({ ...form, phone: e.target.value })}
               required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -343,7 +344,7 @@ function OrderFormContent() {
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full p-3 border border-blue-500 rounded-lg bg-blue-50 text-right flex justify-between items-center"
+                  className="w-full text-gray-500 p-3 border border-blue-500 rounded-lg bg-blue-50 text-right flex justify-between items-center"
                 >
                   <span className="text-gray-700">{form.deliveryLocation || 'محل را انتخاب کنید'}</span>
                   <span>▼</span>
@@ -357,7 +358,7 @@ function OrderFormContent() {
                           setForm({ ...form, deliveryLocation: loc.name, deliveryFee: loc.price })
                           setIsDropdownOpen(false)
                         }}
-                        className="p-3 hover:bg-blue-50 cursor-pointer text-right"
+                        className="p-3 text-black hover:bg-blue-50 cursor-pointer text-right"
                       >
                         {loc.name} - {loc.price.toLocaleString()} تومان
                       </div>
@@ -372,7 +373,7 @@ function OrderFormContent() {
                 onChange={e => setForm({ ...form, deliveryLocation: e.target.value })}
                 required
                 rows={3}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             )}
           </div>
@@ -386,7 +387,7 @@ function OrderFormContent() {
               value={form.extraNotes}
               onChange={e => setForm({ ...form, extraNotes: e.target.value })}
               rows={2}
-              className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isSelfOrder ? 'text-right' : ''}`}
+              className={`w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isSelfOrder ? 'text-right' : ''}`}
             />
           </div>
 
