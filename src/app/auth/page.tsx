@@ -29,7 +29,7 @@ function AuthPageContent() {
     if (redirect) {
       setRedirectMessage(t('auth.redirect'))
     }
-  }, [searchParams, t])
+  }, [searchParams])
 
   // Redirect if already logged in
   useEffect(() => {

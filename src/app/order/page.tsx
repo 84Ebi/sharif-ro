@@ -34,7 +34,6 @@ const deliveryLocations = [
   { name: 'مسجد', price: 25000 },
   { name: 'ساختمان اموزش', price: 30000 },
   { name: 'امفی تئاتر', price: 25000 },
-  { name: 'کتابخانه مرکزی', price: 25000 },
 ]
 
 const drinksAndAddons = [
@@ -57,6 +56,7 @@ function OrderFormContent() {
     restaurantType: '',
     orderCode: '',
     orderName: '',
+    fullName: '',
     deliveryLocation: '',
     phone: '',
     extraNotes: '',
@@ -67,6 +67,10 @@ function OrderFormContent() {
     cafeteria: '',
     deliveryFee: 0,
   })
+
+  // Prices for container and utensils
+  const containerPrice = 4000
+  const utensilsPrice = 4000
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -77,6 +81,13 @@ function OrderFormContent() {
       setForm(prev => ({ ...prev, restaurantLocation: restaurantFromUrl }))
     }
   }, [restaurantFromUrl])
+
+  // Set default name from user
+  useEffect(() => {
+    if (user && !form.fullName) {
+      setForm(prev => ({ ...prev, fullName: user.name }))
+    }
+  }, [user, form.fullName])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,15 +102,21 @@ function OrderFormContent() {
 
     // Calculate final price for Self orders
     let finalPrice = form.price
-    if (isSelfOrder && form.selectedDrink) {
-      const selectedDrinkItem = drinksAndAddons.find(d => d.name === form.selectedDrink)
-      if (selectedDrinkItem) {
-        finalPrice += selectedDrinkItem.price
-      }
-    }
-    
-    // Add delivery fee
     if (isSelfOrder) {
+      // Start with base items
+      finalPrice = 0
+      if (form.needsContainer) finalPrice += containerPrice
+      if (form.needsUtensils) finalPrice += utensilsPrice
+      
+      // Add drink price
+      if (form.selectedDrink) {
+        const selectedDrinkItem = drinksAndAddons.find(d => d.name === form.selectedDrink)
+        if (selectedDrinkItem) {
+          finalPrice += selectedDrinkItem.price
+        }
+      }
+      
+      // Add delivery fee
       finalPrice += form.deliveryFee
     }
     
@@ -120,7 +137,7 @@ function OrderFormContent() {
     try {
       await createOrder({
         userId: user.$id,
-        fullName: user.name,
+        fullName: form.fullName || user.name,
         restaurantLocation: isSelfOrder ? 'Self' : form.restaurantLocation,
         restaurantType: isSelfOrder ? form.orderName : form.restaurantType,
         orderCode: orderDetails || undefined,
@@ -282,29 +299,35 @@ function OrderFormContent() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   موارد اضافی
                 </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="container"
-                    checked={form.needsContainer}
-                    disabled
-                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="container" className="text-sm text-gray-700 cursor-pointer">
-                    ظرف
-                  </label>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="container"
+                      checked={form.needsContainer}
+                      disabled
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="container" className="text-sm text-gray-700 cursor-pointer">
+                      ظرف
+                    </label>
+                  </div>
+                  <span className="text-sm text-gray-600">{containerPrice.toLocaleString()} تومان</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="utensils"
-                    checked={form.needsUtensils}
-                    onChange={e => setForm({ ...form, needsUtensils: e.target.checked })}
-                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="utensils" className="text-sm text-gray-700 cursor-pointer">
-                    قاشق چنگال
-                  </label>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="utensils"
+                      checked={form.needsUtensils}
+                      onChange={e => setForm({ ...form, needsUtensils: e.target.checked })}
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="utensils" className="text-sm text-gray-700 cursor-pointer">
+                      قاشق چنگال
+                    </label>
+                  </div>
+                  <span className="text-sm text-gray-600">{utensilsPrice.toLocaleString()} تومان</span>
                 </div>
               </div>
             </>
@@ -312,23 +335,25 @@ function OrderFormContent() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Your Name
+              {isSelfOrder ? 'نام دریافت‌کننده *' : 'Your Name *'}
             </label>
             <input
               type="text"
-              value={user.name}
-              onChange={e => setForm({ ...form, phone: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg bg-gray-200 text-gray-600"
+              placeholder={isSelfOrder ? 'نام خود را وارد کنید' : 'Enter your name'}
+              value={form.fullName}
+              onChange={e => setForm({ ...form, fullName: e.target.value })}
+              required
+              className={`w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isSelfOrder ? 'text-right' : ''}`}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number *
+            {isSelfOrder ? 'تلفن همراه *' : 'Your Phone Number *'}
             </label>
             <input
               type="tel"
-              placeholder="Your phone number"
+              placeholder={isSelfOrder ? 'تلفن همراه خود را وارد کنید' : 'Enter your phone number'}
               value={form.phone}
               onChange={e => setForm({ ...form, phone: e.target.value })}
               required
@@ -345,7 +370,7 @@ function OrderFormContent() {
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full text-gray-500 p-3 border border-blue-500 rounded-lg bg-blue-50 text-right flex justify-between items-center"
+                  className="w-full p-3 border border-blue-500 rounded-lg bg-blue-50 text-right flex justify-between items-center"
                 >
                   <span className="text-gray-700">{form.deliveryLocation || 'محل را انتخاب کنید'}</span>
                   <span>▼</span>
@@ -374,7 +399,7 @@ function OrderFormContent() {
                 onChange={e => setForm({ ...form, deliveryLocation: e.target.value })}
                 required
                 rows={3}
-                className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             )}
           </div>
@@ -388,7 +413,7 @@ function OrderFormContent() {
               value={form.extraNotes}
               onChange={e => setForm({ ...form, extraNotes: e.target.value })}
               rows={2}
-              className={`w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isSelfOrder ? 'text-right' : ''}`}
+              className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isSelfOrder ? 'text-right' : ''}`}
             />
           </div>
 
@@ -411,21 +436,40 @@ function OrderFormContent() {
           )}
 
           {isSelfOrder && (
-            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 space-y-2">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-700">مبلغ قابل پرداخت (فقط نوشیدنی/افزودنی):</span>
-                <span className="font-bold text-blue-600">
-                  {(drinksAndAddons.find(d => d.name === form.selectedDrink)?.price || 0).toLocaleString()} تومان
-                </span>
+                <span className="text-gray-700">ظرف:</span>
+                <span className="font-bold text-blue-600">{containerPrice.toLocaleString()} تومان</span>
               </div>
-              <div className="flex justify-between items-center text-sm mt-2">
-                <span className="text-gray-700">هزینه ارسال:</span>
-                <span className="font-bold text-blue-600">{form.deliveryFee.toLocaleString()} تومان</span>
-              </div>
-              <div className="flex justify-between items-center text-sm mt-2 border-t pt-2">
-                <span className="text-gray-700">جمع کل:</span>
+              {form.needsUtensils && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-700">قاشق چنگال:</span>
+                  <span className="font-bold text-blue-600">{utensilsPrice.toLocaleString()} تومان</span>
+                </div>
+              )}
+              {form.selectedDrink && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-700">نوشیدنی ({form.selectedDrink}):</span>
+                  <span className="font-bold text-blue-600">
+                    {(drinksAndAddons.find(d => d.name === form.selectedDrink)?.price || 0).toLocaleString()} تومان
+                  </span>
+                </div>
+              )}
+              {form.deliveryFee > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-700">هزینه ارسال:</span>
+                  <span className="font-bold text-blue-600">{form.deliveryFee.toLocaleString()} تومان</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center text-sm border-t pt-2">
+                <span className="text-gray-700 font-semibold">جمع کل:</span>
                 <span className="font-bold text-blue-600">
-                  {((drinksAndAddons.find(d => d.name === form.selectedDrink)?.price || 0) + form.deliveryFee).toLocaleString()} تومان
+                  {(
+                    containerPrice + 
+                    (form.needsUtensils ? utensilsPrice : 0) + 
+                    (drinksAndAddons.find(d => d.name === form.selectedDrink)?.price || 0) + 
+                    form.deliveryFee
+                  ).toLocaleString()} تومان
                 </span>
               </div>
             </div>
@@ -454,9 +498,14 @@ function OrderFormContent() {
               <div>موارد اضافی: {['ظرف', form.needsUtensils ? 'قاشق چنگال' : null, form.selectedDrink ? `نوشیدنی: ${form.selectedDrink}` : null].filter(Boolean).join('، ') || '-'}</div>
             </div>
             <div className="flex justify-between items-center pt-2 border-t text-sm">
-              <span className="text-gray-700">جمع پرداختی (نوشیدنی/افزودنی):</span>
+              <span className="text-gray-700 font-semibold">جمع پرداختی:</span>
               <span className="font-bold text-blue-600">
-                {((drinksAndAddons.find(d => d.name === form.selectedDrink)?.price || 0) + form.deliveryFee).toLocaleString()} تومان
+                {(
+                  containerPrice + 
+                  (form.needsUtensils ? utensilsPrice : 0) + 
+                  (drinksAndAddons.find(d => d.name === form.selectedDrink)?.price || 0) + 
+                  form.deliveryFee
+                ).toLocaleString()} تومان
               </span>
             </div>
           </div>
