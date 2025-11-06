@@ -76,12 +76,19 @@ export async function getOrders(filters?: OrderFilters): Promise<Order[]> {
     const response = await fetch(`/api/orders?${params.toString()}`);
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to fetch orders');
+      let errorMessage = 'Failed to fetch orders';
+      try {
+        const error = await response.json();
+        errorMessage = error.error || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
     }
     
     const data = await response.json();
-    return data.orders;
+    return data.orders || [];
   } catch (error) {
     console.error('Error fetching orders:', error);
     throw error;

@@ -25,6 +25,7 @@ export default function CustomerHome() {
   const [isCleanFoodMenuOpen, setIsCleanFoodMenuOpen] = useState(false)
   const [pendingOrders, setPendingOrders] = useState<Order[]>([])
   const [loadingOrders, setLoadingOrders] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
   const locations = useMemo(() => [
     t('service.sharif_fastfood'),
@@ -64,18 +65,38 @@ export default function CustomerHome() {
     alert(t('order.success_submit'))
   }
 
+  const loadOrders = async () => {
+    if (!user) return
+    
+    setLoadingOrders(true)
+    try {
+      const orders = await getOrdersByUser(user.$id)
+      const pending = orders.filter(order => order.status === 'pending' || order.status === 'confirmed')
+      setPendingOrders(pending)
+    } catch (err) {
+      console.error('Failed to fetch orders:', err)
+    } finally {
+      setLoadingOrders(false)
+    }
+  }
+
+  const handleRefresh = async () => {
+    if (!user) return
+    
+    setRefreshing(true)
+    try {
+      await loadOrders()
+    } catch (err) {
+      console.error('Error refreshing orders:', err)
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
   // Fetch pending orders
   useEffect(() => {
-    if (user) {
-      setLoadingOrders(true)
-      getOrdersByUser(user.$id)
-        .then(orders => {
-          const pending = orders.filter(order => order.status === 'pending' || order.status === 'confirmed')
-          setPendingOrders(pending)
-        })
-        .catch(err => console.error('Failed to fetch orders:', err))
-        .finally(() => setLoadingOrders(false))
-    }
+    loadOrders()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   if (authLoading) {
@@ -100,8 +121,19 @@ export default function CustomerHome() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <header className="mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Image src="/logo-scooter.png" alt="SharifRo Logo" width={64} height={64} className="w-16 h-auto" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Image src="/logo-scooter.png" alt="SharifRo Logo" width={64} height={64} className="w-16 h-auto" />
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2 border border-white border-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={t('delivery.refresh')}
+            >
+              <span className={refreshing ? 'animate-spin' : ''}>🔄</span>
+              <span className="hidden sm:inline">{refreshing ? t('delivery.refreshing') : t('delivery.refresh')}</span>
+            </button>
           </div>
 
           {/* Filter Pill */}
@@ -162,8 +194,8 @@ export default function CustomerHome() {
                       </div>
                     </div>
                     
-                    {/* Delivery Person Phone - Only shown after order is accepted */}
-                    {(order.status === 'confirmed' || order.status === 'delivered') && order.deliveryPersonPhone && (
+                    {/* Delivery Person Phone - Only shown for active deliveries (confirmed status) */}
+                    {order.status === 'confirmed' && order.deliveryPersonPhone && (
                       <div className="mt-3 bg-green-50 border border-green-200 rounded p-3 text-sm">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-lg">📞</span>
