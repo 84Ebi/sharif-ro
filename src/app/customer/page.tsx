@@ -163,10 +163,13 @@ export default function CustomerHome() {
                     </div>
                     
                     {/* Delivery Person Phone - Only shown after order is accepted */}
-                    {order.status === 'confirmed' && order.deliveryPersonPhone && (
-                      <div className="mt-3 bg-white bg-opacity-70 rounded p-2 text-sm">
-                        <span className="text-gray-600">{t('customer.delivery_person_phone')}</span>
-                        <span className="font-bold text-gray-800 mr-2" dir="ltr">{order.deliveryPersonPhone}</span>
+                    {(order.status === 'confirmed' || order.status === 'delivered') && order.deliveryPersonPhone && (
+                      <div className="mt-3 bg-green-50 border border-green-200 rounded p-3 text-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">📞</span>
+                          <span className="text-gray-700 font-semibold">{t('customer.delivery_person_phone')}</span>
+                        </div>
+                        <span className="font-bold text-gray-800 text-base" dir="ltr">{order.deliveryPersonPhone}</span>
                       </div>
                     )}
                     
