@@ -17,8 +17,6 @@ export default function CustomerHome() {
   const router = useRouter()
   const { t } = useI18n()
   const [filterLocation, setFilterLocation] = useState('')
-  const [minCost, setMinCost] = useState('')
-  const [maxCost, setMaxCost] = useState('')
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false)
   const [isFastFoodMenuOpen, setIsFastFoodMenuOpen] = useState(false)
   const [isOthderopen, setIsOtherOpen] = useState(false)

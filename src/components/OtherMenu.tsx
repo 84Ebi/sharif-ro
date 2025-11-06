@@ -36,7 +36,7 @@ export default function OtherMenu({ isOpen, onClose }: OtherMenuProps) {
           <div className="text-6xl">🚧</div>
           <h3 className="text-2xl font-bold text-white text-center">Coming Soon!</h3>
           <p className="text-white text-center text-lg">
-            This page is not working yet. We're working hard to bring you this service soon.
+            This page is not working yet. We&apos;re working hard to bring you this service soon.
           </p>
           <p className="text-blue-100 text-center text-sm">
             Stay tuned for updates!

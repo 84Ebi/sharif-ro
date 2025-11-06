@@ -91,7 +91,7 @@ function ShoppingCartContent() {
         sessionStorage.removeItem('shoppingCart')
       }
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     if (user) {
@@ -101,7 +101,7 @@ function ShoppingCartContent() {
         .catch(() => setHistoryError(t('errors.fetch_past_orders')))
         .finally(() => setHistoryLoading(false))
     }
-  }, [user])
+  }, [user, t])
 
   const updateCart = (newItems: MenuItem[]) => {
     const newTotal = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0)

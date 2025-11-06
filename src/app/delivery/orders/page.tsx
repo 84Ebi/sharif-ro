@@ -18,24 +18,17 @@ export default function MyDeliveries() {
   const loadOrders = useCallback(async () => {
     if (!user) return
     
+    setLoading(true)
     try {
-      setLoading(true)
-      const fetchedOrders = await getOrders({ deliveryPersonId: user.$id })
-      // Sort by creation date, newest first
-      const sortedOrders = fetchedOrders.sort((a, b) => {
-        const dateA = a.$createdAt ? new Date(a.$createdAt).getTime() : 0
-        const dateB = b.$createdAt ? new Date(b.$createdAt).getTime() : 0
-        return dateB - dateA
-      })
-      setOrders(sortedOrders)
-      setError('')
+      const allOrders = await getOrders({ deliveryPersonId: user.$id })
+      setOrders(allOrders)
     } catch (err) {
-      console.error('Error loading orders:', err)
-      setError(t('deliveries.error_load'))
+      console.error('Failed to load orders:', err)
+      setError(t('deliveries.fetch_error'))
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [user, t])
 
   useEffect(() => {
     if (user) {

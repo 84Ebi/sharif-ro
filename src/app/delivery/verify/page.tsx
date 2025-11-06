@@ -162,14 +162,7 @@ export default function VerifyPage() {
 
   // Show status if verification already exists
   if (hasExistingVerification && verificationStatus !== 'rejected') {
-    const statusColors = {
-      pending: { bg: 'rgba(255, 193, 7, 0.1)', border: '#ffc107', text: '#f57c00' },
-      approved: { bg: 'rgba(76, 175, 80, 0.1)', border: '#4caf50', text: '#2e7d32' },
-      rejected: { bg: 'rgba(244, 67, 54, 0.1)', border: '#f44336', text: '#c62828' }
-    }
     
-    const colors = statusColors[verificationStatus as keyof typeof statusColors] || statusColors.pending
-
     return (
       <>
         <style jsx>{`

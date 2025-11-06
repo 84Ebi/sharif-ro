@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { storage } from '@/lib/appwrite'
 
@@ -33,6 +33,23 @@ export default function AdminVerificationsPage() {
   const [reviewNotes, setReviewNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  const loadVerifications = useCallback(async () => {
+    try {
+      setLoading(true)
+      const queryParam = filter !== 'all' ? `?status=${filter}` : ''
+      const response = await fetch(`/api/admin/verifications${queryParam}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setVerifications(data.data)
+      }
+    } catch (error) {
+      console.error('Error loading verifications:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [filter])
+
   // Check admin authentication
   useEffect(() => {
     const adminAuth = localStorage.getItem('adminAuth')
@@ -51,24 +68,7 @@ export default function AdminVerificationsPage() {
     if (isAdminLoggedIn) {
       loadVerifications()
     }
-  }, [filter, isAdminLoggedIn])
-
-  const loadVerifications = async () => {
-    try {
-      setLoading(true)
-      const queryParam = filter !== 'all' ? `?status=${filter}` : ''
-      const response = await fetch(`/api/admin/verifications${queryParam}`)
-      const data = await response.json()
-      
-      if (data.success) {
-        setVerifications(data.data)
-      }
-    } catch (error) {
-      console.error('Error loading verifications:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [filter, isAdminLoggedIn, loadVerifications])
 
   const getImageUrl = (fileId: string) => {
     try {
