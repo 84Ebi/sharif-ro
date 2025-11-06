@@ -91,7 +91,7 @@ function ShoppingCartContent() {
         sessionStorage.removeItem('shoppingCart')
       }
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     if (user) {
@@ -101,7 +101,7 @@ function ShoppingCartContent() {
         .catch(() => setHistoryError(t('errors.fetch_past_orders')))
         .finally(() => setHistoryLoading(false))
     }
-  }, [user])
+  }, [user, t])
 
   // Set default phone from user account
   useEffect(() => {

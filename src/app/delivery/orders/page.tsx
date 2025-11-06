@@ -35,7 +35,7 @@ export default function MyDeliveries() {
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [user, t])
 
   useEffect(() => {
     if (user) {

@@ -345,7 +345,7 @@ export default function Delivery() {
               
               <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200 text-right">
                 <p className="text-sm text-gray-700">
-                  💡 <span className="font-semibold">یادآوری:</span> پس از تحویل سفارش، از صفحه "تحویل‌های من" وضعیت را به تحویل شده تغییر دهید.
+                  💡 <span className="font-semibold">یادآوری:</span> پس از تحویل سفارش، از صفحه &ldquo;تحویل‌های من&rdquo; وضعیت را به تحویل شده تغییر دهید.
                 </p>
               </div>
             </div>
