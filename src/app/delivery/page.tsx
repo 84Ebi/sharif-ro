@@ -145,10 +145,18 @@ export default function Delivery() {
     if (!user) return
     
     try {
+      // Get phone from prefs or fallback to user.phone
+      const deliveryPersonPhone = user.prefs?.phone || user.phone || ''
+      
+      if (!deliveryPersonPhone) {
+        alert(t('delivery.phone_required'))
+        return
+      }
+      
       await confirmOrder(orderId, {
         id: user.$id,
         name: user.name,
-        phone: user.phone || ''
+        phone: deliveryPersonPhone
       })
       
       // Remove order from list

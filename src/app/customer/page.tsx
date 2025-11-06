@@ -136,24 +136,6 @@ export default function CustomerHome() {
             </button>
           </div>
 
-          {/* Filter Pill */}
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white bg-opacity-10 border border-white border-opacity-10 text-white hover:bg-opacity-20 transition-all group cursor-pointer">
-            <span className="font-bold text-black text-sm">{t('customer.filters')}</span>
-            <div className=" group-hover:flex group-focus-within:flex items-center gap-2">
-              <select
-                value={filterLocation}
-                onChange={(e) => setFilterLocation(e.target.value)}
-                className="px-3 py-2 rounded-lg bg-white text-gray-800 text-sm outline-none w-48"
-              >
-                <option value="">{t('customer.location')}</option>
-                {locations.map((location) => (
-                  <option key={location} value={location}>
-                    {location}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
         </header>
 
         {/* Pending Orders Section */}
@@ -195,7 +177,7 @@ export default function CustomerHome() {
                     </div>
                     
                     {/* Delivery Person Phone - Only shown for active deliveries (confirmed status) */}
-                    {order.status === 'confirmed' && order.deliveryPersonPhone && (
+                    {order.deliveryPersonPhone && (
                       <div className="mt-3 bg-green-50 border border-green-200 rounded p-3 text-sm">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-lg">📞</span>

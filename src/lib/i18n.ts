@@ -231,7 +231,8 @@ const fa: Dict = {
   'delivery.refresh': 'بروزرسانی',
   'delivery.refreshing': 'در حال بروزرسانی...',
   'delivery.customer_phone': 'تلفن مشتری:',
-  'delivery.delivery_person_phone': 'تلفن پیک:'
+  'delivery.delivery_person_phone': 'تلفن پیک:',
+  'delivery.phone_required': 'لطفاً شماره تلفن خود را در تنظیمات حساب کاربری وارد کنید.'
 }
 
 const en: Dict = {
@@ -463,7 +464,8 @@ const en: Dict = {
   'delivery.refresh': 'Refresh',
   'delivery.refreshing': 'Refreshing...',
   'delivery.customer_phone': 'Customer Phone:',
-  'delivery.delivery_person_phone': 'Delivery Person Phone:'
+  'delivery.delivery_person_phone': 'Delivery Person Phone:',
+  'delivery.phone_required': 'Please enter your phone number in your account settings.'
 }
 
 const dicts: Record<'fa' | 'en', Dict> = { fa, en }
