@@ -208,7 +208,21 @@ const fa: Dict = {
   'order.submitting': 'در حال ارسال...',
   'order.loading': 'در حال بارگذاری...',
   'order.login_required': 'لطفاً برای ثبت سفارش وارد شوید.',
-  'order.success_message': 'سفارش شما با موفقیت ثبت شد!'
+  'order.success_message': 'سفارش شما با موفقیت ثبت شد!',
+
+  // Active Deliveries Section
+  'delivery.active_deliveries_title': 'تحویل‌های فعال من',
+  'delivery.status_in_delivery': '✓ در حال ارسال',
+  'delivery.origin': 'مبدا:',
+  'delivery.destination': 'مقصد:',
+  'delivery.amount': 'مبلغ:',
+  'delivery.phone': 'تلفن:',
+  'delivery.order_code': 'کد سفارش:',
+  'delivery.note': 'یادداشت:',
+  'delivery.view_details_and_deliver': 'مشاهده جزئیات و تحویل',
+  'delivery.reminder_title': 'یادآوری:',
+  'delivery.reminder_text': 'پس از تحویل سفارش، از صفحه "تحویل‌های من" وضعیت را به تحویل شده تغییر دهید.',
+  'delivery.toman': 'تومان'
 }
 
 const en: Dict = {
@@ -417,7 +431,21 @@ const en: Dict = {
   'order.submitting': 'Submitting...',
   'order.loading': 'Loading...',
   'order.login_required': 'Please log in to place an order.',
-  'order.success_message': 'Your order has been placed successfully!'
+  'order.success_message': 'Your order has been placed successfully!',
+
+  // Active Deliveries Section
+  'delivery.active_deliveries_title': 'My Active Deliveries',
+  'delivery.status_in_delivery': '✓ In Delivery',
+  'delivery.origin': 'Origin:',
+  'delivery.destination': 'Destination:',
+  'delivery.amount': 'Amount:',
+  'delivery.phone': 'Phone:',
+  'delivery.order_code': 'Order Code:',
+  'delivery.note': 'Note:',
+  'delivery.view_details_and_deliver': 'View Details & Deliver',
+  'delivery.reminder_title': 'Reminder:',
+  'delivery.reminder_text': 'After delivering the order, change the status to delivered from the "My Deliveries" page.',
+  'delivery.toman': 'Toman'
 }
 
 const dicts: Record<'fa' | 'en', Dict> = { fa, en }

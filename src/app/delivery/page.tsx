@@ -272,7 +272,7 @@ export default function Delivery() {
             <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-2xl">🚀</span>
-                <h2 className="text-xl font-bold text-gray-800">تحویل‌های فعال من</h2>
+                <h2 className="text-xl font-bold text-gray-800">{t('delivery.active_deliveries_title')}</h2>
               </div>
               <div className="space-y-4">
                 {myActiveDeliveries.map((order) => (
@@ -284,30 +284,30 @@ export default function Delivery() {
                       </div>
                       <div className="text-right">
                         <span className="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-green-200 text-green-800">
-                          ✓ در حال ارسال
+                          {t('delivery.status_in_delivery')}
                         </span>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3 text-sm mb-3">
                       <div className="bg-white bg-opacity-50 rounded p-2">
-                        <span className="text-gray-600">مبدا:</span>
+                        <span className="text-gray-600">{t('delivery.origin')}</span>
                         <span className="font-bold text-gray-800 mr-2">{order.restaurantLocation}</span>
                       </div>
                       <div className="bg-white bg-opacity-50 rounded p-2">
-                        <span className="text-gray-600">مقصد:</span>
+                        <span className="text-gray-600">{t('delivery.destination')}</span>
                         <span className="font-bold text-gray-800 mr-2">{order.deliveryLocation}</span>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="bg-white bg-opacity-50 rounded p-2">
-                        <span className="text-gray-600">مبلغ:</span>
-                        <span className="font-bold text-gray-800 mr-2">{order.price.toLocaleString()} تومان</span>
+                        <span className="text-gray-600">{t('delivery.amount')}</span>
+                        <span className="font-bold text-gray-800 mr-2">{order.price.toLocaleString()} {t('delivery.toman')}</span>
                       </div>
                       {order.phone && (
                         <div className="bg-white text-right bg-opacity-50 rounded p-2">
-                          <span className="text-gray-600">تلفن: </span>
+                          <span className="text-gray-600">{t('delivery.phone')} </span>
                           <span className="font-bold text-gray-800 mr-2" dir="ltr">{order.phone}</span>
                         </div>
                       )}
@@ -315,14 +315,14 @@ export default function Delivery() {
                     
                     {order.orderCode && (
                       <div className="mt-3 bg-white bg-opacity-70 rounded p-2 text-sm">
-                        <span className="text-gray-600">کد سفارش:</span>
+                        <span className="text-gray-600">{t('delivery.order_code')}</span>
                         <span className="font-mono font-bold text-gray-800 mr-2">{order.orderCode}</span>
                       </div>
                     )}
 
                     {order.extraNotes && (
                       <div className="mt-3 bg-white bg-opacity-70 rounded p-2 text-sm">
-                        <span className="text-gray-600">یادداشت:</span>
+                        <span className="text-gray-600">{t('delivery.note')}</span>
                         <span className="text-gray-800 mr-2">{order.extraNotes}</span>
                       </div>
                     )}
@@ -335,7 +335,7 @@ export default function Delivery() {
                     <div className="mt-3 flex justify-center">
                       <Link href="/delivery/orders">
                         <button className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-2 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg">
-                          مشاهده جزئیات و تحویل
+                          {t('delivery.view_details_and_deliver')}
                         </button>
                       </Link>
                     </div>
@@ -345,7 +345,7 @@ export default function Delivery() {
               
               <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200 text-right">
                 <p className="text-sm text-gray-700">
-                  💡 <span className="font-semibold">یادآوری:</span> پس از تحویل سفارش، از صفحه &ldquo;تحویل‌های من&rdquo; وضعیت را به تحویل شده تغییر دهید.
+                  💡 <span className="font-semibold">{t('delivery.reminder_title')}</span> {t('delivery.reminder_text')}
                 </p>
               </div>
             </div>
