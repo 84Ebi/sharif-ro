@@ -153,18 +153,26 @@ export default function CustomerHome() {
                     
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="bg-white bg-opacity-50 rounded p-2">
-                        <span className="text-gray-600">مبلغ:</span>
-                        <span className="font-bold text-gray-800 mr-2">{order.price.toLocaleString()} تومان</span>
+                        <span className="text-gray-600">{t('customer.amount')}</span>
+                        <span className="font-bold text-gray-800 mr-2">{order.price.toLocaleString()} {t('delivery.toman')}</span>
                       </div>
                       <div className="bg-white bg-opacity-50 rounded p-2">
-                        <span className="text-gray-600">محل تحویل:</span>
+                        <span className="text-gray-600">{t('customer.delivery_location')}</span>
                         <span className="font-bold text-gray-800 mr-2">{order.deliveryLocation}</span>
                       </div>
                     </div>
                     
+                    {/* Delivery Person Phone - Only shown after order is accepted */}
+                    {order.status === 'confirmed' && order.deliveryPersonPhone && (
+                      <div className="mt-3 bg-white bg-opacity-70 rounded p-2 text-sm">
+                        <span className="text-gray-600">{t('customer.delivery_person_phone')}</span>
+                        <span className="font-bold text-gray-800 mr-2" dir="ltr">{order.deliveryPersonPhone}</span>
+                      </div>
+                    )}
+                    
                     {order.orderCode && (
                       <div className="mt-3 bg-white bg-opacity-70 rounded p-2 text-sm">
-                        <span className="text-gray-600">کد سفارش:</span>
+                        <span className="text-gray-600">{t('customer.order_code')}</span>
                         <span className="font-mono font-bold text-gray-800 mr-2">{order.orderCode}</span>
                       </div>
                     )}

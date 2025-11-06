@@ -59,7 +59,11 @@ const fa: Dict = {
   'customer.location': 'مکان',
   'customer.order_now': 'سفارش دهید',
   'customer.loading': 'در حال بارگذاری...',
-  'customer.redirecting_login': 'در حال انتقال به صفحه ورود...'
+  'customer.redirecting_login': 'در حال انتقال به صفحه ورود...',
+  'customer.delivery_person_phone': 'تلفن پیک:',
+  'customer.amount': 'مبلغ:',
+  'customer.delivery_location': 'محل تحویل:',
+  'customer.order_code': 'کد سفارش:'
   ,
   'order.success_submit': 'سفارش با موفقیت ثبت شد!'
   ,
@@ -287,7 +291,11 @@ const en: Dict = {
   'customer.location': 'Location',
   'customer.order_now': 'Order Now',
   'customer.loading': 'Loading...',
-  'customer.redirecting_login': 'Redirecting to login...'
+  'customer.redirecting_login': 'Redirecting to login...',
+  'customer.delivery_person_phone': 'Delivery Person Phone:',
+  'customer.amount': 'Amount:',
+  'customer.delivery_location': 'Delivery Location:',
+  'customer.order_code': 'Order Code:'
   ,
   'order.success_submit': 'Your order has been placed successfully!'
   ,

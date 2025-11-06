@@ -377,7 +377,14 @@ function ShoppingCartContent() {
                     }`}>{order.status}</span>
                   </div>
                   <p className="text-sm text-gray-600 mb-2 whitespace-pre-wrap">{order.orderCode}</p>
-                  <div className="text-right font-bold text-blue-600">{order.price.toLocaleString()} تومان</div>
+                  <div className="text-right font-bold text-blue-600 mb-2">{order.price.toLocaleString()} {t('delivery.toman')}</div>
+                  {/* Delivery Person Phone - Only shown after order is accepted */}
+                  {(order.status === 'confirmed' || order.status === 'delivered') && order.deliveryPersonPhone && (
+                    <div className="mt-2 pt-2 border-t border-gray-200 text-sm">
+                      <span className="text-gray-600">{t('customer.delivery_person_phone')}</span>
+                      <span className="font-bold text-gray-800 mr-2" dir="ltr">{order.deliveryPersonPhone}</span>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
