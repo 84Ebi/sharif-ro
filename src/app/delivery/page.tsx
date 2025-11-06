@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
-import { getPendingOrders, confirmOrder, type Order } from '../../lib/orders'
+import { getPendingOrders, confirmOrder, getOrders, type Order } from '../../lib/orders'
 import BottomDock from '../../components/BottomDock'
 import { useI18n } from '@/lib/i18n'
 
@@ -50,6 +50,8 @@ export default function Delivery() {
   const [deliveryLocation, setDeliveryLocation] = useState('')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownButtonRef = useRef<HTMLButtonElement>(null)
+  const [myActiveDeliveries, setMyActiveDeliveries] = useState<Order[]>([])
+  const [loadingMyDeliveries, setLoadingMyDeliveries] = useState(true)
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -106,6 +108,19 @@ export default function Delivery() {
       loadOrders()
     }
   }, [user, loadOrders])
+
+  // Fetch delivery person's active deliveries (confirmed but not delivered)
+  useEffect(() => {
+    if (user && user.emailVerification) {
+      setLoadingMyDeliveries(true)
+      getOrders({ deliveryPersonId: user.$id, status: 'confirmed' })
+        .then((deliveryOrders: Order[]) => {
+          setMyActiveDeliveries(deliveryOrders)
+        })
+        .catch((err: Error) => console.error('Failed to fetch my deliveries:', err))
+        .finally(() => setLoadingMyDeliveries(false))
+    }
+  }, [user])
 
   const acceptOrder = async (orderId: string) => {
     if (!user) return
@@ -250,6 +265,92 @@ export default function Delivery() {
             </div>
           </div>
         </header>
+
+        {/* My Active Deliveries Section */}
+        {!loadingMyDeliveries && myActiveDeliveries.length > 0 && (
+          <div className="mb-4 relative z-10">
+            <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">🚀</span>
+                <h2 className="text-xl font-bold text-gray-800">تحویل‌های فعال من</h2>
+              </div>
+              <div className="space-y-4">
+                {myActiveDeliveries.map((order) => (
+                  <div key={order.$id} className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border-l-4 border-green-500">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-bold text-gray-800 text-lg">{order.restaurantLocation}</h3>
+                        <p className="text-sm text-gray-600">{order.restaurantType}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-green-200 text-green-800">
+                          ✓ در حال ارسال
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                      <div className="bg-white bg-opacity-50 rounded p-2">
+                        <span className="text-gray-600">مبدا:</span>
+                        <span className="font-bold text-gray-800 mr-2">{order.restaurantLocation}</span>
+                      </div>
+                      <div className="bg-white bg-opacity-50 rounded p-2">
+                        <span className="text-gray-600">مقصد:</span>
+                        <span className="font-bold text-gray-800 mr-2">{order.deliveryLocation}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="bg-white bg-opacity-50 rounded p-2">
+                        <span className="text-gray-600">مبلغ:</span>
+                        <span className="font-bold text-gray-800 mr-2">{order.price.toLocaleString()} تومان</span>
+                      </div>
+                      {order.phone && (
+                        <div className="bg-white text-right bg-opacity-50 rounded p-2">
+                          <span className="text-gray-600">تلفن: </span>
+                          <span className="font-bold text-gray-800 mr-2" dir="ltr">{order.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {order.orderCode && (
+                      <div className="mt-3 bg-white bg-opacity-70 rounded p-2 text-sm">
+                        <span className="text-gray-600">کد سفارش:</span>
+                        <span className="font-mono font-bold text-gray-800 mr-2">{order.orderCode}</span>
+                      </div>
+                    )}
+
+                    {order.extraNotes && (
+                      <div className="mt-3 bg-white bg-opacity-70 rounded p-2 text-sm">
+                        <span className="text-gray-600">یادداشت:</span>
+                        <span className="text-gray-800 mr-2">{order.extraNotes}</span>
+                      </div>
+                    )}
+                    
+                    <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                      <span>📅</span>
+                      <span>{order.$createdAt ? new Date(order.$createdAt).toLocaleString('fa-IR') : ''}</span>
+                    </div>
+
+                    <div className="mt-3 flex justify-center">
+                      <Link href="/delivery/orders">
+                        <button className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-2 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg">
+                          مشاهده جزئیات و تحویل
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200 text-right">
+                <p className="text-sm text-gray-700">
+                  💡 <span className="font-semibold">یادآوری:</span> پس از تحویل سفارش، از صفحه "تحویل‌های من" وضعیت را به تحویل شده تغییر دهید.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Orders Card */}
         <main className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-h-[60vh] max-h-[calc(100vh-200px)] overflow-hidden flex flex-col relative z-10">

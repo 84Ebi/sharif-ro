@@ -103,6 +103,14 @@ function ShoppingCartContent() {
     }
   }, [user])
 
+  // Set default phone from user account
+  useEffect(() => {
+    if (user && !phone) {
+      const userPhone = user.prefs?.phone || ''
+      setPhone(userPhone)
+    }
+  }, [user, phone])
+
   const updateCart = (newItems: MenuItem[]) => {
     const newTotal = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
     const newOrderData = { items: newItems, total: newTotal }

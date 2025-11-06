@@ -153,7 +153,62 @@ const fa: Dict = {
   'deliveries.timeline.placed': 'ثبت سفارش',
   'deliveries.timeline.confirmed': 'تایید',
   'deliveries.timeline.delivered': 'تحویل',
-  'deliveries.mark_as_delivered': '✓ تحویل شد'
+  'deliveries.mark_as_delivered': '✓ تحویل شد',
+
+  // Service names
+  'service.sharif_fastfood': 'شریف فست فود',
+  'service.sharif_plus': 'شریف پلاس',
+  'service.clean_food': 'کلین فود',
+  'service.self': 'سلف',
+  'service.kelana': 'کلانا',
+  'service.other': 'دیگر سرویس ها',
+
+  // OtherMenu
+  'other.title': 'دیگر سرویس ها',
+  'other.coming_soon': 'به زودی!',
+  'other.not_working': 'این صفحه هنوز کار نمی‌کند. ما به زودی این سرویس را ارائه خواهیم داد.',
+  'other.stay_tuned': 'منتظر به‌روزرسانی‌ها باشید!',
+  'other.close': 'بستن',
+
+  // KelanaMenu
+  'kelana.title': 'کلانا',
+  'kelana.order_online_title': 'سفارش آنلاین کلانا',
+  'kelana.order_online_text': 'شما می‌توانید از وب‌سایت کلانا سفارش خود را ثبت کنید. بعد از ثبت سفارش، کد سفارش و جزئیات آن را در صفحه ثبت سفارش وارد کنید.',
+  'kelana.order_online_button': '🌐 سفارش آنلاین از کلانا',
+  'kelana.after_order_text': 'بعد از ثبت سفارش در وب‌سایت کلانا، برای درخواست ارسال روی دکمه زیر کلیک کنید:',
+  'kelana.submit_delivery': '📦 ثبت درخواست ارسال',
+  'kelana.close': 'بستن',
+
+  // CleanFoodMenu
+  'cleanfood.title': 'کلین فود',
+  'cleanfood.order_online_title': 'سفارش آنلاین کلین فود',
+  'cleanfood.order_online_text': 'شما می‌توانید از وب‌سایت کلین فود سفارش خود را ثبت کنید. بعد از ثبت سفارش، کد سفارش و جزئیات آن را در صفحه ثبت سفارش وارد کنید.',
+  'cleanfood.order_online_button': '🌐 سفارش آنلاین از کلین فود',
+  'cleanfood.after_order_text': 'بعد از ثبت سفارش در وب‌سایت کلین فود، برای درخواست ارسال روی دکمه زیر کلیک کنید:',
+  'cleanfood.submit_delivery': '📦 ثبت درخواست ارسال',
+  'cleanfood.close': 'بستن',
+
+  // Order Page - Kelana & Clean Food
+  'order.kelana_title': 'ثبت سفارش کلانا',
+  'order.cleanfood_title': 'ثبت سفارش کلین فود',
+  'order.order_tracking_code': 'شماره سفارش / کد سفارش',
+  'order.order_tracking_code_placeholder': 'کد سفارش خود را وارد کنید',
+  'order.customer_name': 'نام مشتری',
+  'order.customer_name_placeholder': 'نام شما',
+  'order.delivery_address': 'آدرس تحویل',
+  'order.select_delivery_address': 'آدرس تحویل را انتخاب کنید',
+  'order.phone_number': 'شماره تماس',
+  'order.phone_placeholder': 'شماره تماس شما',
+  'order.extra_notes': 'یادداشت اضافی',
+  'order.extra_notes_placeholder': 'توضیحات اضافی (اختیاری)',
+  'order.checkout_summary': 'خلاصه پرداخت',
+  'order.delivery_fee': 'هزینه ارسال',
+  'order.total_price': 'جمع کل',
+  'order.submit_order': 'ثبت سفارش',
+  'order.submitting': 'در حال ارسال...',
+  'order.loading': 'در حال بارگذاری...',
+  'order.login_required': 'لطفاً برای ثبت سفارش وارد شوید.',
+  'order.success_message': 'سفارش شما با موفقیت ثبت شد!'
 }
 
 const en: Dict = {
@@ -307,7 +362,62 @@ const en: Dict = {
   'deliveries.timeline.placed': 'Order placed',
   'deliveries.timeline.confirmed': 'Confirmed',
   'deliveries.timeline.delivered': 'Delivered',
-  'deliveries.mark_as_delivered': '✓ Mark as Delivered'
+  'deliveries.mark_as_delivered': '✓ Mark as Delivered',
+
+  // Service names
+  'service.sharif_fastfood': 'Sharif Fast Food',
+  'service.sharif_plus': 'Sharif Plus',
+  'service.clean_food': 'Clean Food',
+  'service.self': 'Self',
+  'service.kelana': 'Kelana',
+  'service.other': 'Other Services',
+
+  // OtherMenu
+  'other.title': 'Other Services',
+  'other.coming_soon': 'Coming Soon!',
+  'other.not_working': 'This page is not working yet. We\'re working hard to bring you this service soon.',
+  'other.stay_tuned': 'Stay tuned for updates!',
+  'other.close': 'Close',
+
+  // KelanaMenu
+  'kelana.title': 'Kelana',
+  'kelana.order_online_title': 'Order Online from Kelana',
+  'kelana.order_online_text': 'You can place your order from Kelana\'s website. After placing the order, enter the order code and details on the order submission page.',
+  'kelana.order_online_button': '🌐 Order Online from Kelana',
+  'kelana.after_order_text': 'After placing your order on Kelana\'s website, click the button below to submit a delivery request:',
+  'kelana.submit_delivery': '📦 Submit Delivery Request',
+  'kelana.close': 'Close',
+
+  // CleanFoodMenu
+  'cleanfood.title': 'Clean Food',
+  'cleanfood.order_online_title': 'Order Online from Clean Food',
+  'cleanfood.order_online_text': 'You can place your order from Clean Food\'s website. After placing the order, enter the order code and details on the order submission page.',
+  'cleanfood.order_online_button': '🌐 Order Online from Clean Food',
+  'cleanfood.after_order_text': 'After placing your order on Clean Food\'s website, click the button below to submit a delivery request:',
+  'cleanfood.submit_delivery': '📦 Submit Delivery Request',
+  'cleanfood.close': 'Close',
+
+  // Order Page - Kelana & Clean Food
+  'order.kelana_title': 'Place Kelana Order',
+  'order.cleanfood_title': 'Place Clean Food Order',
+  'order.order_tracking_code': 'Order Number / Order Code',
+  'order.order_tracking_code_placeholder': 'Enter your order code',
+  'order.customer_name': 'Customer Name',
+  'order.customer_name_placeholder': 'Your Name',
+  'order.delivery_address': 'Delivery Address',
+  'order.select_delivery_address': 'Select delivery address',
+  'order.phone_number': 'Phone Number',
+  'order.phone_placeholder': 'Your phone number',
+  'order.extra_notes': 'Extra Notes',
+  'order.extra_notes_placeholder': 'Additional notes (optional)',
+  'order.checkout_summary': 'Checkout Summary',
+  'order.delivery_fee': 'Delivery Fee',
+  'order.total_price': 'Total Price',
+  'order.submit_order': 'Submit Order',
+  'order.submitting': 'Submitting...',
+  'order.loading': 'Loading...',
+  'order.login_required': 'Please log in to place an order.',
+  'order.success_message': 'Your order has been placed successfully!'
 }
 
 const dicts: Record<'fa' | 'en', Dict> = { fa, en }

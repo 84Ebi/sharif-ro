@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { createOrder } from '../../lib/orders'
 import BottomDock from '../../components/BottomDock'
+import { useI18n } from '@/lib/i18n'
 
 const deliveryLocations = [
   { name: 'دانشکده فیزیک', price: 20000 },
@@ -50,6 +51,10 @@ function OrderFormContent() {
   const searchParams = useSearchParams()
   const restaurantFromUrl = searchParams.get('restaurant') || ''
   const isSelfOrder = restaurantFromUrl === 'Self'
+  const isKelanaOrder = restaurantFromUrl === 'Kelana'
+  const isCleanFoodOrder = restaurantFromUrl === 'Clean Food'
+  const isSpecialOrder = isSelfOrder || isKelanaOrder || isCleanFoodOrder
+  const { t } = useI18n()
   
   const [form, setForm] = useState({
     restaurantLocation: restaurantFromUrl,
@@ -82,12 +87,19 @@ function OrderFormContent() {
     }
   }, [restaurantFromUrl])
 
-  // Set default name from user
+  // Set default name and phone from user
   useEffect(() => {
     if (user && !form.fullName) {
       setForm(prev => ({ ...prev, fullName: user.name }))
     }
   }, [user, form.fullName])
+
+  useEffect(() => {
+    if (user && !form.phone) {
+      const userPhone = user.prefs?.phone || ''
+      setForm(prev => ({ ...prev, phone: userPhone }))
+    }
+  }, [user, form.phone])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,7 +112,7 @@ function OrderFormContent() {
       return
     }
 
-    // Calculate final price for Self orders
+    // Calculate final price for special orders
     let finalPrice = form.price
     if (isSelfOrder) {
       // Start with base items
@@ -118,6 +130,9 @@ function OrderFormContent() {
       
       // Add delivery fee
       finalPrice += form.deliveryFee
+    } else if (isKelanaOrder || isCleanFoodOrder) {
+      // For Kelana and Clean Food, only delivery fee is charged
+      finalPrice = form.deliveryFee
     }
     
     // Build order details for Self orders
@@ -135,11 +150,26 @@ function OrderFormContent() {
     }
     
     try {
+      // Determine restaurant location and type based on order type
+      let restaurantLocation = form.restaurantLocation
+      let restaurantType = form.restaurantType
+      
+      if (isSelfOrder) {
+        restaurantLocation = 'Self'
+        restaurantType = form.orderName
+      } else if (isKelanaOrder) {
+        restaurantLocation = 'Kelana'
+        restaurantType = 'Kelana'
+      } else if (isCleanFoodOrder) {
+        restaurantLocation = 'Clean Food'
+        restaurantType = 'Clean Food'
+      }
+      
       await createOrder({
         userId: user.$id,
         fullName: form.fullName || user.name,
-        restaurantLocation: isSelfOrder ? 'Self' : form.restaurantLocation,
-        restaurantType: isSelfOrder ? form.orderName : form.restaurantType,
+        restaurantLocation: restaurantLocation,
+        restaurantType: restaurantType,
         orderCode: orderDetails || undefined,
         deliveryLocation: form.deliveryLocation,
         phone: form.phone,
@@ -150,7 +180,7 @@ function OrderFormContent() {
       
       // Redirect to customer page to view order
       router.push('/customer')
-      alert('سفارش شما با موفقیت ثبت شد!')
+      alert(t('order.success_message'))
     } catch (err: unknown) {
       console.error('Order submission error:', err)
       setError(err instanceof Error ? err.message : 'Failed to create order. Please try again.')
@@ -161,7 +191,7 @@ function OrderFormContent() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-white text-xl">{t('order.loading')}</div>
       </div>
     )
   }
@@ -169,16 +199,22 @@ function OrderFormContent() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-900 to-blue-200">
-        <div className="text-white text-xl">Please log in to place an order.</div>
+        <div className="text-white text-xl">{t('order.login_required')}</div>
       </div>
     )
   }
+  
+  // Get page title based on order type
+  let pageTitle = 'Place Your Order'
+  if (isSelfOrder) pageTitle = 'ثبت سفارش سلف سرویس'
+  else if (isKelanaOrder) pageTitle = t('order.kelana_title')
+  else if (isCleanFoodOrder) pageTitle = t('order.cleanfood_title')
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-8 px-4 pb-24">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-6">
         <h1 className="text-2xl font-bold mb-6 text-gray-800 text-center">
-          {isSelfOrder ? 'ثبت سفارش سلف سرویس' : 'Place Your Order'}
+          {pageTitle}
         </h1>
         
         {error && (
@@ -188,7 +224,115 @@ function OrderFormContent() {
         )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          {!isSelfOrder && (
+          {/* Kelana and Clean Food Form */}
+          {(isKelanaOrder || isCleanFoodOrder) && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-right">
+                  {t('order.order_tracking_code')} *
+                </label>
+                <input
+                  type="text"
+                  placeholder={t('order.order_tracking_code_placeholder')}
+                  value={form.orderCode}
+                  onChange={e => setForm({ ...form, orderCode: e.target.value })}
+                  required
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-right">
+                  {t('order.customer_name')} *
+                </label>
+                <input
+                  type="text"
+                  placeholder={t('order.customer_name_placeholder')}
+                  value={form.fullName}
+                  onChange={e => setForm({ ...form, fullName: e.target.value })}
+                  required
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+                  {t('order.delivery_address')} *
+                </label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="w-full text-gray-500 p-3 border border-blue-500 rounded-lg bg-blue-50 text-right flex justify-between items-center"
+                  >
+                    <span className="text-gray-700">{form.deliveryLocation || t('order.select_delivery_address')}</span>
+                    <span>▼</span>
+                  </button>
+                  {isDropdownOpen && (
+                    <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto border border-gray-200">
+                      {deliveryLocations.map((loc) => (
+                        <div
+                          key={loc.name}
+                          onClick={() => {
+                            setForm({ ...form, deliveryLocation: loc.name, deliveryFee: loc.price })
+                            setIsDropdownOpen(false)
+                          }}
+                          className="p-3 text-black hover:bg-blue-50 cursor-pointer text-right"
+                        >
+                          {loc.name} - {loc.price.toLocaleString()} تومان
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-right">
+                  {t('order.phone_number')} *
+                </label>
+                <input
+                  type="tel"
+                  placeholder={t('order.phone_placeholder')}
+                  value={form.phone}
+                  onChange={e => setForm({ ...form, phone: e.target.value })}
+                  required
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-right">
+                  {t('order.extra_notes')}
+                </label>
+                <textarea
+                  placeholder={t('order.extra_notes_placeholder')}
+                  value={form.extraNotes}
+                  onChange={e => setForm({ ...form, extraNotes: e.target.value })}
+                  rows={2}
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                />
+              </div>
+
+              {/* Checkout Summary for Kelana/Clean Food */}
+              {form.deliveryFee > 0 && (
+                <div className="bg-blue-50 rounded-lg shadow-md p-4 space-y-2 text-right border border-blue-200">
+                  <h2 className="font-bold text-gray-800 mb-2">{t('order.checkout_summary')}</h2>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-700">{t('order.delivery_fee')}:</span>
+                    <span className="font-bold text-blue-600">{form.deliveryFee.toLocaleString()} تومان</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t text-sm">
+                    <span className="text-gray-700 font-semibold">{t('order.total_price')}:</span>
+                    <span className="font-bold text-blue-600">{form.deliveryFee.toLocaleString()} تومان</span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Regular Order Form (non-Self, non-Kelana, non-Clean Food) */}
+          {!isSpecialOrder && (
             <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -227,7 +371,7 @@ function OrderFormContent() {
                   placeholder="Food Hall Order Code"
                   value={form.orderCode}
                   onChange={e => setForm({ ...form, orderCode: e.target.value })}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </>
@@ -330,110 +474,83 @@ function OrderFormContent() {
                   <span className="text-sm text-gray-600">{utensilsPrice.toLocaleString()} تومان</span>
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  نام دریافت‌کننده *
+                </label>
+                <input
+                  type="text"
+                  placeholder="نام خود را وارد کنید"
+                  value={form.fullName}
+                  onChange={e => setForm({ ...form, fullName: e.target.value })}
+                  required
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  تلفن همراه *
+                </label>
+                <input
+                  type="tel"
+                  placeholder="تلفن همراه خود را وارد کنید"
+                  value={form.phone}
+                  onChange={e => setForm({ ...form, phone: e.target.value })}
+                  required
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  محل دریافت سفارش *
+                </label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="w-full text-gray-500 p-3 border border-blue-500 rounded-lg bg-blue-50 text-right flex justify-between items-center"
+                  >
+                    <span className="text-gray-700">{form.deliveryLocation || 'محل را انتخاب کنید'}</span>
+                    <span>▼</span>
+                  </button>
+                  {isDropdownOpen && (
+                    <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto border border-gray-200">
+                      {deliveryLocations.map((loc) => (
+                        <div
+                          key={loc.name}
+                          onClick={() => {
+                            setForm({ ...form, deliveryLocation: loc.name, deliveryFee: loc.price })
+                            setIsDropdownOpen(false)
+                          }}
+                          className="p-3 text-black hover:bg-blue-50 cursor-pointer text-right"
+                        >
+                          {loc.name} - {loc.price.toLocaleString()} تومان
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  توضیحات سفارش (اختیاری)
+                </label>
+                <textarea
+                  placeholder="توضیحات اضافی"
+                  value={form.extraNotes}
+                  onChange={e => setForm({ ...form, extraNotes: e.target.value })}
+                  rows={2}
+                  className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                />
+              </div>
             </>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {isSelfOrder ? 'نام دریافت‌کننده *' : 'Your Name *'}
-            </label>
-            <input
-              type="text"
-              placeholder={isSelfOrder ? 'نام خود را وارد کنید' : 'Enter your name'}
-              value={form.fullName}
-              onChange={e => setForm({ ...form, fullName: e.target.value })}
-              required
-              className={`w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isSelfOrder ? 'text-right' : ''}`}
-            />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-            {isSelfOrder ? 'تلفن همراه *' : 'Your Phone Number *'}
-            </label>
-            <input
-              type="tel"
-              placeholder={isSelfOrder ? 'تلفن همراه خود را وارد کنید' : 'Enter your phone number'}
-              value={form.phone}
-              onChange={e => setForm({ ...form, phone: e.target.value })}
-              required
-              className="w-full text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {isSelfOrder ? 'محل دریافت سفارش *' : 'Delivery Address *'}
-            </label>
-            {isSelfOrder ? (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full p-3 border border-blue-500 rounded-lg bg-blue-50 text-right flex justify-between items-center"
-                >
-                  <span className="text-gray-700">{form.deliveryLocation || 'محل را انتخاب کنید'}</span>
-                  <span>▼</span>
-                </button>
-                {isDropdownOpen && (
-                  <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto border border-gray-200">
-                    {deliveryLocations.map((loc) => (
-                      <div
-                        key={loc.name}
-                        onClick={() => {
-                          setForm({ ...form, deliveryLocation: loc.name, deliveryFee: loc.price })
-                          setIsDropdownOpen(false)
-                        }}
-                        className="p-3 text-black hover:bg-blue-50 cursor-pointer text-right"
-                      >
-                        {loc.name} - {loc.price.toLocaleString()} تومان
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <textarea
-                placeholder="Your delivery address"
-                value={form.deliveryLocation}
-                onChange={e => setForm({ ...form, deliveryLocation: e.target.value })}
-                required
-                rows={3}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {isSelfOrder ? 'توضیحات سفارش (اختیاری)' : 'Extra Notes (Optional)'}
-            </label>
-            <textarea
-              placeholder={isSelfOrder ? 'توضیحات اضافی' : 'Any special instructions'}
-              value={form.extraNotes}
-              onChange={e => setForm({ ...form, extraNotes: e.target.value })}
-              rows={2}
-              className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isSelfOrder ? 'text-right' : ''}`}
-            />
-          </div>
-
-          {!isSelfOrder && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price *
-              </label>
-              <input
-                type="number"
-                placeholder={'Order price'}
-                value={form.price || ''}
-                onChange={e => setForm({ ...form, price: Number(e.target.value) })}
-                required
-                min="0"
-                step="1000"
-                className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              />
-            </div>
-          )}
 
           {isSelfOrder && (
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 space-y-2">
@@ -480,7 +597,7 @@ function OrderFormContent() {
             disabled={loading}
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
           >
-            {loading ? (isSelfOrder ? 'در حال ثبت...' : 'Submitting...') : (isSelfOrder ? 'ثبت سفارش' : 'Submit Order')}
+            {loading ? t('order.submitting') : t('order.submit_order')}
           </button>
         </form>
       </div>

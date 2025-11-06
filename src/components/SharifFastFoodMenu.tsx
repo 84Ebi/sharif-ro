@@ -233,7 +233,7 @@ export default function SharifFastFoodMenu({ isOpen, onClose }: SharifFastFoodMe
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-2xl bg-opacity-50 p-4" onClick={onClose}>
       <div
         className="bg-gradient-to-r from-blue-900 to-blue-200 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}

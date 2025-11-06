@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useI18n } from '@/lib/i18n'
 
 interface OtherMenuProps {
   isOpen: boolean
@@ -8,10 +9,12 @@ interface OtherMenuProps {
 }
 
 export default function OtherMenu({ isOpen, onClose }: OtherMenuProps) {
+  const { t } = useI18n()
+  
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm p-4" onClick={onClose}>
       <div
         className="bg-gradient-to-r from-blue-900 to-blue-200 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -20,7 +23,7 @@ export default function OtherMenu({ isOpen, onClose }: OtherMenuProps) {
         <div className="bg-white bg-opacity-95 p-4 flex items-center justify-between border-b">
           <div className="flex items-center gap-3">
             <Image src="/other-icon.png" alt="Other" width={48} height={48} className="w-12 h-12 rounded-lg" />
-            <h2 className="text-2xl font-bold text-gray-800">Other Services</h2>
+            <h2 className="text-2xl font-bold text-gray-800">{t('other.title')}</h2>
           </div>
           <button
             onClick={onClose}
@@ -34,12 +37,12 @@ export default function OtherMenu({ isOpen, onClose }: OtherMenuProps) {
         {/* Content */}
         <div className="p-8 flex flex-col items-center justify-center space-y-4">
           <div className="text-6xl">🚧</div>
-          <h3 className="text-2xl font-bold text-white text-center">Coming Soon!</h3>
+          <h3 className="text-2xl font-bold text-white text-center">{t('other.coming_soon')}</h3>
           <p className="text-white text-center text-lg">
-            This page is not working yet. We&apos;re working hard to bring you this service soon.
+            {t('other.not_working')}
           </p>
           <p className="text-blue-100 text-center text-sm">
-            Stay tuned for updates!
+            {t('other.stay_tuned')}
           </p>
         </div>
 
@@ -49,7 +52,7 @@ export default function OtherMenu({ isOpen, onClose }: OtherMenuProps) {
             onClick={onClose}
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
           >
-            Close
+            {t('other.close')}
           </button>
         </div>
       </div>

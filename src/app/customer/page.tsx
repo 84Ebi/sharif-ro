@@ -1,13 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import BottomDock from '../../components/BottomDock'
 import SharifPlusMenu from '../../components/SharifPlusMenu'
 import SharifFastFoodMenu from '../../components/SharifFastFoodMenu'
+import OtherMenu from '../../components/OtherMenu'
+import KelanaMenu from '../../components/KelanaMenu'
+import CleanFoodMenu from '../../components/CleanFoodMenu'
 import Image from 'next/image'
 import { useI18n } from '@/lib/i18n'
+import { getOrdersByUser, Order } from '../../lib/orders'
 
 export default function CustomerHome() {
   const { user, loading: authLoading } = useAuth()
@@ -18,14 +22,28 @@ export default function CustomerHome() {
   const [maxCost, setMaxCost] = useState('')
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false)
   const [isFastFoodMenuOpen, setIsFastFoodMenuOpen] = useState(false)
+  const [isOtherMenuOpen, setIsOtherMenuOpen] = useState(false)
+  const [isKelanaMenuOpen, setIsKelanaMenuOpen] = useState(false)
+  const [isCleanFoodMenuOpen, setIsCleanFoodMenuOpen] = useState(false)
+  const [pendingOrders, setPendingOrders] = useState<Order[]>([])
+  const [loadingOrders, setLoadingOrders] = useState(true)
+
+  const locations = [
+    t('service.sharif_fastfood'),
+    t('service.sharif_plus'),
+    t('service.clean_food'),
+    t('service.self'),
+    t('service.kelana'),
+    t('service.other'),
+  ]
 
   const services = [
-    { name: 'Sharif Plus', icon: '/delivery-icon.png', location: 'Sharif Plus' },
-    { name: 'Sharif Fastfood', icon: '/shariffastfood.png', location: 'Sharif Fastfood' },
-    { name: 'Self', icon: '/self.png', location: 'Self' },
-    { name: 'Clean Food', icon: '/logo38668.jpeg', location: 'Clean Food' },
-    { name: 'Other', icon: '/other-icon.png', location: 'Other' },
-    { name: 'Kelana', icon: '/kelana-icon.png', location: 'Kelana' },
+    { name: t('service.sharif_plus'), icon: '/delivery-icon.png', location: 'Sharif Plus' },
+    { name: t('service.sharif_fastfood'), icon: '/shariffastfood.png', location: 'Sharif Fastfood' },
+    { name: t('service.self'), icon: '/self.png', location: 'Self' },
+    { name: t('service.clean_food'), icon: '/logo38668.jpeg', location: 'Clean Food' },
+    { name: t('service.other'), icon: '/other-icon.png', location: 'Other' },
+    { name: t('service.kelana'), icon: '/kelana-icon.png', location: 'Kelana' },
   ]
 
   const handleOrderClick = (location: string) => {
@@ -33,6 +51,12 @@ export default function CustomerHome() {
       setIsPlusMenuOpen(true)
     } else if (location === 'Sharif Fastfood') {
       setIsFastFoodMenuOpen(true)
+    } else if (location === 'Other') {
+      setIsOtherMenuOpen(true)
+    } else if (location === 'Kelana') {
+      setIsKelanaMenuOpen(true)
+    } else if (location === 'Clean Food') {
+      setIsCleanFoodMenuOpen(true)
     } else {
       router.push(`/order?restaurant=${encodeURIComponent(location)}`)
     }
@@ -41,6 +65,20 @@ export default function CustomerHome() {
   const handleOrderSuccess = () => {
     alert(t('order.success_submit'))
   }
+
+  // Fetch pending orders
+  useEffect(() => {
+    if (user) {
+      setLoadingOrders(true)
+      getOrdersByUser(user.$id)
+        .then(orders => {
+          const pending = orders.filter(order => order.status === 'pending' || order.status === 'confirmed')
+          setPendingOrders(pending)
+        })
+        .catch(err => console.error('Failed to fetch orders:', err))
+        .finally(() => setLoadingOrders(false))
+    }
+  }, [user])
 
   if (authLoading) {
     return (
@@ -72,16 +110,83 @@ export default function CustomerHome() {
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white bg-opacity-10 border border-white border-opacity-10 text-white hover:bg-opacity-20 transition-all group cursor-pointer">
             <span className="font-bold text-black text-sm">{t('customer.filters')}</span>
             <div className=" group-hover:flex group-focus-within:flex items-center gap-2">
-              <input
-                type="text"
-                placeholder={t('customer.location')}
+              <select
                 value={filterLocation}
                 onChange={(e) => setFilterLocation(e.target.value)}
-                className="px-3 py-2 rounded-lg bg-white text-gray-800 text-sm outline-none w-32"
-              />
+                className="px-3 py-2 rounded-lg bg-white text-gray-800 text-sm outline-none w-48"
+              >
+                <option value="">{t('customer.location')}</option>
+                {locations.map((location) => (
+                  <option key={location} value={location}>
+                    {location}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </header>
+
+        {/* Pending Orders Section */}
+        {!loadingOrders && pendingOrders.length > 0 && (
+          <div className="mb-6">
+            <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">⏳</span>
+                <h2 className="text-xl font-bold text-gray-800">سفارش‌های در حال پردازش</h2>
+              </div>
+              <div className="space-y-4">
+                {pendingOrders.map((order) => (
+                  <div key={order.$id} className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border-l-4 border-blue-500">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-bold text-gray-800 text-lg">{order.restaurantLocation}</h3>
+                        <p className="text-sm text-gray-600">{order.restaurantType}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                          order.status === 'pending' 
+                            ? 'bg-yellow-200 text-yellow-800' 
+                            : 'bg-blue-200 text-blue-800'
+                        }`}>
+                          {order.status === 'pending' ? '🕐 در انتظار' : '✓ تایید شده'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="bg-white bg-opacity-50 rounded p-2">
+                        <span className="text-gray-600">مبلغ:</span>
+                        <span className="font-bold text-gray-800 mr-2">{order.price.toLocaleString()} تومان</span>
+                      </div>
+                      <div className="bg-white bg-opacity-50 rounded p-2">
+                        <span className="text-gray-600">محل تحویل:</span>
+                        <span className="font-bold text-gray-800 mr-2">{order.deliveryLocation}</span>
+                      </div>
+                    </div>
+                    
+                    {order.orderCode && (
+                      <div className="mt-3 bg-white bg-opacity-70 rounded p-2 text-sm">
+                        <span className="text-gray-600">کد سفارش:</span>
+                        <span className="font-mono font-bold text-gray-800 mr-2">{order.orderCode}</span>
+                      </div>
+                    )}
+                    
+                    <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                      <span>📅</span>
+                      <span>{order.$createdAt ? new Date(order.$createdAt).toLocaleString('fa-IR') : ''}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200 text-right">
+                <p className="text-sm text-gray-700">
+                  💡 <span className="font-semibold">توجه:</span> سفارش شما در حال پیدا کردن پیک است. لطفاً صبور باشید.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Services Grid */}
         <main className="grid grid-cols-2 md:grid-cols-3 gap-5 mb-8">
@@ -122,6 +227,24 @@ export default function CustomerHome() {
       <SharifFastFoodMenu 
         isOpen={isFastFoodMenuOpen} 
         onClose={() => setIsFastFoodMenuOpen(false)}
+      />
+
+      {/* Other Menu Popup */}
+      <OtherMenu 
+        isOpen={isOtherMenuOpen} 
+        onClose={() => setIsOtherMenuOpen(false)}
+      />
+
+      {/* Kelana Menu Popup */}
+      <KelanaMenu 
+        isOpen={isKelanaMenuOpen} 
+        onClose={() => setIsKelanaMenuOpen(false)}
+      />
+
+      {/* Clean Food Menu Popup */}
+      <CleanFoodMenu 
+        isOpen={isCleanFoodMenuOpen} 
+        onClose={() => setIsCleanFoodMenuOpen(false)}
       />
     </div>
   )
