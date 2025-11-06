@@ -35,7 +35,8 @@ export default function MyDeliveries() {
     } finally {
       setLoading(false)
     }
-  }, [user, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
 
   useEffect(() => {
     if (user) {

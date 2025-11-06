@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import BottomDock from '../../components/BottomDock'
@@ -26,23 +26,23 @@ export default function CustomerHome() {
   const [pendingOrders, setPendingOrders] = useState<Order[]>([])
   const [loadingOrders, setLoadingOrders] = useState(true)
 
-  const locations = [
+  const locations = useMemo(() => [
     t('service.sharif_fastfood'),
     t('service.sharif_plus'),
     t('service.clean_food'),
     t('service.self'),
     t('service.kelana'),
     t('service.other'),
-  ]
+  ], [t])
 
-  const services = [
+  const services = useMemo(() => [
     { name: t('service.sharif_plus'), icon: '/delivery-icon.png', location: 'Sharif Plus' },
     { name: t('service.sharif_fastfood'), icon: '/shariffastfood.png', location: 'Sharif Fastfood' },
     { name: t('service.self'), icon: '/self.png', location: 'Self' },
     { name: t('service.clean_food'), icon: '/logo38668.jpeg', location: 'Clean Food' },
     { name: t('service.other'), icon: '/other-icon.png', location: 'Other' },
     { name: t('service.kelana'), icon: '/kelana-icon.png', location: 'Kelana' },
-  ]
+  ], [t])
 
   const handleOrderClick = (location: string) => {
     if (location === 'Sharif Plus') {

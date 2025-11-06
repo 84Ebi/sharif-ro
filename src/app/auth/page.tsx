@@ -29,7 +29,8 @@ function AuthPageContent() {
     if (redirect) {
       setRedirectMessage(t('auth.redirect'))
     }
-  }, [searchParams, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   // Redirect if already logged in
   useEffect(() => {

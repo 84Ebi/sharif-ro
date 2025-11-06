@@ -86,22 +86,28 @@ function ShoppingCartContent() {
         } else {
           setOrderData(parsedData)
         }
-      } catch {
+      } catch (err) {
+        console.error('Error parsing cart data:', err)
         setError(t('errors.invalid_cart_data'))
         sessionStorage.removeItem('shoppingCart')
       }
     }
-  }, [t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (user) {
       setHistoryLoading(true)
       getOrdersByUser(user.$id)
         .then(setPastOrders)
-        .catch(() => setHistoryError(t('errors.fetch_past_orders')))
+        .catch((err) => {
+          console.error('Error fetching past orders:', err)
+          setHistoryError(t('errors.fetch_past_orders'))
+        })
         .finally(() => setHistoryLoading(false))
     }
-  }, [user, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
 
   // Set default phone from user account
   useEffect(() => {
