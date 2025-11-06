@@ -330,18 +330,30 @@ export default function Delivery() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="grid grid-cols-2 gap-3 text-sm mb-3">
                       <div className="bg-white bg-opacity-50 rounded p-2">
                         <span className="text-gray-600">{t('delivery.amount')}</span>
                         <span className="font-bold text-gray-800 mr-2">{order.price.toLocaleString()} {t('delivery.toman')}</span>
                       </div>
-                      {order.phone && (
-                        <div className="bg-white text-right bg-opacity-50 rounded p-2">
-                          <span className="text-gray-600">{t('delivery.phone')} </span>
-                          <span className="font-bold text-gray-800 mr-2" dir="ltr">{order.phone}</span>
-                        </div>
-                      )}
                     </div>
+
+                    {/* Phone Numbers - Only shown after order is accepted */}
+                    {(order.phone || order.deliveryPersonPhone) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-3">
+                        {order.phone && (
+                          <div className="bg-white bg-opacity-50 rounded p-2">
+                            <span className="text-gray-600">{t('delivery.customer_phone')}</span>
+                            <span className="font-bold text-gray-800 mr-2" dir="ltr">{order.phone}</span>
+                          </div>
+                        )}
+                        {order.deliveryPersonPhone && (
+                          <div className="bg-white bg-opacity-50 rounded p-2">
+                            <span className="text-gray-600">{t('delivery.delivery_person_phone')}</span>
+                            <span className="font-bold text-gray-800 mr-2" dir="ltr">{order.deliveryPersonPhone}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     
                     {order.orderCode && (
                       <div className="mt-3 bg-white bg-opacity-70 rounded p-2 text-sm">

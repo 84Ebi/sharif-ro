@@ -225,7 +225,9 @@ const fa: Dict = {
   'delivery.toman': 'تومان',
   'delivery.order_code_will_be_shown_after_acceptance': 'کد سفارش بعد از پذیرش نمایش داده می‌شود',
   'delivery.refresh': 'بروزرسانی',
-  'delivery.refreshing': 'در حال بروزرسانی...'
+  'delivery.refreshing': 'در حال بروزرسانی...',
+  'delivery.customer_phone': 'تلفن مشتری:',
+  'delivery.delivery_person_phone': 'تلفن پیک:'
 }
 
 const en: Dict = {
@@ -451,7 +453,9 @@ const en: Dict = {
   'delivery.toman': 'Toman',
   'delivery.order_code_will_be_shown_after_acceptance': 'Order code will be shown after acceptance',
   'delivery.refresh': 'Refresh',
-  'delivery.refreshing': 'Refreshing...'
+  'delivery.refreshing': 'Refreshing...',
+  'delivery.customer_phone': 'Customer Phone:',
+  'delivery.delivery_person_phone': 'Delivery Person Phone:'
 }
 
 const dicts: Record<'fa' | 'en', Dict> = { fa, en }
