@@ -202,11 +202,7 @@ export default function CustomerHome() {
                 ))}
               </div>
               
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200 text-right">
-                <p className="text-sm text-gray-700">
-                  💡 <span className="font-semibold">توجه:</span> سفارش شما در حال پیدا کردن پیک است. لطفاً صبور باشید.
-                </p>
-              </div>
+
             </div>
           </div>
         )}

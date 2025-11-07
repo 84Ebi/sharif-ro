@@ -414,7 +414,10 @@ export default function Delivery() {
                   <div className="flex justify-between items-center mb-2">
                     <div className="flex flex-col gap-1">
                       <div className="font-bold text-gray-800 text-sm">
-                        {order.restaurantLocation === 'Self' ? 'سلف ' : (order.orderCode || order.$id?.slice(0, 8))}
+                        {order.restaurantLocation === 'Self' ? 'سلف ' : 
+                         order.restaurantLocation === 'Clean Food' ? 'کلین فود' :
+                         order.restaurantLocation === 'Kelana' ? 'کلانا' :
+                         (order.orderCode || order.$id?.slice(0, 8))}
                       </div>
                       <div className="text-xs text-gray-500">
                         {order.$createdAt && new Date(order.$createdAt).toLocaleDateString()} • {' '}
@@ -441,7 +444,7 @@ export default function Delivery() {
                   >
                     <div className="mt-3 pt-3 border-t border-gray-200 space-y-2 text-sm text-gray-700">
                       <div><strong>{t('deliveries.pickup_from')}:</strong> {order.restaurantLocation} ({order.restaurantType})</div>
-                      {order.restaurantLocation === 'Self' ? (
+                      {(order.restaurantLocation === 'Self' || order.restaurantLocation === 'Clean Food' || order.restaurantLocation === 'Kelana') ? (
                         <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
                           <div className="text-sm text-yellow-800">
                            
