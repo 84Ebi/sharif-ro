@@ -6,6 +6,9 @@ import Link from 'next/link'
 import { getPendingOrders, confirmOrder, getOrders, type Order } from '../../lib/orders'
 import BottomDock from '../../components/BottomDock'
 import { useI18n } from '@/lib/i18n'
+import { useNotification } from '@/contexts/NotificationContext'
+import { databases } from '../../lib/appwrite'
+import { Query } from 'appwrite'
 
 
 const deliveryLocations = [
@@ -40,6 +43,7 @@ const deliveryLocations = [
 export default function Delivery() {
   const { user, loading: authLoading } = useAuth()
   const { t } = useI18n()
+  const { showNotification } = useNotification()
   const [orders, setOrders] = useState<Order[]>([])
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
   const [locationFilter, setLocationFilter] = useState('')
@@ -149,22 +153,44 @@ export default function Delivery() {
       const deliveryPersonPhone = user.prefs?.phone || user.phone || ''
       
       if (!deliveryPersonPhone) {
-        alert(t('delivery.phone_required'))
+        showNotification(t('delivery.phone_required'), 'warning')
         return
+      }
+      
+      // Get cardNumber from verification record
+      let cardNumber = ''
+      try {
+        const verifications = await databases.listDocuments(
+          process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+          process.env.NEXT_PUBLIC_APPWRITE_VERIFICATION_COLLECTION_ID!,
+          [
+            Query.equal('userId', user.$id),
+            Query.orderDesc('submittedAt'),
+            Query.limit(1)
+          ]
+        )
+        
+        if (verifications.documents.length > 0) {
+          cardNumber = verifications.documents[0].cardNumber || ''
+        }
+      } catch (err) {
+        console.error('Error fetching verification card number:', err)
+        // Continue without cardNumber if there's an error
       }
       
       await confirmOrder(orderId, {
         id: user.$id,
         name: user.name,
-        phone: deliveryPersonPhone
+        phone: deliveryPersonPhone,
+        cardNumber: cardNumber
       })
       
       // Remove order from list
       setOrders(orders.filter(order => order.$id !== orderId))
-      alert(t('delivery.order_confirmed'))
+      showNotification(t('delivery.order_confirmed'), 'success')
     } catch (error) {
       console.error('Error accepting order:', error)
-      alert(t('delivery.accept_failed'))
+      showNotification(t('delivery.accept_failed'), 'error')
     }
   }
 

@@ -232,7 +232,63 @@ const fa: Dict = {
   'delivery.refreshing': 'در حال بروزرسانی...',
   'delivery.customer_phone': 'تلفن مشتری:',
   'delivery.delivery_person_phone': 'تلفن پیک:',
-  'delivery.phone_required': 'لطفاً شماره تلفن خود را در تنظیمات حساب کاربری وارد کنید.'
+  'delivery.phone_required': 'لطفاً شماره تلفن خود را در تنظیمات حساب کاربری وارد کنید.',
+  
+  // Notifications
+  'notification.success': 'موفق',
+  'notification.error': 'خطا',
+  'notification.info': 'اطلاعات',
+  'notification.warning': 'هشدار',
+  'notification.close': 'بستن',
+  
+  // Card Number
+  'verify.card_number': 'شماره کارت',
+  'verify.card_number_placeholder': 'شماره کارت خود را وارد کنید',
+  'customer.delivery_person_card': 'شماره کارت پیک:',
+  
+  // Policy
+  'order.accept_policy': 'قوانین و مقررات را می‌پذیرم',
+  'order.policy_link_text': 'مشاهده قوانین و مقررات',
+  'order.policy_required': 'لطفاً قوانین و مقررات را بپذیرید',
+  'policy.title': 'قوانین و مقررات',
+  'policy.content_fa': `قوانین و مقررات استفاده از سرویس شریف‌رو
+
+1. شرایط استفاده
+- استفاده از این سرویس فقط برای دانشجویان و اعضای دانشگاه مجاز است.
+- کاربر باید اطلاعات صحیح و کامل را ارائه دهد.
+
+2. سفارش‌ها
+- سفارش‌ها پس از ثبت نهایی می‌شوند و امکان لغو آن‌ها محدود است.
+- هزینه سفارش قبل از ثبت باید پرداخت شود.
+
+3. تحویل
+- زمان تحویل تقریبی است و ممکن است تغییر کند.
+- در صورت تأخیر در تحویل، با مشتری تماس گرفته خواهد شد.
+
+4. پرداخت
+- پرداخت به صورت نقدی انجام می‌شود.
+- هزینه اضافی برای تحویل به برخی مکان‌ها ممکن است اعمال شود.
+
+5. مسئولیت‌ها
+- کاربر مسئول صحت اطلاعات ارائه شده است.
+- در صورت بروز مشکل، با پشتیبانی تماس بگیرید.
+
+6. حریم خصوصی
+- اطلاعات کاربران محرمانه است و محافظت می‌شود.
+- از اطلاعات فقط برای اهداف سرویس استفاده می‌شود.`,
+  'policy.close': 'بستن',
+  
+  // Chat
+  'chat.title': 'چت سفارش',
+  'chat.placeholder': 'پیام خود را بنویسید...',
+  'chat.send': 'ارسال',
+  'chat.no_messages': 'هنوز پیامی ارسال نشده است',
+  'chat.loading': 'در حال بارگذاری...',
+  'chat.loading_error': 'خطا در بارگذاری پیام‌ها',
+  'chat.send_error': 'خطا در ارسال پیام',
+  'chat.auth_required': 'لطفاً برای استفاده از چت وارد شوید',
+  'chat.customer_label': 'مشتری',
+  'chat.delivery_label': 'پیک'
 }
 
 const en: Dict = {
@@ -465,7 +521,63 @@ const en: Dict = {
   'delivery.refreshing': 'Refreshing...',
   'delivery.customer_phone': 'Customer Phone:',
   'delivery.delivery_person_phone': 'Delivery Person Phone:',
-  'delivery.phone_required': 'Please enter your phone number in your account settings.'
+  'delivery.phone_required': 'Please enter your phone number in your account settings.',
+  
+  // Notifications
+  'notification.success': 'Success',
+  'notification.error': 'Error',
+  'notification.info': 'Info',
+  'notification.warning': 'Warning',
+  'notification.close': 'Close',
+  
+  // Card Number
+  'verify.card_number': 'Card Number',
+  'verify.card_number_placeholder': 'Enter your card number',
+  'customer.delivery_person_card': 'Delivery Person Card:',
+  
+  // Policy
+  'order.accept_policy': 'I accept the rules and policy',
+  'order.policy_link_text': 'View rules and policy',
+  'order.policy_required': 'Please accept the rules and policy to continue',
+  'policy.title': 'Rules and Policy',
+  'policy.content_en': `Rules and Policy for Using SharifRo Service
+
+1. Terms of Use
+- This service is only available for students and university members.
+- Users must provide accurate and complete information.
+
+2. Orders
+- Orders are finalized after submission and cancellation is limited.
+- Order payment must be completed before submission.
+
+3. Delivery
+- Delivery time is approximate and may vary.
+- In case of delivery delay, customer will be contacted.
+
+4. Payment
+- Payment is made in cash.
+- Additional fees may apply for delivery to certain locations.
+
+5. Responsibilities
+- Users are responsible for the accuracy of provided information.
+- In case of issues, contact support.
+
+6. Privacy
+- User information is confidential and protected.
+- Information is only used for service purposes.`,
+  'policy.close': 'Close',
+  
+  // Chat
+  'chat.title': 'Order Chat',
+  'chat.placeholder': 'Type your message...',
+  'chat.send': 'Send',
+  'chat.no_messages': 'No messages yet',
+  'chat.loading': 'Loading...',
+  'chat.loading_error': 'Error loading messages',
+  'chat.send_error': 'Error sending message',
+  'chat.auth_required': 'Please log in to use chat',
+  'chat.customer_label': 'Customer',
+  'chat.delivery_label': 'Delivery'
 }
 
 const dicts: Record<'fa' | 'en', Dict> = { fa, en }

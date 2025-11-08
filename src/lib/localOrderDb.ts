@@ -22,6 +22,7 @@ export interface Order {
   deliveryPersonId?: string;
   deliveryPersonName?: string;
   deliveryPersonPhone?: string;
+  deliveryPersonCardNumber?: string;
   confirmedAt?: string;
   deliveredAt?: string;
 }
@@ -129,10 +130,17 @@ export async function getOrder(orderId: string): Promise<Order | null> {
  */
 export async function confirmOrder(
   orderId: string,
-  deliveryPersonData: { id: string; name: string; phone: string }
+  deliveryPersonData: { id: string; name: string; phone: string; cardNumber?: string }
 ): Promise<Order | null> {
   try {
-    const updateData = {
+    const updateData: {
+      status: string
+      deliveryPersonId: string
+      deliveryPersonName: string
+      deliveryPersonPhone: string
+      confirmedAt: string
+      deliveryPersonCardNumber?: string
+    } = {
       status: 'confirmed',
       deliveryPersonId: deliveryPersonData.id,
       deliveryPersonName: deliveryPersonData.name,
@@ -140,8 +148,30 @@ export async function confirmOrder(
       confirmedAt: new Date().toISOString(),
     };
     
-    const response = await databases.updateDocument(DATABASE_ID, COLLECTION_ID, orderId, updateData);
-    return response as unknown as Order;
+    // Try to update with cardNumber first
+    if (deliveryPersonData.cardNumber) {
+      updateData.deliveryPersonCardNumber = deliveryPersonData.cardNumber;
+    }
+    
+    try {
+      const response = await databases.updateDocument(DATABASE_ID, COLLECTION_ID, orderId, updateData);
+      return response as unknown as Order;
+    } catch (updateError: unknown) {
+      // If error is due to unknown attribute (deliveryPersonCardNumber), retry without it
+      if (updateError instanceof Error && updateError.message && updateError.message.includes('Unknown attribute') && updateError.message.includes('deliveryPersonCardNumber')) {
+        console.warn('deliveryPersonCardNumber attribute not found in collection. Updating without card number. Please add this attribute to the orders collection.');
+        const updateDataWithoutCard = {
+          status: 'confirmed',
+          deliveryPersonId: deliveryPersonData.id,
+          deliveryPersonName: deliveryPersonData.name,
+          deliveryPersonPhone: deliveryPersonData.phone,
+          confirmedAt: new Date().toISOString(),
+        };
+        const response = await databases.updateDocument(DATABASE_ID, COLLECTION_ID, orderId, updateDataWithoutCard);
+        return response as unknown as Order;
+      }
+      throw updateError;
+    }
   } catch (error) {
     console.error('Error confirming order:', error);
     throw error;

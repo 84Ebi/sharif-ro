@@ -61,6 +61,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const currentUser = await account.get();
             setUser(currentUser as User);
             setError(null);
+            
+            // Try to get the current session to sync with server cookie
+            try {
+                const session = await account.getSession('current');
+                if (session) {
+                    // Sync session to server cookie by checking server session
+                    // This ensures API routes can access the session
+                    try {
+                        await fetch('/api/auth/session', {
+                            method: 'GET',
+                            credentials: 'include',
+                        });
+                    } catch {
+                        // If server session check fails, try to sync by re-authenticating
+                        // Note: This won't work without password, so we'll just continue
+                        // The cookie should be set during login/signup
+                    }
+                }
+            } catch {
+                // No session or session check failed, continue
+            }
+            
             return true;
         } catch {
             console.log('No active session');
@@ -103,11 +125,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setError(null);
             setLoading(true);
 
-            // Create account
+            // Create account using client-side SDK
             await account.create(ID.unique(), email, password, name);
 
-            // Automatically log in after signup
+            // Automatically log in after signup using client-side SDK
             await account.createEmailPasswordSession(email, password);
+
+            // Also sync session to server-side cookie by calling API route
+            // This ensures API routes can access the session via cookies
+            // We call this in the background - if it fails, client-side login still works
+            fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ email, password }),
+            }).catch((apiError) => {
+                // If API call fails, log but don't fail signup
+                // Session is already created in localStorage for client-side operations
+                console.warn('Failed to sync session to server cookie (API routes may not work):', apiError);
+            });
 
             // Refresh user data
             await refreshUser();
@@ -138,8 +176,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // No existing session, continue
             }
 
-            // Create email session
+            // Create email session using client-side SDK (stores in localStorage)
             await account.createEmailPasswordSession(email, password);
+
+            // Also sync session to server-side cookie by calling API route
+            // This ensures API routes can access the session via cookies
+            // We call this in the background - if it fails, client-side login still works
+            fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ email, password }),
+            }).catch((apiError) => {
+                // If API call fails, log but don't fail login
+                // Session is already created in localStorage for client-side operations
+                console.warn('Failed to sync session to server cookie (API routes may not work):', apiError);
+            });
 
             // Refresh user data
             await refreshUser();

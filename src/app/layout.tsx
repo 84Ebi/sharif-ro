@@ -3,6 +3,8 @@ import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import ClientWrapper from './ClientWrapper'
 import { LanguageProvider } from '@/contexts/LanguageContext'
+import { NotificationProvider } from '@/contexts/NotificationContext'
+import NotificationContainer from '@/components/Notification'
 
 export const metadata: Metadata = {
   title: 'SharifRo - Food Hall Delivery',
@@ -30,11 +32,14 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <LanguageProvider>
-          <AuthProvider>
-            <ClientWrapper>
-              {children}
-            </ClientWrapper>
-          </AuthProvider>
+          <NotificationProvider>
+            <AuthProvider>
+              <ClientWrapper>
+                {children}
+              </ClientWrapper>
+            </AuthProvider>
+            <NotificationContainer />
+          </NotificationProvider>
         </LanguageProvider>
       </body>
     </html>

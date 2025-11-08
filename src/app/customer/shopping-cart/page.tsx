@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { createOrder, getOrdersByUser, Order } from '../../../lib/orders'
 import BottomDock from '../../../components/BottomDock'
 import { useI18n } from '@/lib/i18n'
+import { useNotification } from '@/contexts/NotificationContext'
 
 interface MenuItem {
   name: string
@@ -53,6 +54,7 @@ function ShoppingCartContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { t } = useI18n()
+  const { showNotification } = useNotification()
 
   const [orderData, setOrderData] = useState<OrderData | null>(null)
   const [deliveryLocation, setDeliveryLocation] = useState('')
@@ -190,8 +192,8 @@ function ShoppingCartContent() {
 
       // Clear the cart and redirect
       sessionStorage.removeItem('shoppingCart')
+      showNotification(t('order.success_submit'), 'success')
       router.push('/customer')
-      alert(t('order.success_submit'))
     } catch (err: unknown) {
       console.error('Order submission error:', err)
       setError(err instanceof Error ? err.message : 'Failed to create order. Please try again.')

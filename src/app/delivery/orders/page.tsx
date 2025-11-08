@@ -5,15 +5,19 @@ import { useAuth } from '@/contexts/AuthContext'
 import { getOrders, updateOrderStatus, Order } from '../../../lib/orders'
 import BottomDock from '../../../components/BottomDock'
 import { useI18n } from '@/lib/i18n'
+import { useNotification } from '@/contexts/NotificationContext'
+import OrderChat from '../../../components/OrderChat'
 
 export default function MyDeliveries() {
   const { user, loading: authLoading } = useAuth()
   const { t } = useI18n()
+  const { showNotification } = useNotification()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'delivered'>('all')
+  const [selectedOrderForChat, setSelectedOrderForChat] = useState<Order | null>(null)
 
   const loadOrders = useCallback(async () => {
     if (!user) return
@@ -49,10 +53,10 @@ export default function MyDeliveries() {
       await updateOrderStatus(orderId, 'delivered')
       await loadOrders()
       setSelectedOrder(null)
-      alert(t('deliveries.mark_delivered_success'))
+      showNotification(t('deliveries.mark_delivered_success'), 'success')
     } catch (error) {
       console.error('Error marking order as delivered:', error)
-      alert(t('deliveries.mark_delivered_failed'))
+      showNotification(t('deliveries.mark_delivered_failed'), 'error')
     }
   }
 
@@ -312,9 +316,18 @@ export default function MyDeliveries() {
                     </div>
 
                     {order.status === 'confirmed' && (
-                      <div className="flex justify-center pt-2">
+                      <div className="flex justify-center gap-2 pt-2">
                         <button
-                          className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:from-green-600 hover:to-green-700 transition-all"
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelectedOrderForChat(order)
+                          }}
+                        >
+                          💬 {t('chat.title')}
+                        </button>
+                        <button
+                          className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:from-green-600 hover:to-green-700 transition-all"
                           onClick={(e) => {
                             e.stopPropagation()
                             if (order.$id) markAsDelivered(order.$id)
@@ -351,6 +364,17 @@ export default function MyDeliveries() {
       </div>
 
       <BottomDock role="delivery" />
+
+      {/* Order Chat */}
+      {selectedOrderForChat && (
+        <OrderChat
+          orderId={selectedOrderForChat.$id!}
+          isOpen={!!selectedOrderForChat}
+          onClose={() => setSelectedOrderForChat(null)}
+          customerId={selectedOrderForChat.userId}
+          deliveryPersonId={selectedOrderForChat.deliveryPersonId}
+        />
+      )}
     </div>
   )
 }

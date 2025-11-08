@@ -7,7 +7,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export async function middleware(_request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  // Request is available but not used - this is intentional for middleware pattern
+  void request
   const response = NextResponse.next();
 
   // Add security headers

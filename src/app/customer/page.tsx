@@ -12,12 +12,12 @@ import CleanFoodMenu from '../../components/CleanFoodMenu'
 import Image from 'next/image'
 import { useI18n } from '@/lib/i18n'
 import { getOrdersByUser, Order } from '../../lib/orders'
+import OrderChat from '../../components/OrderChat'
 
 export default function CustomerHome() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { t } = useI18n()
-  const [filterLocation, setFilterLocation] = useState('')
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false)
   const [isFastFoodMenuOpen, setIsFastFoodMenuOpen] = useState(false)
   const [isOtherMenuOpen, setIsOtherMenuOpen] = useState(false)
@@ -26,15 +26,7 @@ export default function CustomerHome() {
   const [pendingOrders, setPendingOrders] = useState<Order[]>([])
   const [loadingOrders, setLoadingOrders] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-
-  const locations = useMemo(() => [
-    t('service.sharif_fastfood'),
-    t('service.sharif_plus'),
-    t('service.clean_food'),
-    t('service.self'),
-    t('service.kelana'),
-    t('service.other'),
-  ], [t])
+  const [selectedOrderForChat, setSelectedOrderForChat] = useState<Order | null>(null)
 
   const services = useMemo(() => [
     { name: t('service.sharif_plus'), icon: '/delivery-icon.png', location: 'Sharif Plus' },
@@ -187,6 +179,17 @@ export default function CustomerHome() {
                       </div>
                     )}
                     
+                    {/* Delivery Person Card Number - Only shown for active deliveries (confirmed status) */}
+                    {order.deliveryPersonCardNumber && (
+                      <div className="mt-3 bg-blue-50 border border-blue-200 rounded p-3 text-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">💳</span>
+                          <span className="text-gray-700 font-semibold">{t('customer.delivery_person_card')}</span>
+                        </div>
+                        <span className="font-bold text-gray-800 text-base" dir="ltr">{order.deliveryPersonCardNumber}</span>
+                      </div>
+                    )}
+                    
                     {order.orderCode && (
                       <div className="mt-3 bg-white bg-opacity-70 rounded p-2 text-sm">
                         <span className="text-gray-600">{t('customer.order_code')}</span>
@@ -194,9 +197,20 @@ export default function CustomerHome() {
                       </div>
                     )}
                     
-                    <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                      <span>📅</span>
-                      <span>{order.$createdAt ? new Date(order.$createdAt).toLocaleString('fa-IR') : ''}</span>
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span>📅</span>
+                        <span>{order.$createdAt ? new Date(order.$createdAt).toLocaleString('fa-IR') : ''}</span>
+                      </div>
+                      {/* Chat button - only for confirmed orders and authenticated users */}
+                      {user && order.status === 'confirmed' && order.deliveryPersonId && (
+                        <button
+                          onClick={() => setSelectedOrderForChat(order)}
+                          className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-1"
+                        >
+                          💬 چت
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -265,6 +279,17 @@ export default function CustomerHome() {
         isOpen={isCleanFoodMenuOpen} 
         onClose={() => setIsCleanFoodMenuOpen(false)}
       />
+
+      {/* Order Chat */}
+      {selectedOrderForChat && (
+        <OrderChat
+          orderId={selectedOrderForChat.$id!}
+          isOpen={!!selectedOrderForChat}
+          onClose={() => setSelectedOrderForChat(null)}
+          customerId={selectedOrderForChat.userId}
+          deliveryPersonId={selectedOrderForChat.deliveryPersonId}
+        />
+      )}
     </div>
   )
 }

@@ -16,6 +16,7 @@ export interface Order {
   deliveryPersonId?: string
   deliveryPersonName?: string
   deliveryPersonPhone?: string
+  deliveryPersonCardNumber?: string
   confirmedAt?: string
   deliveredAt?: string
   $createdAt?: string
@@ -80,7 +81,7 @@ export async function getOrders(filters?: OrderFilters): Promise<Order[]> {
       try {
         const error = await response.json();
         errorMessage = error.error || errorMessage;
-      } catch (e) {
+      } catch {
         // If response is not JSON, use status text
         errorMessage = response.statusText || errorMessage;
       }
@@ -134,7 +135,7 @@ export async function getOrder(orderId: string): Promise<Order> {
  */
 export async function confirmOrder(
   orderId: string,
-  deliveryPersonData: { id: string; name: string; phone: string }
+  deliveryPersonData: { id: string; name: string; phone: string; cardNumber?: string }
 ): Promise<Order> {
   try {
     const response = await fetch(`/api/orders/${orderId}`, {

@@ -6,6 +6,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { createOrder } from '../../lib/orders'
 import BottomDock from '../../components/BottomDock'
 import { useI18n } from '@/lib/i18n'
+import { useNotification } from '@/contexts/NotificationContext'
+import PolicyModal from '../../components/PolicyModal'
 
 const deliveryLocations = [
   { name: 'دانشکده فیزیک', price: 20000 },
@@ -55,6 +57,9 @@ function OrderFormContent() {
   const isCleanFoodOrder = restaurantFromUrl === 'Clean Food'
   const isSpecialOrder = isSelfOrder || isKelanaOrder || isCleanFoodOrder
   const { t } = useI18n()
+  const { showNotification } = useNotification()
+  const [acceptedPolicy, setAcceptedPolicy] = useState(false)
+  const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false)
   
   const [form, setForm] = useState({
     restaurantLocation: restaurantFromUrl,
@@ -108,6 +113,12 @@ function OrderFormContent() {
     
     if (!user) {
       setError('User not authenticated')
+      setLoading(false)
+      return
+    }
+
+    if (!acceptedPolicy) {
+      setError(t('order.policy_required') || 'Please accept the rules and policy to continue')
       setLoading(false)
       return
     }
@@ -179,8 +190,8 @@ function OrderFormContent() {
       })
       
       // Redirect to customer page to view order
+      showNotification(t('order.success_message'), 'success')
       router.push('/customer')
-      alert(t('order.success_message'))
     } catch (err: unknown) {
       console.error('Order submission error:', err)
       setError(err instanceof Error ? err.message : 'Failed to create order. Please try again.')
@@ -592,15 +603,45 @@ function OrderFormContent() {
             </div>
           )}
 
+          {/* Policy Checkbox */}
+          <div className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              id="acceptPolicy"
+              checked={acceptedPolicy}
+              onChange={(e) => setAcceptedPolicy(e.target.checked)}
+              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="acceptPolicy" className="text-gray-700 cursor-pointer">
+              {t('order.accept_policy')}{' '}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setIsPolicyModalOpen(true)
+                }}
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                {t('order.policy_link_text')}
+              </button>
+            </label>
+          </div>
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !acceptedPolicy}
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
           >
             {loading ? t('order.submitting') : t('order.submit_order')}
           </button>
         </form>
       </div>
+
+      {/* Policy Modal */}
+      <PolicyModal 
+        isOpen={isPolicyModalOpen} 
+        onClose={() => setIsPolicyModalOpen(false)} 
+      />
 
       {isSelfOrder && (
         <div className="max-w-md mx-auto mt-4">

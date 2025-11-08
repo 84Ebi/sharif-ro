@@ -21,6 +21,7 @@ export default function VerifyPage() {
   const [selfieFile, setSelfieFile] = useState<File | null>(null)
   const [studentCardPreview, setStudentCardPreview] = useState<string>('')
   const [selfiePreview, setSelfiePreview] = useState<string>('')
+  const [cardNumber, setCardNumber] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -128,6 +129,7 @@ export default function VerifyPage() {
           studentCardFileId: studentCardUpload.$id,
           selfieFileId: selfieUpload.$id,
           bucketId: VERIFICATION_BUCKET_ID,
+          cardNumber: cardNumber || '',
           status: 'pending',
           submittedAt: new Date().toISOString(),
           reviewedAt: null,
@@ -162,14 +164,6 @@ export default function VerifyPage() {
 
   // Show status if verification already exists
   if (hasExistingVerification && verificationStatus !== 'rejected') {
-    const statusColors = {
-      pending: { bg: 'rgba(255, 193, 7, 0.1)', border: '#ffc107', text: '#f57c00' },
-      approved: { bg: 'rgba(76, 175, 80, 0.1)', border: '#4caf50', text: '#2e7d32' },
-      rejected: { bg: 'rgba(244, 67, 54, 0.1)', border: '#f44336', text: '#c62828' }
-    }
-    
-    const colors = statusColors[verificationStatus as keyof typeof statusColors] || statusColors.pending
-
     return (
       <>
         <style jsx>{`
@@ -531,6 +525,18 @@ export default function VerifyPage() {
                 className="file-input"
                 onChange={handleSelfieChange}
                 required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">{t('verify.card_number')}</label>
+              <input
+                type="text"
+                value={cardNumber}
+                onChange={(e) => setCardNumber(e.target.value)}
+                placeholder={t('verify.card_number_placeholder')}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                dir="ltr"
               />
             </div>
 
