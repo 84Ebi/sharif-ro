@@ -56,8 +56,9 @@ export async function GET(
     const order = orders.documents[0]
     
     // Check if user is customer or delivery person for this order
-    const isCustomer = order.userId === user.$id
-    const isDeliveryPerson = order.deliveryPersonId === user.$id
+    // Convert to strings for comparison to ensure type consistency
+    const isCustomer = String(order.userId) === String(user.$id)
+    const isDeliveryPerson = order.deliveryPersonId ? String(order.deliveryPersonId) === String(user.$id) : false
     
     if (!isCustomer && !isDeliveryPerson) {
       return NextResponse.json(
@@ -75,18 +76,25 @@ export async function GET(
     }
 
     // Get messages for this order
+    // Use $createdAt (Appwrite's built-in timestamp) for ordering
     const messages = await databases.listDocuments(
       DATABASE_ID,
       CHAT_COLLECTION_ID,
       [
         Query.equal('orderId', orderId),
-        Query.orderAsc('createdAt'),
+        Query.orderAsc('$createdAt'),
       ]
     )
 
+    // Normalize messages: map $createdAt to createdAt for frontend compatibility
+    const normalizedMessages = messages.documents.map((msg) => ({
+      ...msg,
+      createdAt: msg.$createdAt || msg.createdAt,
+    }))
+
     return NextResponse.json({
       success: true,
-      messages: messages.documents,
+      messages: normalizedMessages,
     })
   } catch (error) {
     console.error('Error fetching chat messages:', error)
@@ -233,6 +241,7 @@ export async function POST(
     }
 
     // Create message
+    // Note: $createdAt is automatically set by Appwrite, so we don't need to set it manually
     const chatMessage = await databases.createDocument(
       DATABASE_ID,
       CHAT_COLLECTION_ID,
@@ -244,13 +253,19 @@ export async function POST(
         senderRole,
         message,
         read: false,
-        createdAt: new Date().toISOString(),
+        // createdAt is handled by Appwrite's $createdAt automatically
       }
     )
 
+    // Normalize message: map $createdAt to createdAt for frontend compatibility
+    const normalizedMessage = {
+      ...chatMessage,
+      createdAt: chatMessage.$createdAt || chatMessage.createdAt,
+    }
+
     return NextResponse.json({
       success: true,
-      message: chatMessage,
+      message: normalizedMessage,
     })
   } catch (error) {
     console.error('Error sending chat message:', error)

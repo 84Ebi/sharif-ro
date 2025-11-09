@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getChatMessages, sendChatMessage, ChatMessage } from '@/lib/chat'
+import { getChatMessages, sendChatMessage, ChatMessage, ChatError } from '@/lib/chat'
 import { useI18n } from '@/lib/i18n'
 import { useNotification } from '@/contexts/NotificationContext'
 import { client } from '@/lib/appwrite'
@@ -99,18 +99,49 @@ export default function OrderChat({ orderId, isOpen, onClose, customerId, delive
 
     // Subscribe to real-time updates
     if (process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID && process.env.NEXT_PUBLIC_APPWRITE_CHAT_COLLECTION_ID) {
-      const unsubscribeFn = client.subscribe(
-        `databases.${process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID}.collections.${process.env.NEXT_PUBLIC_APPWRITE_CHAT_COLLECTION_ID}.documents`,
-        (response: { payload: ChatMessage; events: string[] }) => {
-          if (response.payload.orderId === orderId) {
-            if (response.events.includes('databases.*.collections.*.documents.*.create')) {
-              // New message created
-              setMessages((prev) => [...prev, response.payload as ChatMessage])
+      try {
+        const unsubscribeFn = client.subscribe(
+          `databases.${process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID}.collections.${process.env.NEXT_PUBLIC_APPWRITE_CHAT_COLLECTION_ID}.documents`,
+          (response: { payload: unknown; events: string[] }) => {
+            try {
+              const payload = response.payload as Record<string, unknown>
+              // Check if this message belongs to the current order
+              if (payload.orderId === orderId) {
+                if (response.events.includes('databases.*.collections.*.documents.*.create')) {
+                  // Normalize the message: map $createdAt to createdAt for frontend compatibility
+                  // Convert through unknown first to satisfy TypeScript
+                  const messageData = payload as unknown as ChatMessage
+                  const normalizedMessage: ChatMessage = {
+                    ...messageData,
+                    createdAt: messageData.createdAt || (payload.$createdAt as string) || undefined,
+                  }
+                  
+                  // Add new message to state, avoiding duplicates
+                  setMessages((prev) => {
+                    // Check if message already exists (avoid duplicates)
+                    const exists = prev.some((msg) => msg.$id === normalizedMessage.$id)
+                    if (exists) {
+                      return prev
+                    }
+                    // Add new message and sort by createdAt
+                    const updated = [...prev, normalizedMessage]
+                    return updated.sort((a, b) => {
+                      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+                      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+                      return timeA - timeB
+                    })
+                  })
+                }
+              }
+            } catch (subscribeError) {
+              console.error('Error processing real-time chat update:', subscribeError)
             }
           }
-        }
-      )
-      setUnsubscribe(() => unsubscribeFn)
+        )
+        setUnsubscribe(() => unsubscribeFn)
+      } catch (subscribeError) {
+        console.error('Error setting up real-time subscription:', subscribeError)
+      }
     }
 
     return () => {
@@ -147,10 +178,11 @@ export default function OrderChat({ orderId, isOpen, onClose, customerId, delive
           onClose()
         } else if (error.message && error.message.includes('Invalid sender role')) {
           // Show more detailed error for role mismatch
-          showNotification(
-            error.message + (error instanceof Error && 'details' in error ? `: ${(error as any).details}` : ''),
-            'error'
-          )
+          const chatError = error as ChatError
+          const errorMessage = chatError.details 
+            ? `${error.message}: ${chatError.details}` 
+            : error.message
+          showNotification(errorMessage, 'error')
         } else {
           showNotification(error.message || t('chat.send_error') || 'Failed to send message', 'error')
         }

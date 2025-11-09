@@ -24,6 +24,11 @@ export class ChatAuthError extends Error {
   }
 }
 
+// Error type with optional details property
+export interface ChatError extends Error {
+  details?: string
+}
+
 /**
  * Get messages for an order
  */
@@ -96,10 +101,10 @@ export async function sendChatMessage(
       
       // Include details in error message if available
       const fullErrorMessage = errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage
-      const error = new Error(fullErrorMessage)
+      const error = new Error(fullErrorMessage) as ChatError
       // Attach details for potential use by error handlers
       if (errorDetails) {
-        (error as any).details = errorDetails
+        error.details = errorDetails
       }
       throw error
     }
