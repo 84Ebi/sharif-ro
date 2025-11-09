@@ -373,6 +373,7 @@ export default function MyDeliveries() {
           onClose={() => setSelectedOrderForChat(null)}
           customerId={selectedOrderForChat.userId}
           deliveryPersonId={selectedOrderForChat.deliveryPersonId}
+          userRole="delivery" // Explicitly set role since we're on the delivery orders page
         />
       )}
     </div>

@@ -288,6 +288,7 @@ export default function CustomerHome() {
           onClose={() => setSelectedOrderForChat(null)}
           customerId={selectedOrderForChat.userId}
           deliveryPersonId={selectedOrderForChat.deliveryPersonId}
+          userRole="customer" // Explicitly set role since we're on the customer page
         />
       )}
     </div>

@@ -13,9 +13,10 @@ interface OrderChatProps {
   onClose: () => void
   customerId: string
   deliveryPersonId?: string
+  userRole?: 'customer' | 'delivery' // Optional: if provided, use this instead of determining
 }
 
-export default function OrderChat({ orderId, isOpen, onClose, customerId, deliveryPersonId }: OrderChatProps) {
+export default function OrderChat({ orderId, isOpen, onClose, customerId, deliveryPersonId, userRole: providedUserRole }: OrderChatProps) {
   const { user } = useAuth()
   const { t, locale } = useI18n()
   const { showNotification } = useNotification()
@@ -26,46 +27,62 @@ export default function OrderChat({ orderId, isOpen, onClose, customerId, delive
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [unsubscribe, setUnsubscribe] = useState<(() => void) | null>(null)
 
-  // Determine user's role based on their relationship to the order
-  // User is customer if their ID matches the customerId
-  // User is delivery person if their ID matches the deliveryPersonId (and deliveryPersonId exists)
-  let userRole: 'customer' | 'delivery' = 'customer' // Default fallback
-  if (user?.$id) {
+  // Function to determine user's role based on their relationship to the order
+  // This is called dynamically to ensure it's always up-to-date
+  const getUserRole = (): 'customer' | 'delivery' => {
+    // If role is explicitly provided, use it
+    if (providedUserRole) {
+      return providedUserRole
+    }
+
+    if (!user?.$id) {
+      return 'customer' // Default fallback
+    }
+
     // Convert to strings for comparison to avoid type issues
-    const userId = String(user.$id)
-    const custId = String(customerId)
-    const delPersonId = deliveryPersonId ? String(deliveryPersonId) : null
+    const userId = String(user.$id).trim()
+    const custId = String(customerId).trim()
+    const delPersonId = deliveryPersonId ? String(deliveryPersonId).trim() : null
     
+    // First check if user is the customer
     if (userId === custId) {
-      userRole = 'customer'
-    } else if (delPersonId && userId === delPersonId) {
-      userRole = 'delivery'
-    } else {
-      // User is neither customer nor delivery person - this shouldn't happen if chat is accessible
-      console.warn('User role cannot be determined for chat.', {
-        userId,
-        customerId: custId,
-        deliveryPersonId: delPersonId,
-        isCustomerMatch: userId === custId,
-        isDeliveryMatch: delPersonId ? userId === delPersonId : false
-      })
-      // Default to customer as fallback, but this will likely fail API validation
-      userRole = 'customer'
+      return 'customer'
     }
+    
+    // Then check if user is the delivery person
+    if (delPersonId && userId === delPersonId) {
+      return 'delivery'
+    }
+    
+    // If deliveryPersonId is provided but doesn't match, and user is not the customer,
+    // this is unusual - log it but we can't determine the role
+    // If deliveryPersonId is NOT provided but user is NOT the customer,
+    // they might still be the delivery person (order might not have deliveryPersonId set yet)
+    console.warn('User role cannot be determined for chat.', {
+      userId,
+      customerId: custId,
+      deliveryPersonId: delPersonId,
+      isCustomerMatch: userId === custId,
+      isDeliveryMatch: delPersonId ? userId === delPersonId : false,
+      hasDeliveryPersonId: !!deliveryPersonId,
+      providedUserRole
+    })
+    
+    // If user is NOT the customer and deliveryPersonId exists (even if it doesn't match),
+    // or if we're in a delivery context, default to 'delivery' instead of 'customer'
+    // This is safer because the API will validate and reject if wrong
+    if (userId !== custId && deliveryPersonId) {
+      // User is not customer and deliveryPersonId exists - they're likely the delivery person
+      // Even if IDs don't match exactly, the API will validate
+      console.log('User is not customer and deliveryPersonId exists, assuming delivery role')
+      return 'delivery'
+    }
+    
+    // Default to customer as fallback (will be validated by API)
+    return 'customer'
   }
-  const userName = user?.name || ''
   
-  // Debug log when sending message
-  useEffect(() => {
-    if (user?.$id) {
-      console.log('OrderChat - Role determination:', {
-        userId: user.$id,
-        customerId,
-        deliveryPersonId,
-        determinedRole: userRole
-      })
-    }
-  }, [user?.$id, customerId, deliveryPersonId, userRole])
+  const userName = user?.name || ''
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -158,16 +175,22 @@ export default function OrderChat({ orderId, isOpen, onClose, customerId, delive
 
     try {
       setSending(true)
+      // Determine role dynamically when sending message to ensure it's accurate
+      const currentUserRole = getUserRole()
+      
       // Log the role being sent for debugging
       console.log('Sending message with role:', {
         orderId,
         userId: user.$id,
         userName,
-        userRole,
+        determinedRole: currentUserRole,
         customerId,
-        deliveryPersonId
+        deliveryPersonId,
+        isCustomer: String(user.$id) === String(customerId),
+        isDeliveryPerson: deliveryPersonId ? String(user.$id) === String(deliveryPersonId) : false
       })
-      await sendChatMessage(orderId, newMessage.trim(), user.$id, userName, userRole)
+      
+      await sendChatMessage(orderId, newMessage.trim(), user.$id, userName, currentUserRole)
       setNewMessage('')
     } catch (error: unknown) {
       console.error('Error sending message:', error)
