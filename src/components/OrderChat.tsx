@@ -12,10 +12,10 @@ interface OrderChatProps {
   isOpen: boolean
   onClose: () => void
   customerId: string
-  deliveryPersonId?: string // Kept for API compatibility but not used in component
+  deliveryPersonId?: string
 }
 
-export default function OrderChat({ orderId, isOpen, onClose, customerId }: OrderChatProps) {
+export default function OrderChat({ orderId, isOpen, onClose, customerId, deliveryPersonId }: OrderChatProps) {
   const { user } = useAuth()
   const { t, locale } = useI18n()
   const { showNotification } = useNotification()
@@ -26,9 +26,46 @@ export default function OrderChat({ orderId, isOpen, onClose, customerId }: Orde
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [unsubscribe, setUnsubscribe] = useState<(() => void) | null>(null)
 
-  // Determine user's role
-  const userRole = user?.$id === customerId ? 'customer' : 'delivery'
+  // Determine user's role based on their relationship to the order
+  // User is customer if their ID matches the customerId
+  // User is delivery person if their ID matches the deliveryPersonId (and deliveryPersonId exists)
+  let userRole: 'customer' | 'delivery' = 'customer' // Default fallback
+  if (user?.$id) {
+    // Convert to strings for comparison to avoid type issues
+    const userId = String(user.$id)
+    const custId = String(customerId)
+    const delPersonId = deliveryPersonId ? String(deliveryPersonId) : null
+    
+    if (userId === custId) {
+      userRole = 'customer'
+    } else if (delPersonId && userId === delPersonId) {
+      userRole = 'delivery'
+    } else {
+      // User is neither customer nor delivery person - this shouldn't happen if chat is accessible
+      console.warn('User role cannot be determined for chat.', {
+        userId,
+        customerId: custId,
+        deliveryPersonId: delPersonId,
+        isCustomerMatch: userId === custId,
+        isDeliveryMatch: delPersonId ? userId === delPersonId : false
+      })
+      // Default to customer as fallback, but this will likely fail API validation
+      userRole = 'customer'
+    }
+  }
   const userName = user?.name || ''
+  
+  // Debug log when sending message
+  useEffect(() => {
+    if (user?.$id) {
+      console.log('OrderChat - Role determination:', {
+        userId: user.$id,
+        customerId,
+        deliveryPersonId,
+        determinedRole: userRole
+      })
+    }
+  }, [user?.$id, customerId, deliveryPersonId, userRole])
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -90,14 +127,33 @@ export default function OrderChat({ orderId, isOpen, onClose, customerId }: Orde
 
     try {
       setSending(true)
+      // Log the role being sent for debugging
+      console.log('Sending message with role:', {
+        orderId,
+        userId: user.$id,
+        userName,
+        userRole,
+        customerId,
+        deliveryPersonId
+      })
       await sendChatMessage(orderId, newMessage.trim(), user.$id, userName, userRole)
       setNewMessage('')
     } catch (error: unknown) {
       console.error('Error sending message:', error)
       // Handle authentication errors gracefully
-      if (error instanceof Error && error.message && error.message.includes('Not authenticated')) {
-        showNotification(t('chat.auth_required') || 'Please log in to send messages', 'warning')
-        onClose()
+      if (error instanceof Error) {
+        if (error.message && error.message.includes('Not authenticated')) {
+          showNotification(t('chat.auth_required') || 'Please log in to send messages', 'warning')
+          onClose()
+        } else if (error.message && error.message.includes('Invalid sender role')) {
+          // Show more detailed error for role mismatch
+          showNotification(
+            error.message + (error instanceof Error && 'details' in error ? `: ${(error as any).details}` : ''),
+            'error'
+          )
+        } else {
+          showNotification(error.message || t('chat.send_error') || 'Failed to send message', 'error')
+        }
       } else {
         showNotification(t('chat.send_error') || 'Failed to send message', 'error')
       }

@@ -82,8 +82,9 @@ export async function sendChatMessage(
     })
     
     if (!response.ok) {
-      const error = await response.json()
-      const errorMessage = error.error || 'Failed to send message'
+      const errorData = await response.json()
+      const errorMessage = errorData.error || 'Failed to send message'
+      const errorDetails = errorData.details || ''
       
       // If it's an authentication error, provide helpful guidance
       if (response.status === 401) {
@@ -93,7 +94,14 @@ export async function sendChatMessage(
         )
       }
       
-      throw new Error(errorMessage)
+      // Include details in error message if available
+      const fullErrorMessage = errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage
+      const error = new Error(fullErrorMessage)
+      // Attach details for potential use by error handlers
+      if (errorDetails) {
+        (error as any).details = errorDetails
+      }
+      throw error
     }
     
     const data = await response.json()

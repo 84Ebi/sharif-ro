@@ -178,8 +178,19 @@ export async function POST(
     }
 
     const order = orders.documents[0]
-    const isCustomer = order.userId === user.$id
-    const isDeliveryPerson = order.deliveryPersonId === user.$id
+    // Convert to strings for comparison to ensure type consistency
+    const isCustomer = String(order.userId) === String(user.$id)
+    const isDeliveryPerson = order.deliveryPersonId ? String(order.deliveryPersonId) === String(user.$id) : false
+    
+    // Log for debugging
+    console.log('Chat POST - User role check:', {
+      userId: user.$id,
+      orderUserId: order.userId,
+      orderDeliveryPersonId: order.deliveryPersonId,
+      isCustomer,
+      isDeliveryPerson,
+      senderRole,
+    })
     
     if (!isCustomer && !isDeliveryPerson) {
       return NextResponse.json(
@@ -189,9 +200,26 @@ export async function POST(
     }
 
     // Verify senderRole matches user's role for this order
-    if ((isCustomer && senderRole !== 'customer') || (isDeliveryPerson && senderRole !== 'delivery')) {
+    // If user is customer, senderRole must be 'customer'
+    // If user is delivery person, senderRole must be 'delivery'
+    if (isCustomer && senderRole !== 'customer') {
+      console.error('Invalid sender role: User is customer but senderRole is', senderRole)
       return NextResponse.json(
-        { error: 'Invalid sender role' },
+        { 
+          error: 'Invalid sender role',
+          details: `User is customer but senderRole is '${senderRole}'. Expected 'customer'.`
+        },
+        { status: 400 }
+      )
+    }
+    
+    if (isDeliveryPerson && senderRole !== 'delivery') {
+      console.error('Invalid sender role: User is delivery person but senderRole is', senderRole)
+      return NextResponse.json(
+        { 
+          error: 'Invalid sender role',
+          details: `User is delivery person but senderRole is '${senderRole}'. Expected 'delivery'.`
+        },
         { status: 400 }
       )
     }
