@@ -31,6 +31,8 @@ export async function POST(request: Request) {
             session: {
                 $id: session.$id,
                 userId: session.userId,
+                secret: session.secret, // Return secret so client can use the same session
+                expire: session.expire,
             },
             message: 'Login successful'
         });

@@ -66,17 +66,76 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             try {
                 const session = await account.getSession('current');
                 if (session) {
-                    // Sync session to server cookie by checking server session
-                    // This ensures API routes can access the session
+                    // Check if server-side session exists
                     try {
-                        await fetch('/api/auth/session', {
+                        const sessionCheck = await fetch('/api/auth/session', {
                             method: 'GET',
                             credentials: 'include',
                         });
+                        
+                        if (!sessionCheck.ok) {
+                            // Server-side session doesn't exist, but client-side does
+                            // Try to sync the session using the session secret
+                            try {
+                                // Try to get session secret from the session object
+                                // Note: Appwrite Session may have secret property, but it's not in the type definition
+                                // We check for it using a type assertion with Record type
+                                const sessionRecord = session as Models.Session & Record<string, unknown>;
+                                const sessionSecret = (sessionRecord.secret as string | undefined) || 
+                                                     (sessionRecord.$secret as string | undefined) || 
+                                                     null;
+                                
+                                // If not in session object, try to get it from the client's internal storage
+                                if (!sessionSecret && typeof window !== 'undefined') {
+                                    // Appwrite client SDK stores the session secret internally
+                                    // We can try to access it via the client instance
+                                    try {
+                                        // The client might have the session stored
+                                        // Check if we can get it from the account service
+                                        const sessions = await account.listSessions();
+                                        if (sessions.sessions && sessions.sessions.length > 0) {
+                                            // Try to use the current session ID to get the secret
+                                            // Note: This might not work as the secret might not be exposed
+                                        }
+                                    } catch {
+                                        // Couldn't access sessions list
+                                    }
+                                }
+                                
+                                // If we found the session secret, try to sync it
+                                if (sessionSecret) {
+                                    const syncResponse = await fetch('/api/auth/sync-session', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        credentials: 'include',
+                                        body: JSON.stringify({
+                                            sessionSecret,
+                                            expire: session.expire,
+                                        }),
+                                    });
+                                    
+                                    if (syncResponse.ok) {
+                                        console.log('Session synced successfully');
+                                    } else {
+                                        const errorData = await syncResponse.json().catch(() => ({}));
+                                        console.warn('Failed to sync session:', errorData);
+                                        console.warn('Please log out and log back in to fix API route authentication.');
+                                    }
+                                } else {
+                                    // Can't sync without the secret - user needs to re-login
+                                    console.warn('Server-side session is missing. Some API routes (like chat) may not work.');
+                                    console.warn('Please log out and log back in to sync your session.');
+                                }
+                            } catch (syncError) {
+                                console.warn('Failed to sync session:', syncError);
+                                console.warn('Please log out and log back in to fix API route authentication.');
+                            }
+                        }
                     } catch {
-                        // If server session check fails, try to sync by re-authenticating
-                        // Note: This won't work without password, so we'll just continue
-                        // The cookie should be set during login/signup
+                        // Session check failed, continue anyway
+                        console.warn('Could not verify server-side session');
                     }
                 }
             } catch {
@@ -128,24 +187,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Create account using client-side SDK
             await account.create(ID.unique(), email, password, name);
 
+            // First, create session on server (this sets the cookie)
+            // Then create session on client to match
+            try {
+                const syncResponse = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password }),
+                });
+
+                if (syncResponse.ok) {
+                    console.log('Server-side session created and cookie set');
+                } else {
+                    const errorData = await syncResponse.json().catch(() => ({}));
+                    console.warn('Failed to create server-side session:', errorData);
+                    // Continue with client-side session creation
+                }
+            } catch (apiError) {
+                console.warn('Failed to create server-side session:', apiError);
+                // Continue with client-side session creation
+            }
+
             // Automatically log in after signup using client-side SDK
+            // This ensures client-side operations work
             await account.createEmailPasswordSession(email, password);
 
-            // Also sync session to server-side cookie by calling API route
-            // This ensures API routes can access the session via cookies
-            // We call this in the background - if it fails, client-side login still works
-            fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({ email, password }),
-            }).catch((apiError) => {
-                // If API call fails, log but don't fail signup
-                // Session is already created in localStorage for client-side operations
-                console.warn('Failed to sync session to server cookie (API routes may not work):', apiError);
-            });
+            // Verify server-side session is set by checking the session endpoint
+            try {
+                const sessionCheck = await fetch('/api/auth/session', {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+                
+                if (!sessionCheck.ok) {
+                    console.warn('Server-side session verification failed. API routes may not work.');
+                    console.warn('Please try logging out and logging back in.');
+                } else {
+                    console.log('Server-side session verified successfully');
+                }
+            } catch {
+                // Session check failed, but continue anyway
+                console.warn('Could not verify server-side session');
+            }
 
             // Refresh user data
             await refreshUser();
@@ -176,24 +262,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // No existing session, continue
             }
 
+            // First, create session on server (this sets the cookie)
+            // Then create session on client to match
+            try {
+                const syncResponse = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password }),
+                });
+
+                if (syncResponse.ok) {
+                    console.log('Server-side session created and cookie set');
+                } else {
+                    const errorData = await syncResponse.json().catch(() => ({}));
+                    console.warn('Failed to create server-side session:', errorData);
+                    // Continue with client-side session creation
+                }
+            } catch (apiError) {
+                console.warn('Failed to create server-side session:', apiError);
+                // Continue with client-side session creation
+            }
+
             // Create email session using client-side SDK (stores in localStorage)
+            // This ensures client-side operations work
             await account.createEmailPasswordSession(email, password);
 
-            // Also sync session to server-side cookie by calling API route
-            // This ensures API routes can access the session via cookies
-            // We call this in the background - if it fails, client-side login still works
-            fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({ email, password }),
-            }).catch((apiError) => {
-                // If API call fails, log but don't fail login
-                // Session is already created in localStorage for client-side operations
-                console.warn('Failed to sync session to server cookie (API routes may not work):', apiError);
-            });
+            // Verify server-side session is set by checking the session endpoint
+            try {
+                const sessionCheck = await fetch('/api/auth/session', {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+                
+                if (!sessionCheck.ok) {
+                    console.warn('Server-side session verification failed. API routes may not work.');
+                    console.warn('Please try logging out and logging back in.');
+                } else {
+                    console.log('Server-side session verified successfully');
+                }
+            } catch {
+                // Session check failed, but continue anyway
+                console.warn('Could not verify server-side session');
+            }
 
             // Refresh user data
             await refreshUser();

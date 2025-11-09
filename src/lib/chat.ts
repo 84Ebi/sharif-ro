@@ -11,6 +11,19 @@ export interface ChatMessage {
   read?: boolean
 }
 
+// Extended Error type for authentication errors
+export class ChatAuthError extends Error {
+  isAuthError: boolean
+  suggestion: string
+
+  constructor(message: string, suggestion: string) {
+    super(message)
+    this.name = 'ChatAuthError'
+    this.isAuthError = true
+    this.suggestion = suggestion
+  }
+}
+
 /**
  * Get messages for an order
  */
@@ -22,8 +35,16 @@ export async function getChatMessages(orderId: string): Promise<ChatMessage[]> {
     
     if (!response.ok) {
       const error = await response.json()
-      // Return a more descriptive error message
       const errorMessage = error.error || 'Failed to fetch chat messages'
+      
+      // If it's an authentication error, provide helpful guidance
+      if (response.status === 401) {
+        throw new ChatAuthError(
+          errorMessage,
+          'Please log out and log back in to sync your session with the server.'
+        )
+      }
+      
       throw new Error(errorMessage)
     }
     
@@ -62,8 +83,16 @@ export async function sendChatMessage(
     
     if (!response.ok) {
       const error = await response.json()
-      // Return a more descriptive error message
       const errorMessage = error.error || 'Failed to send message'
+      
+      // If it's an authentication error, provide helpful guidance
+      if (response.status === 401) {
+        throw new ChatAuthError(
+          errorMessage,
+          'Please log out and log back in to sync your session with the server.'
+        )
+      }
+      
       throw new Error(errorMessage)
     }
     
