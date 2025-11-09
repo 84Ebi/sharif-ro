@@ -92,9 +92,15 @@ export async function GET(
       createdAt: msg.$createdAt || msg.createdAt,
     }))
 
+    // Return user's role so the frontend can use it
+    const userRole = isCustomer ? 'customer' : (isDeliveryPerson ? 'delivery' : null)
+
     return NextResponse.json({
       success: true,
       messages: normalizedMessages,
+      userRole, // Include the user's role for this order
+      orderUserId: order.userId,
+      orderDeliveryPersonId: order.deliveryPersonId,
     })
   } catch (error) {
     console.error('Error fetching chat messages:', error)

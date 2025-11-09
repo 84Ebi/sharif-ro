@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getChatMessages, sendChatMessage, ChatMessage, ChatError } from '@/lib/chat'
+import { getChatMessages, sendChatMessage, ChatMessage, ChatError, ChatMessagesResponse } from '@/lib/chat'
 import { useI18n } from '@/lib/i18n'
 import { useNotification } from '@/contexts/NotificationContext'
 import { client } from '@/lib/appwrite'
@@ -13,10 +13,9 @@ interface OrderChatProps {
   onClose: () => void
   customerId: string
   deliveryPersonId?: string
-  userRole?: 'customer' | 'delivery' // Optional: if provided, use this instead of determining
 }
 
-export default function OrderChat({ orderId, isOpen, onClose, customerId, deliveryPersonId, userRole: providedUserRole }: OrderChatProps) {
+export default function OrderChat({ orderId, isOpen, onClose, customerId, deliveryPersonId }: OrderChatProps) {
   const { user } = useAuth()
   const { t, locale } = useI18n()
   const { showNotification } = useNotification()
@@ -26,59 +25,63 @@ export default function OrderChat({ orderId, isOpen, onClose, customerId, delive
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [unsubscribe, setUnsubscribe] = useState<(() => void) | null>(null)
+  const [serverUserRole, setServerUserRole] = useState<'customer' | 'delivery' | null>(null)
 
   // Function to determine user's role based on their relationship to the order
-  // This is called dynamically to ensure it's always up-to-date
+  // Prefer server-determined role (from GET /api/chat) as it's the source of truth
+  // Fall back to client-side determination if server role is not available
   const getUserRole = (): 'customer' | 'delivery' => {
-    // If role is explicitly provided, use it
-    if (providedUserRole) {
-      return providedUserRole
+    // Use server-determined role if available (this is the most reliable)
+    if (serverUserRole) {
+      return serverUserRole
     }
 
     if (!user?.$id) {
+      console.error('Cannot determine role: user is not authenticated')
       return 'customer' // Default fallback
     }
 
+    // Fallback to client-side determination (same logic as API)
     // Convert to strings for comparison to avoid type issues
-    const userId = String(user.$id).trim()
-    const custId = String(customerId).trim()
-    const delPersonId = deliveryPersonId ? String(deliveryPersonId).trim() : null
+    // Use EXACTLY the same comparison logic as the API (no trim, just String conversion)
+    const userId = String(user.$id)
+    const custId = String(customerId)
+    const delPersonId = deliveryPersonId ? String(deliveryPersonId) : null
     
-    // First check if user is the customer
-    if (userId === custId) {
+    // Check if user is the customer (matches order.userId) - API logic: String(order.userId) === String(user.$id)
+    const isCustomer = userId === custId
+    
+    // Check if user is the delivery person (matches order.deliveryPersonId) - API logic: order.deliveryPersonId ? String(order.deliveryPersonId) === String(user.$id) : false
+    const isDeliveryPerson = delPersonId ? userId === delPersonId : false
+    
+    // Determine role based on actual order data (same logic as API)
+    // Priority: customer first, then delivery person
+    if (isCustomer) {
       return 'customer'
     }
     
-    // Then check if user is the delivery person
-    if (delPersonId && userId === delPersonId) {
+    if (isDeliveryPerson) {
       return 'delivery'
     }
     
-    // If deliveryPersonId is provided but doesn't match, and user is not the customer,
-    // this is unusual - log it but we can't determine the role
-    // If deliveryPersonId is NOT provided but user is NOT the customer,
-    // they might still be the delivery person (order might not have deliveryPersonId set yet)
-    console.warn('User role cannot be determined for chat.', {
+    // If neither matches, this is an error - user shouldn't have access
+    console.error('User role cannot be determined for chat. User does not match customer or delivery person.', {
       userId,
       customerId: custId,
       deliveryPersonId: delPersonId,
-      isCustomerMatch: userId === custId,
-      isDeliveryMatch: delPersonId ? userId === delPersonId : false,
-      hasDeliveryPersonId: !!deliveryPersonId,
-      providedUserRole
+      isCustomer,
+      isDeliveryPerson,
+      serverUserRole,
+      rawValues: {
+        user$id: user.$id,
+        customerIdProp: customerId,
+        deliveryPersonIdProp: deliveryPersonId
+      }
     })
     
-    // If user is NOT the customer and deliveryPersonId exists (even if it doesn't match),
-    // or if we're in a delivery context, default to 'delivery' instead of 'customer'
-    // This is safer because the API will validate and reject if wrong
-    if (userId !== custId && deliveryPersonId) {
-      // User is not customer and deliveryPersonId exists - they're likely the delivery person
-      // Even if IDs don't match exactly, the API will validate
-      console.log('User is not customer and deliveryPersonId exists, assuming delivery role')
-      return 'delivery'
-    }
-    
-    // Default to customer as fallback (will be validated by API)
+    // The API will reject this, which is correct behavior
+    // But we need to return something - use customer as it's the most restrictive
+    // The API validation will catch this and return proper error
     return 'customer'
   }
   
@@ -91,13 +94,37 @@ export default function OrderChat({ orderId, isOpen, onClose, customerId, delive
 
   // Load messages and subscribe to real-time updates
   useEffect(() => {
-    if (!isOpen || !orderId || !user) return
+    if (!isOpen || !orderId || !user) {
+      // Reset server role when chat closes
+      if (!isOpen) {
+        setServerUserRole(null)
+      }
+      return
+    }
 
     const loadMessages = async () => {
       try {
         setLoading(true)
-        const fetchedMessages = await getChatMessages(orderId)
-        setMessages(fetchedMessages)
+        // Reset server role before fetching to ensure fresh data
+        setServerUserRole(null)
+        
+        const response: ChatMessagesResponse = await getChatMessages(orderId)
+        setMessages(response.messages)
+        
+        // Use the server-determined role if available (this is the source of truth)
+        if (response.userRole) {
+          console.log('Server determined user role:', response.userRole, {
+            orderId,
+            orderUserId: response.orderUserId,
+            orderDeliveryPersonId: response.orderDeliveryPersonId,
+            currentUserId: user?.$id,
+            clientCustomerId: customerId,
+            clientDeliveryPersonId: deliveryPersonId
+          })
+          setServerUserRole(response.userRole)
+        } else {
+          console.warn('Server did not return user role for order:', orderId)
+        }
       } catch (error: unknown) {
         console.error('Error loading messages:', error)
         // Handle authentication errors gracefully
@@ -175,20 +202,24 @@ export default function OrderChat({ orderId, isOpen, onClose, customerId, delive
 
     try {
       setSending(true)
-      // Determine role dynamically when sending message to ensure it's accurate
+      // Determine role dynamically when sending message
+      // Prefer server-determined role, fall back to client-side determination
       const currentUserRole = getUserRole()
       
-      // Log the role being sent for debugging
-      console.log('Sending message with role:', {
+      // Log the role determination for debugging
+      console.log('Sending message - Role determination:', {
         orderId,
         userId: user.$id,
-        userName,
+        serverUserRole,
         determinedRole: currentUserRole,
         customerId,
-        deliveryPersonId,
-        isCustomer: String(user.$id) === String(customerId),
-        isDeliveryPerson: deliveryPersonId ? String(user.$id) === String(deliveryPersonId) : false
+        deliveryPersonId
       })
+      
+      // If we don't have a server role yet, wait a bit for it to load, or use client determination
+      if (!serverUserRole) {
+        console.warn('Sending message without server-determined role. Using client-side determination.')
+      }
       
       await sendChatMessage(orderId, newMessage.trim(), user.$id, userName, currentUserRole)
       setNewMessage('')

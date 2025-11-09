@@ -11,6 +11,13 @@ export interface ChatMessage {
   read?: boolean
 }
 
+export interface ChatMessagesResponse {
+  messages: ChatMessage[]
+  userRole?: 'customer' | 'delivery' | null
+  orderUserId?: string
+  orderDeliveryPersonId?: string | null
+}
+
 // Extended Error type for authentication errors
 export class ChatAuthError extends Error {
   isAuthError: boolean
@@ -32,7 +39,7 @@ export interface ChatError extends Error {
 /**
  * Get messages for an order
  */
-export async function getChatMessages(orderId: string): Promise<ChatMessage[]> {
+export async function getChatMessages(orderId: string): Promise<ChatMessagesResponse> {
   try {
     const response = await fetch(`/api/chat/${orderId}`, {
       credentials: 'include', // Ensure cookies are sent with the request
@@ -54,7 +61,12 @@ export async function getChatMessages(orderId: string): Promise<ChatMessage[]> {
     }
     
     const data = await response.json()
-    return data.messages || []
+    return {
+      messages: data.messages || [],
+      userRole: data.userRole || null,
+      orderUserId: data.orderUserId,
+      orderDeliveryPersonId: data.orderDeliveryPersonId,
+    }
   } catch (error) {
     console.error('Error fetching chat messages:', error)
     throw error
