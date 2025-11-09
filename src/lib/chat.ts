@@ -75,13 +75,13 @@ export async function getChatMessages(orderId: string): Promise<ChatMessagesResp
 
 /**
  * Send a message in an order chat
+ * Note: senderRole is now determined server-side from order data, so it's not required here
  */
 export async function sendChatMessage(
   orderId: string,
   message: string,
   senderId: string,
-  senderName: string,
-  senderRole: 'customer' | 'delivery'
+  senderName: string
 ): Promise<ChatMessage> {
   try {
     const response = await fetch(`/api/chat/${orderId}`, {
@@ -94,7 +94,6 @@ export async function sendChatMessage(
         message,
         senderId,
         senderName,
-        senderRole,
       }),
     })
     
