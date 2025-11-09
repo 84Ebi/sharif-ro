@@ -162,13 +162,7 @@ export default function CustomerHome() {
                             ? 'bg-blue-200 text-blue-800'
                             : 'bg-green-200 text-green-800'
                         }`}>
-                          {order.status === 'pending' 
-                            ? '🕐 در انتظار' 
-                            : order.status === 'waiting_for_payment'
-                            ? '💰 در انتظار پرداخت'
-                            : order.status === 'food_delivering'
-                            ? '🚚 در حال ارسال'
-                            : '✓ تحویل داده شد'}
+                          {t(`order.status.${order.status}`)}
                         </span>
                       </div>
                     </div>

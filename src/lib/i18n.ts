@@ -160,6 +160,13 @@ const fa: Dict = {
   'deliveries.timeline.payment_confirmed': 'پرداخت تایید شد',
   'deliveries.timeline.delivered': 'تحویل',
   'deliveries.mark_as_delivered': '✓ تحویل شد',
+  
+  // Order Status
+  'order.status.pending': 'در انتظار',
+  'order.status.waiting_for_payment': 'در انتظار پرداخت',
+  'order.status.food_delivering': 'در حال ارسال',
+  'order.status.food_delivered': 'تحویل داده شد',
+  'order.status.confirmed': 'تایید شده',
 
   // Service names
   'service.sharif_fastfood': 'شریف فست فود',
@@ -460,6 +467,13 @@ const en: Dict = {
   'deliveries.timeline.payment_confirmed': 'Payment Confirmed',
   'deliveries.timeline.delivered': 'Delivered',
   'deliveries.mark_as_delivered': '✓ Mark as Delivered',
+  
+  // Order Status
+  'order.status.pending': 'Pending',
+  'order.status.waiting_for_payment': 'Waiting Payment',
+  'order.status.food_delivering': 'In Delivery',
+  'order.status.food_delivered': 'Delivered',
+  'order.status.confirmed': 'Confirmed',
 
   // Service names
   'service.sharif_fastfood': 'Sharif Fast Food',

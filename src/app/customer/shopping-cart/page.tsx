@@ -383,7 +383,7 @@ function ShoppingCartContent() {
                       order.status === 'food_delivering' ? 'bg-blue-200 text-blue-800' :
                       order.status === 'food_delivered' ? 'bg-green-200 text-green-800' :
                       'bg-gray-200 text-gray-800'
-                    }`}>{order.status}</span>
+                    }`}>{t(`order.status.${order.status}`)}</span>
                   </div>
                   <p className="text-sm text-gray-600 mb-2 whitespace-pre-wrap">{order.orderCode}</p>
                   <div className="text-right font-bold text-blue-600 mb-2">{order.price.toLocaleString()} {t('delivery.toman')}</div>

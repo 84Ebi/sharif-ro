@@ -207,7 +207,7 @@ export default function MyDeliveries() {
                           order.status
                         )}`}
                       >
-                        {order.status.toUpperCase()}
+                        {t(`order.status.${order.status}`)}
                       </span>
                     </div>
                     

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { createOrder, getOrdersByUser, Order } from '../../../lib/orders'
 import BottomDock from '../../../components/BottomDock'
+import { useI18n } from '@/lib/i18n'
 
 interface MenuItem {
   name: string
@@ -51,6 +52,7 @@ function OrderCompletionContent() {
   const { user, loading: authLoading } = useAuth()
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { t } = useI18n()
 
   const [orderData, setOrderData] = useState<OrderData | null>(null)
   const [pastOrders, setPastOrders] = useState<Order[]>([])
@@ -171,7 +173,7 @@ function OrderCompletionContent() {
                       order.status === 'food_delivering' ? 'bg-blue-200 text-blue-800' :
                       order.status === 'food_delivered' ? 'bg-green-200 text-green-800' :
                       'bg-gray-200 text-gray-800'
-                    }`}>{order.status}</span>
+                    }`}>{t(`order.status.${order.status}`)}</span>
                   </div>
                   <p className="text-sm text-gray-600 mb-2 whitespace-pre-wrap">{order.orderCode}</p>
                   <div className="text-right font-bold text-blue-600">{order.price.toLocaleString()} تومان</div>
