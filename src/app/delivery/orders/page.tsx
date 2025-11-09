@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getOrders, updateOrderStatus, Order } from '../../../lib/orders'
+import { getOrders, confirmPayment, Order } from '../../../lib/orders'
 import BottomDock from '../../../components/BottomDock'
 import { useI18n } from '@/lib/i18n'
 import { useNotification } from '@/contexts/NotificationContext'
@@ -16,7 +16,7 @@ export default function MyDeliveries() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
-  const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'delivered'>('all')
+  const [filterStatus, setFilterStatus] = useState<'all' | 'waiting_for_payment' | 'food_delivering' | 'food_delivered'>('all')
   const [selectedOrderForChat, setSelectedOrderForChat] = useState<Order | null>(null)
 
   const loadOrders = useCallback(async () => {
@@ -48,15 +48,15 @@ export default function MyDeliveries() {
     }
   }, [user, loadOrders])
 
-  const markAsDelivered = async (orderId: string) => {
+  const handleConfirmPayment = async (orderId: string) => {
     try {
-      await updateOrderStatus(orderId, 'delivered')
+      await confirmPayment(orderId)
       await loadOrders()
       setSelectedOrder(null)
-      showNotification(t('deliveries.mark_delivered_success'), 'success')
+      showNotification(t('delivery.payment_confirmed'), 'success')
     } catch (error) {
-      console.error('Error marking order as delivered:', error)
-      showNotification(t('deliveries.mark_delivered_failed'), 'error')
+      console.error('Error confirming payment:', error)
+      showNotification(t('delivery.payment_confirm_failed'), 'error')
     }
   }
 
@@ -64,9 +64,11 @@ export default function MyDeliveries() {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 border-yellow-300'
-      case 'confirmed':
+      case 'waiting_for_payment':
+        return 'bg-orange-100 text-orange-800 border-orange-300'
+      case 'food_delivering':
         return 'bg-blue-100 text-blue-800 border-blue-300'
-      case 'delivered':
+      case 'food_delivered':
         return 'bg-green-100 text-green-800 border-green-300'
       default:
         return 'bg-gray-100 text-gray-800 border-gray-300'
@@ -131,19 +133,29 @@ export default function MyDeliveries() {
             {t('deliveries.tab.all')}
           </button>
           <button
-            onClick={() => setFilterStatus('confirmed')}
+            onClick={() => setFilterStatus('waiting_for_payment')}
             className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-              filterStatus === 'confirmed'
+              filterStatus === 'waiting_for_payment'
                 ? 'bg-white text-gray-800'
                 : 'bg-gray-500 bg-opacity-20 text-black hover:bg-opacity-30'
             }`}
           >
-            {t('deliveries.tab.active')}
+            {t('deliveries.tab.waiting_payment')}
           </button>
           <button
-            onClick={() => setFilterStatus('delivered')}
+            onClick={() => setFilterStatus('food_delivering')}
             className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-              filterStatus === 'delivered'
+              filterStatus === 'food_delivering'
+                ? 'bg-white text-gray-800'
+                : 'bg-gray-500 bg-opacity-20 text-black hover:bg-opacity-30'
+            }`}
+          >
+            {t('deliveries.tab.delivering')}
+          </button>
+          <button
+            onClick={() => setFilterStatus('food_delivered')}
+            className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+              filterStatus === 'food_delivered'
                 ? 'bg-white text-gray-800'
                 : 'bg-gray-500 bg-opacity-20 text-black hover:bg-opacity-30'
             }`}
@@ -216,8 +228,9 @@ export default function MyDeliveries() {
                       {t('deliveries.timeline.confirmed')}: {formatDate(order.confirmedAt || order.$createdAt)}
                     </p>
                   </div>
-                  <div className="">
-                    <p className="text-xl font-bold text-blue-600">${order.price}</p>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-green-600">{(order.deliveryFee || 0).toLocaleString()} {t('delivery.toman')}</p>
+                    <p className="text-xs text-gray-500">{t('delivery.profit')}</p>
                   </div>
                 </div>
 
@@ -275,9 +288,15 @@ export default function MyDeliveries() {
                       )}
 
                       <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase">{t('deliveries.price')}</p>
+                        <p className="text-xs font-semibold text-gray-500 uppercase">{t('delivery.food_price')}</p>
                         <p className="text-sm text-gray-800 mt-1 font-bold">
-                          ${order.price}
+                          {((order.price || 0) - (order.deliveryFee || 0)).toLocaleString()} {t('delivery.toman')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase">{t('delivery.profit')}</p>
+                        <p className="text-sm text-green-600 mt-1 font-bold">
+                          {(order.deliveryFee || 0).toLocaleString()} {t('delivery.toman')}
                         </p>
                       </div>
 
@@ -305,6 +324,12 @@ export default function MyDeliveries() {
                               <span>{t('deliveries.timeline.confirmed')}: {formatDate(order.confirmedAt)}</span>
                             </div>
                           )}
+                          {order.paymentConfirmedAt && (
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                              <span>{t('deliveries.timeline.payment_confirmed')}: {formatDate(order.paymentConfirmedAt)}</span>
+                            </div>
+                          )}
                           {order.deliveredAt && (
                             <div className="flex items-center gap-2">
                               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
@@ -315,26 +340,30 @@ export default function MyDeliveries() {
                       </div>
                     </div>
 
-                    {order.status === 'confirmed' && (
+                    {(order.status === 'waiting_for_payment' || order.status === 'food_delivering') && (
                       <div className="flex justify-center gap-2 pt-2">
-                        <button
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setSelectedOrderForChat(order)
-                          }}
-                        >
-                          💬 {t('chat.title')}
-                        </button>
-                        <button
-                          className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:from-green-600 hover:to-green-700 transition-all"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            if (order.$id) markAsDelivered(order.$id)
-                          }}
-                        >
-                          {t('deliveries.mark_as_delivered')}
-                        </button>
+                        {order.status === 'waiting_for_payment' && (
+                          <button
+                            className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (order.$id) handleConfirmPayment(order.$id)
+                            }}
+                          >
+                            {t('delivery.confirm_payment')}
+                          </button>
+                        )}
+                        {(order.status === 'food_delivering' || order.status === 'waiting_for_payment') && (
+                          <button
+                            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedOrderForChat(order)
+                            }}
+                          >
+                            💬 {t('chat.title')}
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>

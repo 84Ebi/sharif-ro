@@ -62,6 +62,32 @@ export async function PATCH(
       return Response.json({ order }, { status: 200 });
     }
     
+    if (body.action === 'confirmPayment') {
+      const order = await orderDb.confirmPayment(id);
+      
+      if (!order) {
+        return Response.json(
+          { error: 'Order not found' },
+          { status: 404 }
+        );
+      }
+      
+      return Response.json({ order }, { status: 200 });
+    }
+    
+    if (body.action === 'confirmDelivery') {
+      const order = await orderDb.confirmDelivery(id);
+      
+      if (!order) {
+        return Response.json(
+          { error: 'Order not found' },
+          { status: 404 }
+        );
+      }
+      
+      return Response.json({ order }, { status: 200 });
+    }
+    
     // General update
     const order = await orderDb.updateOrder(id, body);
     

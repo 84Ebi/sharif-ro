@@ -12,12 +12,14 @@ export interface Order {
   email?: string
   extraNotes?: string
   price: number
-  status: 'pending' | 'confirmed' | 'delivered'
+  deliveryFee?: number
+  status: 'pending' | 'waiting_for_payment' | 'food_delivering' | 'food_delivered'
   deliveryPersonId?: string
   deliveryPersonName?: string
   deliveryPersonPhone?: string
   deliveryPersonCardNumber?: string
   confirmedAt?: string
+  paymentConfirmedAt?: string
   deliveredAt?: string
   $createdAt?: string
   $updatedAt?: string
@@ -167,7 +169,7 @@ export async function confirmOrder(
  */
 export async function updateOrderStatus(
   orderId: string,
-  status: 'pending' | 'confirmed' | 'delivered'
+  status: 'pending' | 'waiting_for_payment' | 'food_delivering' | 'food_delivered'
 ): Promise<Order> {
   try {
     const response = await fetch(`/api/orders/${orderId}`, {
@@ -190,6 +192,62 @@ export async function updateOrderStatus(
     return data.order;
   } catch (error) {
     console.error('Error updating order status:', error);
+    throw error;
+  }
+}
+
+/**
+ * Confirm payment for an order (delivery person confirms customer paid)
+ */
+export async function confirmPayment(orderId: string): Promise<Order> {
+  try {
+    const response = await fetch(`/api/orders/${orderId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'confirmPayment',
+      }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to confirm payment');
+    }
+    
+    const data = await response.json();
+    return data.order;
+  } catch (error) {
+    console.error('Error confirming payment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Confirm delivery (customer confirms receipt)
+ */
+export async function confirmDelivery(orderId: string): Promise<Order> {
+  try {
+    const response = await fetch(`/api/orders/${orderId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'confirmDelivery',
+      }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to confirm delivery');
+    }
+    
+    const data = await response.json();
+    return data.order;
+  } catch (error) {
+    console.error('Error confirming delivery:', error);
     throw error;
   }
 }

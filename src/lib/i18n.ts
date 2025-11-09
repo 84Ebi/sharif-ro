@@ -60,7 +60,7 @@ const fa: Dict = {
   'customer.order_now': 'سفارش دهید',
   'customer.loading': 'در حال بارگذاری...',
   'customer.redirecting_login': 'در حال انتقال به صفحه ورود...',
-  'customer.delivery_person_phone': 'تلفن پیک:',
+  'customer.delivery_person_phone': 'تلفن شریف بر:',
   'customer.amount': 'مبلغ:',
   'customer.delivery_location': 'محل تحویل:',
   'customer.order_code': 'کد سفارش:'
@@ -95,10 +95,10 @@ const fa: Dict = {
   'delivery.go_to_verification': 'رفتن به احراز هویت',
   'delivery.why_verification': 'چرا احراز هویت؟',
   'delivery.why_1': '✓ تضمین تحویل‌های ایمن و قابل اعتماد',
-  'delivery.why_2': '✓ حفاظت از مشتریان و پیک‌ها',
+  'delivery.why_2': '✓ حفاظت از شریف گیرها و شریف برها',
   'delivery.why_3': '✓ تایید هویت دانشجویی',
   'delivery.why_4': '✓ بررسی دستی توسط تیم ادمین برای امنیت',
-  'verify.title': '🎓 احراز هویت پیک',
+  'verify.title': '🎓 احراز هویت شریف بر',
   'verify.subtitle': 'مدارک خود را برای بررسی دستی توسط تیم ادمین ارسال کنید',
   'verify.info_title': '⚠️ اطلاعات مهم',
   'verify.info_text': 'احراز هویت شما به صورت دستی توسط ادمین‌ها بررسی می‌شود و ممکن است ۴۸-۲۴ ساعت زمان ببرد. پس از تأیید، به شما اطلاع داده خواهد شد.',
@@ -136,14 +136,15 @@ const fa: Dict = {
   'deliveries.title': 'تحویل‌های من',
   'deliveries.refresh': 'به‌روزرسانی',
   'deliveries.tab.all': 'همه',
-  'deliveries.tab.active': 'فعال',
+  'deliveries.tab.waiting_payment': 'در انتظار پرداخت',
+  'deliveries.tab.delivering': 'در حال ارسال',
   'deliveries.tab.completed': 'تکمیل شده',
   'deliveries.none_title': 'هنوز تحویلی وجود ندارد',
   'deliveries.none_text': 'برای مشاهده، شروع به پذیرش سفارش‌ها کنید!',
   'deliveries.error_load': 'بارگیری تحویل‌ها ناموفق بود',
   'deliveries.mark_delivered_success': 'سفارش به‌عنوان تحویل‌شده علامت‌گذاری شد!',
   'deliveries.mark_delivered_failed': 'علامت‌گذاری تحویل ناموفق بود. لطفا دوباره تلاش کنید.',
-  'deliveries.customer_info': 'اطلاعات مشتری',
+  'deliveries.customer_info': 'اطلاعات شریف گیر',
   'deliveries.name': 'نام و نام خانوادگی',
   'deliveries.phone': 'تلفن',
   'deliveries.email': 'ایمیل',
@@ -156,6 +157,7 @@ const fa: Dict = {
   'deliveries.timeline': 'خط زمانی',
   'deliveries.timeline.placed': 'ثبت سفارش',
   'deliveries.timeline.confirmed': 'تایید',
+  'deliveries.timeline.payment_confirmed': 'پرداخت تایید شد',
   'deliveries.timeline.delivered': 'تحویل',
   'deliveries.mark_as_delivered': '✓ تحویل شد',
 
@@ -197,7 +199,7 @@ const fa: Dict = {
   'order.cleanfood_title': 'ثبت سفارش کلین فود',
   'order.order_tracking_code': 'شماره سفارش / کد سفارش',
   'order.order_tracking_code_placeholder': 'کد سفارش خود را وارد کنید',
-  'order.customer_name': 'نام مشتری',
+  'order.customer_name': 'نام شریف گیر',
   'order.customer_name_placeholder': 'نام شما',
   'order.delivery_address': 'آدرس تحویل',
   'order.select_delivery_address': 'آدرس تحویل را انتخاب کنید',
@@ -216,10 +218,16 @@ const fa: Dict = {
 
   // Active Deliveries Section
   'delivery.active_deliveries_title': 'تحویل‌های فعال من',
-  'delivery.status_in_delivery': '✓ در حال ارسال',
   'delivery.origin': 'مبدا:',
   'delivery.destination': 'مقصد:',
   'delivery.amount': 'مبلغ:',
+  'delivery.food_price': 'قیمت غذا:',
+  'delivery.profit': 'سود (هزینه ارسال):',
+  'delivery.status_waiting_payment': '💰 در انتظار پرداخت',
+  'delivery.status_in_delivery': '✓ در حال ارسال',
+  'delivery.confirm_payment': 'تایید پرداخت',
+  'delivery.payment_confirmed': 'پرداخت با موفقیت تایید شد!',
+  'delivery.payment_confirm_failed': 'تایید پرداخت ناموفق بود. لطفا دوباره تلاش کنید.',
   'delivery.phone': 'تلفن:',
   'delivery.order_code': 'کد سفارش:',
   'delivery.note': 'یادداشت:',
@@ -230,8 +238,8 @@ const fa: Dict = {
   'delivery.order_code_will_be_shown_after_acceptance': 'کد سفارش بعد از پذیرش نمایش داده می‌شود',
   'delivery.refresh': 'بروزرسانی',
   'delivery.refreshing': 'در حال بروزرسانی...',
-  'delivery.customer_phone': 'تلفن مشتری:',
-  'delivery.delivery_person_phone': 'تلفن پیک:',
+  'delivery.customer_phone': 'تلفن شریف گیر:',
+  'delivery.delivery_person_phone': 'تلفن شریف بر:',
   'delivery.phone_required': 'لطفاً شماره تلفن خود را در تنظیمات حساب کاربری وارد کنید.',
   
   // Notifications
@@ -244,7 +252,10 @@ const fa: Dict = {
   // Card Number
   'verify.card_number': 'شماره کارت',
   'verify.card_number_placeholder': 'شماره کارت خود را وارد کنید',
-  'customer.delivery_person_card': 'شماره کارت پیک:',
+  'customer.delivery_person_card': 'شماره کارت شریف بر:',
+  'customer.confirm_delivery': 'تایید تحویل',
+  'customer.delivery_confirmed': 'تحویل با موفقیت تایید شد!',
+  'customer.delivery_confirm_failed': 'تایید تحویل ناموفق بود. لطفا دوباره تلاش کنید.',
   
   // Policy
   'order.accept_policy': 'قوانین و مقررات را می‌پذیرم',
@@ -263,7 +274,7 @@ const fa: Dict = {
 
 3. تحویل
 - زمان تحویل تقریبی است و ممکن است تغییر کند.
-- در صورت تأخیر در تحویل، با مشتری تماس گرفته خواهد شد.
+- در صورت تأخیر در تحویل، با شریف گیر تماس گرفته خواهد شد.
 
 4. پرداخت
 - پرداخت به صورت نقدی انجام می‌شود.
@@ -287,8 +298,8 @@ const fa: Dict = {
   'chat.loading_error': 'خطا در بارگذاری پیام‌ها',
   'chat.send_error': 'خطا در ارسال پیام',
   'chat.auth_required': 'لطفاً برای استفاده از چت وارد شوید',
-  'chat.customer_label': 'مشتری',
-  'chat.delivery_label': 'پیک'
+  'chat.customer_label': 'شریف گیر',
+  'chat.delivery_label': 'شریف بر'
 }
 
 const en: Dict = {
@@ -425,7 +436,8 @@ const en: Dict = {
   'deliveries.title': 'My Deliveries',
   'deliveries.refresh': 'Refresh',
   'deliveries.tab.all': 'All',
-  'deliveries.tab.active': 'Active',
+  'deliveries.tab.waiting_payment': 'Waiting Payment',
+  'deliveries.tab.delivering': 'Delivering',
   'deliveries.tab.completed': 'Completed',
   'deliveries.none_title': 'No deliveries yet',
   'deliveries.none_text': 'Start accepting orders to see them here!',
@@ -445,6 +457,7 @@ const en: Dict = {
   'deliveries.timeline': 'Timeline',
   'deliveries.timeline.placed': 'Order placed',
   'deliveries.timeline.confirmed': 'Confirmed',
+  'deliveries.timeline.payment_confirmed': 'Payment Confirmed',
   'deliveries.timeline.delivered': 'Delivered',
   'deliveries.mark_as_delivered': '✓ Mark as Delivered',
 
@@ -505,10 +518,16 @@ const en: Dict = {
 
   // Active Deliveries Section
   'delivery.active_deliveries_title': 'My Active Deliveries',
-  'delivery.status_in_delivery': '✓ In Delivery',
   'delivery.origin': 'Origin:',
   'delivery.destination': 'Destination:',
   'delivery.amount': 'Amount:',
+  'delivery.food_price': 'Food Price:',
+  'delivery.profit': 'Profit (Delivery Fee):',
+  'delivery.status_waiting_payment': '💰 Waiting Payment',
+  'delivery.status_in_delivery': '✓ In Delivery',
+  'delivery.confirm_payment': 'Confirm Payment',
+  'delivery.payment_confirmed': 'Payment confirmed successfully!',
+  'delivery.payment_confirm_failed': 'Failed to confirm payment. Please try again.',
   'delivery.phone': 'Phone:',
   'delivery.order_code': 'Order Code:',
   'delivery.note': 'Note:',
@@ -534,6 +553,9 @@ const en: Dict = {
   'verify.card_number': 'Card Number',
   'verify.card_number_placeholder': 'Enter your card number',
   'customer.delivery_person_card': 'Delivery Person Card:',
+  'customer.confirm_delivery': 'Confirm Delivery',
+  'customer.delivery_confirmed': 'Delivery confirmed successfully!',
+  'customer.delivery_confirm_failed': 'Failed to confirm delivery. Please try again.',
   
   // Policy
   'order.accept_policy': 'I accept the rules and policy',
@@ -576,8 +598,8 @@ const en: Dict = {
   'chat.loading_error': 'Error loading messages',
   'chat.send_error': 'Error sending message',
   'chat.auth_required': 'Please log in to use chat',
-  'chat.customer_label': 'Customer',
-  'chat.delivery_label': 'Delivery'
+  'chat.customer_label': 'SharifGir',
+  'chat.delivery_label': 'SharifBar'
 }
 
 const dicts: Record<'fa' | 'en', Dict> = { fa, en }

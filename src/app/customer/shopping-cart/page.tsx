@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { createOrder, getOrdersByUser, Order } from '../../../lib/orders'
+import { createOrder, getOrdersByUser, confirmDelivery, Order } from '../../../lib/orders'
 import BottomDock from '../../../components/BottomDock'
 import { useI18n } from '@/lib/i18n'
 import { useNotification } from '@/contexts/NotificationContext'
@@ -177,6 +177,10 @@ function ShoppingCartContent() {
         )
         .join('\n')
 
+      // Calculate food price and delivery fee
+      const foodPrice = orderData.total
+      const finalPrice = foodPrice + deliveryFee
+      
       await createOrder({
         userId: user.$id,
         fullName: user.name,
@@ -186,7 +190,8 @@ function ShoppingCartContent() {
         deliveryLocation: deliveryLocation,
         phone: phone,
         extraNotes: extraNotes || undefined,
-        price: orderData.total,
+        price: finalPrice,
+        deliveryFee: deliveryFee,
         status: 'pending',
       })
 
@@ -374,17 +379,42 @@ function ShoppingCartContent() {
                     <span className="font-bold text-gray-800">{order.restaurantLocation}</span>
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                       order.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
-                      order.status === 'confirmed' ? 'bg-blue-200 text-blue-800' :
-                      'bg-green-200 text-green-800'
+                      order.status === 'waiting_for_payment' ? 'bg-orange-200 text-orange-800' :
+                      order.status === 'food_delivering' ? 'bg-blue-200 text-blue-800' :
+                      order.status === 'food_delivered' ? 'bg-green-200 text-green-800' :
+                      'bg-gray-200 text-gray-800'
                     }`}>{order.status}</span>
                   </div>
                   <p className="text-sm text-gray-600 mb-2 whitespace-pre-wrap">{order.orderCode}</p>
                   <div className="text-right font-bold text-blue-600 mb-2">{order.price.toLocaleString()} {t('delivery.toman')}</div>
-                  {/* Delivery Person Phone - Only shown for active deliveries (confirmed status) */}
-                  {order.status === 'confirmed' && order.deliveryPersonPhone && (
+                  {/* Delivery Person Phone - Only shown after order is accepted */}
+                  {(order.status === 'waiting_for_payment' || order.status === 'food_delivering') && order.deliveryPersonPhone && (
                     <div className="mt-2 pt-2 border-t border-gray-200 text-sm">
                       <span className="text-gray-600">{t('customer.delivery_person_phone')}</span>
                       <span className="font-bold text-gray-800 mr-2" dir="ltr">{order.deliveryPersonPhone}</span>
+                    </div>
+                  )}
+                  
+                  {/* Confirm Delivery Button - Only shown for food_delivering orders */}
+                  {order.status === 'food_delivering' && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <button
+                        onClick={async () => {
+                          if (order.$id) {
+                            try {
+                              await confirmDelivery(order.$id)
+                              showNotification(t('customer.delivery_confirmed'), 'success')
+                              window.location.reload()
+                            } catch (error) {
+                              console.error('Error confirming delivery:', error)
+                              showNotification(t('customer.delivery_confirm_failed'), 'error')
+                            }
+                          }
+                        }}
+                        className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all"
+                      >
+                        {t('customer.confirm_delivery')}
+                      </button>
                     </div>
                   )}
                 </div>

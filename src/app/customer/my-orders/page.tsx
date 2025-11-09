@@ -18,33 +18,33 @@ interface OrderData {
 }
 
 const deliveryLocations = [
-  'دانشکده فیزیک',
-  'دانشکده علوم ریاضی',
-  'دانشکده شیمی',
-  'دانشکده مهندسی برق',
-  'دانشکده مهندسی انرژی',
-  'دانشکده مدیریت و اقتصاد',
-  'دانشکده مهندسی عمران',
-  'دانشکده مهندسی صنایع',
-  'دانشکده مهندسی شیمی و نفت',
-  'دانشکده مهندسی و علم مواد',
-  'دانشکده مهندسی مکانیک',
-  'دانشکده مهندسی کامپیوتر',
-  'دانشکده مهندسی هوا فضا',
-  'مدیریت تربیت بدنی',
-  'مرکز زبان‌ها و زبان‌شناسی',
-  'گروه فلسفه علم',
-  'مرکز معارف اسلامی و علوم انسانی',
-  'مرکز آموزش مهارت‌های مهندسی',
-  'خوابگاه احمدی روشن (پسران)',
-  'خوابگاه طرشت ۲ (پسران)',
-  'خوابگاه طرشت ۳(دختران)',
-  'ساختمان ابن سینا',
-  'تالار ها',
-  'ساختمان روستا ازاد (پارک علم و فناوری )',
-  'مسجد',
-  'ساختمان اموزش',
-  'امفی تئاتر',
+  { name: 'دانشکده فیزیک', price: 20000 },
+  { name: 'دانشکده علوم ریاضی', price: 20000 },
+  { name: 'دانشکده شیمی', price: 25000 },
+  { name: 'دانشکده مهندسی برق', price: 20000 },
+  { name: 'دانشکده مهندسی انرژی', price: 30000 },
+  { name: 'دانشکده مدیریت و اقتصاد', price: 30000 },
+  { name: 'دانشکده مهندسی عمران', price: 25000 },
+  { name: 'دانشکده مهندسی صنایع', price: 20000 },
+  { name: 'دانشکده مهندسی شیمی و نفت', price: 15000 },
+  { name: 'دانشکده مهندسی و علم مواد', price: 25000 },
+  { name: 'دانشکده مهندسی مکانیک', price: 30000 },
+  { name: 'دانشکده مهندسی کامپیوتر', price: 15000 },
+  { name: 'دانشکده مهندسی هوا فضا', price: 30000 },
+  { name: 'مدیریت تربیت بدنی', price: 30000 },
+  { name: 'مرکز زبان‌ها و زبان‌شناسی', price: 10000 },
+  { name: 'گروه فلسفه علم', price: 25000 },
+  { name: 'مرکز معارف اسلامی و علوم انسانی', price: 10000 },
+  { name: 'مرکز آموزش مهارت‌های مهندسی', price: 10000 },
+  { name: 'خوابگاه احمدی روشن (پسران)', price: 45000 },
+  { name: 'خوابگاه طرشت ۲ (پسران)', price: 50000 },
+  { name: 'خوابگاه طرشت ۳(دختران)', price: 45000 },
+  { name: 'ساختمان ابن سینا', price: 10000 },
+  { name: 'تالار ها', price: 25000 },
+  { name: 'ساختمان روستا ازاد (پارک علم و فناوری )', price: 20000 },
+  { name: 'مسجد', price: 25000 },
+  { name: 'ساختمان اموزش', price: 30000 },
+  { name: 'امفی تئاتر', price: 25000 },
 ]
 
 function OrderCompletionContent() {
@@ -57,6 +57,7 @@ function OrderCompletionContent() {
   const [pageMode, setPageMode] = useState<'loading' | 'completion' | 'history'>('loading')
 
   const [deliveryLocation, setDeliveryLocation] = useState('')
+  const [deliveryFee, setDeliveryFee] = useState(0)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [extraNotes, setExtraNotes] = useState('')
   const [phone, setPhone] = useState('')
@@ -117,6 +118,10 @@ function OrderCompletionContent() {
         .map((item) => `${item.name} (${item.category}) - ${item.price.toLocaleString()} تومان`)
         .join('\n')
 
+      // Calculate food price and delivery fee
+      const foodPrice = orderData.total
+      const finalPrice = foodPrice + deliveryFee
+      
       await createOrder({
         userId: user.$id,
         fullName: user.name,
@@ -126,7 +131,8 @@ function OrderCompletionContent() {
         deliveryLocation: deliveryLocation,
         phone: phone,
         extraNotes: extraNotes || undefined,
-        price: orderData.total, // You might want to add delivery fee or apply discount here
+        price: finalPrice,
+        deliveryFee: deliveryFee,
         status: 'pending',
       })
 
@@ -161,8 +167,10 @@ function OrderCompletionContent() {
                     <span className="font-bold text-gray-800">{order.restaurantLocation}</span>
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                       order.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
-                      order.status === 'confirmed' ? 'bg-blue-200 text-blue-800' :
-                      'bg-green-200 text-green-800'
+                      order.status === 'waiting_for_payment' ? 'bg-orange-200 text-orange-800' :
+                      order.status === 'food_delivering' ? 'bg-blue-200 text-blue-800' :
+                      order.status === 'food_delivered' ? 'bg-green-200 text-green-800' :
+                      'bg-gray-200 text-gray-800'
                     }`}>{order.status}</span>
                   </div>
                   <p className="text-sm text-gray-600 mb-2 whitespace-pre-wrap">{order.orderCode}</p>
@@ -187,7 +195,6 @@ function OrderCompletionContent() {
     return <div className="text-center p-8 text-white">Redirecting...</div>;
   }
 
-  const deliveryFee = 15000
   const finalPrice = orderData.total + deliveryFee
 
   return (
@@ -220,14 +227,15 @@ function OrderCompletionContent() {
               <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto border border-gray-200">
                 {deliveryLocations.map((loc) => (
                   <div
-                    key={loc}
+                    key={loc.name}
                     onClick={() => {
-                      setDeliveryLocation(loc)
+                      setDeliveryLocation(loc.name)
+                      setDeliveryFee(loc.price)
                       setIsDropdownOpen(false)
                     }}
                     className="p-3 hover:bg-blue-50 cursor-pointer text-right"
                   >
-                    {loc}
+                    {loc.name} - {loc.price.toLocaleString()} تومان
                   </div>
                 ))}
               </div>

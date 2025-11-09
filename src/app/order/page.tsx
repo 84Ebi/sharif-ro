@@ -123,28 +123,42 @@ function OrderFormContent() {
       return
     }
 
-    // Calculate final price for special orders
-    let finalPrice = form.price
+    // Calculate food price and delivery fee separately
+    let foodPrice = form.price
+    let deliveryFee = form.deliveryFee || 0
+    
     if (isSelfOrder) {
-      // Start with base items
-      finalPrice = 0
-      if (form.needsContainer) finalPrice += containerPrice
-      if (form.needsUtensils) finalPrice += utensilsPrice
+      // Calculate food price (container + utensils + drinks)
+      foodPrice = 0
+      if (form.needsContainer) foodPrice += containerPrice
+      if (form.needsUtensils) foodPrice += utensilsPrice
       
       // Add drink price
       if (form.selectedDrink) {
         const selectedDrinkItem = drinksAndAddons.find(d => d.name === form.selectedDrink)
         if (selectedDrinkItem) {
-          finalPrice += selectedDrinkItem.price
+          foodPrice += selectedDrinkItem.price
         }
       }
       
-      // Add delivery fee
-      finalPrice += form.deliveryFee
+      // Delivery fee is already set from location selection
+      deliveryFee = form.deliveryFee || 0
     } else if (isKelanaOrder || isCleanFoodOrder) {
       // For Kelana and Clean Food, only delivery fee is charged
-      finalPrice = form.deliveryFee
+      foodPrice = 0
+      deliveryFee = form.deliveryFee || 0
+    } else {
+      // For regular orders, deliveryFee should be calculated from delivery location
+      // If deliveryFee is not set, try to find it from deliveryLocations
+      if (!deliveryFee && form.deliveryLocation) {
+        const location = deliveryLocations.find(loc => loc.name === form.deliveryLocation)
+        if (location) {
+          deliveryFee = location.price
+        }
+      }
     }
+    
+    const finalPrice = foodPrice + deliveryFee
     
     // Build order details for Self orders
     let orderDetails = form.orderCode
@@ -186,6 +200,7 @@ function OrderFormContent() {
         phone: form.phone,
         extraNotes: form.extraNotes || undefined,
         price: finalPrice,
+        deliveryFee: deliveryFee,
         status: 'pending',
       })
       

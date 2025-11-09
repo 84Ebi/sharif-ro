@@ -18,12 +18,14 @@ export interface Order {
   email?: string;
   extraNotes?: string;
   price: number;
-  status: 'pending' | 'confirmed' | 'delivered';
+  deliveryFee?: number;
+  status: 'pending' | 'waiting_for_payment' | 'food_delivering' | 'food_delivered';
   deliveryPersonId?: string;
   deliveryPersonName?: string;
   deliveryPersonPhone?: string;
   deliveryPersonCardNumber?: string;
   confirmedAt?: string;
+  paymentConfirmedAt?: string;
   deliveredAt?: string;
 }
 
@@ -37,8 +39,9 @@ export interface OrderFilters {
 }
 
 type OrderUpdateData = {
-  status: 'pending' | 'confirmed' | 'delivered';
+  status: 'pending' | 'waiting_for_payment' | 'food_delivering' | 'food_delivered';
   deliveredAt?: string;
+  paymentConfirmedAt?: string;
 };
 
 /**
@@ -126,7 +129,7 @@ export async function getOrder(orderId: string): Promise<Order | null> {
 }
 
 /**
- * Confirm order for delivery
+ * Confirm order for delivery (changes status to waiting_for_payment)
  */
 export async function confirmOrder(
   orderId: string,
@@ -141,7 +144,7 @@ export async function confirmOrder(
       confirmedAt: string
       deliveryPersonCardNumber?: string
     } = {
-      status: 'confirmed',
+      status: 'waiting_for_payment',
       deliveryPersonId: deliveryPersonData.id,
       deliveryPersonName: deliveryPersonData.name,
       deliveryPersonPhone: deliveryPersonData.phone,
@@ -161,7 +164,7 @@ export async function confirmOrder(
       if (updateError instanceof Error && updateError.message && updateError.message.includes('Unknown attribute') && updateError.message.includes('deliveryPersonCardNumber')) {
         console.warn('deliveryPersonCardNumber attribute not found in collection. Updating without card number. Please add this attribute to the orders collection.');
         const updateDataWithoutCard = {
-          status: 'confirmed',
+          status: 'waiting_for_payment',
           deliveryPersonId: deliveryPersonData.id,
           deliveryPersonName: deliveryPersonData.name,
           deliveryPersonPhone: deliveryPersonData.phone,
@@ -183,7 +186,7 @@ export async function confirmOrder(
  */
 export async function updateOrderStatus(
   orderId: string,
-  status: 'pending' | 'confirmed' | 'delivered'
+  status: 'pending' | 'waiting_for_payment' | 'food_delivering' | 'food_delivered'
 ): Promise<Order | null> {
   try {
     const updateData: OrderUpdateData = { 
@@ -191,7 +194,7 @@ export async function updateOrderStatus(
     };
     
     // Add timestamp for delivered status
-    if (status === 'delivered') {
+    if (status === 'food_delivered') {
       updateData.deliveredAt = new Date().toISOString();
     }
     
@@ -199,6 +202,42 @@ export async function updateOrderStatus(
     return response as unknown as Order;
   } catch (error) {
     console.error('Error updating order status:', error);
+    throw error;
+  }
+}
+
+/**
+ * Confirm payment (changes status from waiting_for_payment to food_delivering)
+ */
+export async function confirmPayment(orderId: string): Promise<Order | null> {
+  try {
+    const updateData = {
+      status: 'food_delivering',
+      paymentConfirmedAt: new Date().toISOString(),
+    };
+    
+    const response = await databases.updateDocument(DATABASE_ID, COLLECTION_ID, orderId, updateData);
+    return response as unknown as Order;
+  } catch (error) {
+    console.error('Error confirming payment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Confirm delivery (changes status from food_delivering to food_delivered)
+ */
+export async function confirmDelivery(orderId: string): Promise<Order | null> {
+  try {
+    const updateData = {
+      status: 'food_delivered',
+      deliveredAt: new Date().toISOString(),
+    };
+    
+    const response = await databases.updateDocument(DATABASE_ID, COLLECTION_ID, orderId, updateData);
+    return response as unknown as Order;
+  } catch (error) {
+    console.error('Error confirming delivery:', error);
     throw error;
   }
 }

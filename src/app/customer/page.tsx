@@ -11,13 +11,15 @@ import KelanaMenu from '../../components/KelanaMenu'
 import CleanFoodMenu from '../../components/CleanFoodMenu'
 import Image from 'next/image'
 import { useI18n } from '@/lib/i18n'
-import { getOrdersByUser, Order } from '../../lib/orders'
+import { getOrdersByUser, confirmDelivery, Order } from '../../lib/orders'
 import OrderChat from '../../components/OrderChat'
+import { useNotification } from '@/contexts/NotificationContext'
 
 export default function CustomerHome() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { t } = useI18n()
+  const { showNotification } = useNotification()
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false)
   const [isFastFoodMenuOpen, setIsFastFoodMenuOpen] = useState(false)
   const [isOtherMenuOpen, setIsOtherMenuOpen] = useState(false)
@@ -63,7 +65,11 @@ export default function CustomerHome() {
     setLoadingOrders(true)
     try {
       const orders = await getOrdersByUser(user.$id)
-      const pending = orders.filter(order => order.status === 'pending' || order.status === 'confirmed')
+      const pending = orders.filter(order => 
+        order.status === 'pending' || 
+        order.status === 'waiting_for_payment' || 
+        order.status === 'food_delivering'
+      )
       setPendingOrders(pending)
     } catch (err) {
       console.error('Failed to fetch orders:', err)
@@ -150,9 +156,19 @@ export default function CustomerHome() {
                         <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
                           order.status === 'pending' 
                             ? 'bg-yellow-200 text-yellow-800' 
-                            : 'bg-blue-200 text-blue-800'
+                            : order.status === 'waiting_for_payment'
+                            ? 'bg-orange-200 text-orange-800'
+                            : order.status === 'food_delivering'
+                            ? 'bg-blue-200 text-blue-800'
+                            : 'bg-green-200 text-green-800'
                         }`}>
-                          {order.status === 'pending' ? '🕐 در انتظار' : '✓ تایید شده'}
+                          {order.status === 'pending' 
+                            ? '🕐 در انتظار' 
+                            : order.status === 'waiting_for_payment'
+                            ? '💰 در انتظار پرداخت'
+                            : order.status === 'food_delivering'
+                            ? '🚚 در حال ارسال'
+                            : '✓ تحویل داده شد'}
                         </span>
                       </div>
                     </div>
@@ -168,7 +184,7 @@ export default function CustomerHome() {
                       </div>
                     </div>
                     
-                    {/* Delivery Person Phone - Only shown for active deliveries (confirmed status) */}
+                    {/* Delivery Person Phone - Only shown after order is accepted */}
                     {order.deliveryPersonPhone && (
                       <div className="mt-3 bg-green-50 border border-green-200 rounded p-3 text-sm">
                         <div className="flex items-center gap-2 mb-1">
@@ -179,7 +195,7 @@ export default function CustomerHome() {
                       </div>
                     )}
                     
-                    {/* Delivery Person Card Number - Only shown for active deliveries (confirmed status) */}
+                    {/* Delivery Person Card Number - Only shown after order is accepted */}
                     {order.deliveryPersonCardNumber && (
                       <div className="mt-3 bg-blue-50 border border-blue-200 rounded p-3 text-sm">
                         <div className="flex items-center gap-2 mb-1">
@@ -187,6 +203,29 @@ export default function CustomerHome() {
                           <span className="text-gray-700 font-semibold">{t('customer.delivery_person_card')}</span>
                         </div>
                         <span className="font-bold text-gray-800 text-base" dir="ltr">{order.deliveryPersonCardNumber}</span>
+                      </div>
+                    )}
+                    
+                    {/* Confirm Delivery Button - Only shown for food_delivering orders */}
+                    {order.status === 'food_delivering' && (
+                      <div className="mt-3 flex justify-center">
+                        <button
+                          onClick={async () => {
+                            if (order.$id) {
+                              try {
+                                await confirmDelivery(order.$id)
+                                showNotification(t('customer.delivery_confirmed'), 'success')
+                                await loadOrders()
+                              } catch (error) {
+                                console.error('Error confirming delivery:', error)
+                                showNotification(t('customer.delivery_confirm_failed'), 'error')
+                              }
+                            }
+                          }}
+                          className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-2 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg"
+                        >
+                          {t('customer.confirm_delivery')}
+                        </button>
                       </div>
                     )}
                     
@@ -202,8 +241,8 @@ export default function CustomerHome() {
                         <span>📅</span>
                         <span>{order.$createdAt ? new Date(order.$createdAt).toLocaleString('fa-IR') : ''}</span>
                       </div>
-                      {/* Chat button - only for confirmed orders and authenticated users */}
-                      {user && order.status === 'confirmed' && order.deliveryPersonId && (
+                      {/* Chat button - only for orders with delivery person assigned */}
+                      {user && (order.status === 'waiting_for_payment' || order.status === 'food_delivering') && order.deliveryPersonId && (
                         <button
                           onClick={() => setSelectedOrderForChat(order)}
                           className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-1"

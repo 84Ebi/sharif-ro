@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
-import { getPendingOrders, confirmOrder, getOrders, type Order } from '../../lib/orders'
+import { getPendingOrders, confirmOrder, getOrders, confirmPayment, type Order } from '../../lib/orders'
 import BottomDock from '../../components/BottomDock'
 import { useI18n } from '@/lib/i18n'
 import { useNotification } from '@/contexts/NotificationContext'
@@ -85,12 +85,13 @@ export default function Delivery() {
       )
     }
     
+    // Filter by delivery fee (profit) instead of total price
     if (costMin) {
-      filtered = filtered.filter(order => order.price >= Number(costMin))
+      filtered = filtered.filter(order => (order.deliveryFee || 0) >= Number(costMin))
     }
     
     if (costMax) {
-      filtered = filtered.filter(order => order.price <= Number(costMax))
+      filtered = filtered.filter(order => (order.deliveryFee || 0) <= Number(costMax))
     }
     
     setFilteredOrders(filtered)
@@ -114,13 +115,16 @@ export default function Delivery() {
     }
   }, [user, loadOrders])
 
-  // Fetch delivery person's active deliveries (confirmed but not delivered)
+  // Fetch delivery person's active deliveries (waiting_for_payment, food_delivering)
   useEffect(() => {
     if (user && user.emailVerification) {
       setLoadingMyDeliveries(true)
-      getOrders({ deliveryPersonId: user.$id, status: 'confirmed' })
-        .then((deliveryOrders: Order[]) => {
-          setMyActiveDeliveries(deliveryOrders)
+      Promise.all([
+        getOrders({ deliveryPersonId: user.$id, status: 'waiting_for_payment' }),
+        getOrders({ deliveryPersonId: user.$id, status: 'food_delivering' })
+      ])
+        .then(([waitingOrders, deliveringOrders]: [Order[], Order[]]) => {
+          setMyActiveDeliveries([...waitingOrders, ...deliveringOrders])
         })
         .catch((err: Error) => console.error('Failed to fetch my deliveries:', err))
         .finally(() => setLoadingMyDeliveries(false))
@@ -136,8 +140,11 @@ export default function Delivery() {
       await loadOrders()
       
       // Reload active deliveries
-      const deliveryOrders = await getOrders({ deliveryPersonId: user.$id, status: 'confirmed' })
-      setMyActiveDeliveries(deliveryOrders)
+      const [waitingOrders, deliveringOrders] = await Promise.all([
+        getOrders({ deliveryPersonId: user.$id, status: 'waiting_for_payment' }),
+        getOrders({ deliveryPersonId: user.$id, status: 'food_delivering' })
+      ])
+      setMyActiveDeliveries([...waitingOrders, ...deliveringOrders])
     } catch (error) {
       console.error('Error refreshing:', error)
     } finally {
@@ -347,8 +354,14 @@ export default function Delivery() {
                         <p className="text-sm text-gray-600">{order.restaurantType}</p>
                       </div>
                       <div className="text-right">
-                        <span className="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-green-200 text-green-800">
-                          {t('delivery.status_in_delivery')}
+                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                          order.status === 'waiting_for_payment' 
+                            ? 'bg-orange-200 text-orange-800' 
+                            : 'bg-green-200 text-green-800'
+                        }`}>
+                          {order.status === 'waiting_for_payment' 
+                            ? t('delivery.status_waiting_payment') 
+                            : t('delivery.status_in_delivery')}
                         </span>
                       </div>
                     </div>
@@ -366,8 +379,16 @@ export default function Delivery() {
 
                     <div className="grid grid-cols-2 gap-3 text-sm mb-3">
                       <div className="bg-white bg-opacity-50 rounded p-2">
-                        <span className="text-gray-600">{t('delivery.amount')}</span>
-                        <span className="font-bold text-gray-800 mr-2">{order.price.toLocaleString()} {t('delivery.toman')}</span>
+                        <span className="text-gray-600">{t('delivery.food_price')}</span>
+                        <span className="font-bold text-gray-800 mr-2">
+                          {((order.price || 0) - (order.deliveryFee || 0)).toLocaleString()} {t('delivery.toman')}
+                        </span>
+                      </div>
+                      <div className="bg-white bg-opacity-50 rounded p-2">
+                        <span className="text-gray-600">{t('delivery.profit')}</span>
+                        <span className="font-bold text-green-600 mr-2">
+                          {(order.deliveryFee || 0).toLocaleString()} {t('delivery.toman')}
+                        </span>
                       </div>
                     </div>
 
@@ -402,7 +423,32 @@ export default function Delivery() {
                       <span>{order.$createdAt ? new Date(order.$createdAt).toLocaleString('fa-IR') : ''}</span>
                     </div>
 
-                    <div className="mt-3 flex justify-center">
+                    <div className="mt-3 flex justify-center gap-2">
+                      {order.status === 'waiting_for_payment' && (
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation()
+                            if (order.$id) {
+                              try {
+                                await confirmPayment(order.$id)
+                                showNotification(t('delivery.payment_confirmed'), 'success')
+                                // Reload active deliveries
+                                const [waitingOrders, deliveringOrders] = await Promise.all([
+                                  getOrders({ deliveryPersonId: user.$id, status: 'waiting_for_payment' }),
+                                  getOrders({ deliveryPersonId: user.$id, status: 'food_delivering' })
+                                ])
+                                setMyActiveDeliveries([...waitingOrders, ...deliveringOrders])
+                              } catch (error) {
+                                console.error('Error confirming payment:', error)
+                                showNotification(t('delivery.payment_confirm_failed'), 'error')
+                              }
+                            }
+                          }}
+                          className="bg-gradient-to-r from-orange-600 to-orange-700 text-white px-6 py-2 rounded-lg font-semibold hover:from-orange-700 hover:to-orange-800 transition-all shadow-lg"
+                        >
+                          {t('delivery.confirm_payment')}
+                        </button>
+                      )}
                       <Link href="/delivery/orders">
                         <button className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-2 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg">
                           {t('delivery.view_details_and_deliver')}
@@ -450,8 +496,13 @@ export default function Delivery() {
                         {order.$createdAt && new Date(order.$createdAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
                       </div>
                     </div>
-                    <div className="font-bold text-gray-800 text-sm">
-                      {order.price.toLocaleString()} {t('delivery.toman')}
+                    <div className="text-right">
+                      <div className="font-bold text-gray-800 text-sm">
+                        {(order.deliveryFee || 0).toLocaleString()} {t('delivery.toman')}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {t('delivery.profit')}
+                      </div>
                     </div>
                   </div>
 
@@ -482,7 +533,8 @@ export default function Delivery() {
                       )}
                       <div><strong>{t('deliveries.deliver_to')}:</strong> {order.deliveryLocation}</div>
                       {order.extraNotes && <div><strong>{t('deliveries.notes')}:</strong> {order.extraNotes}</div>}
-                      <div><strong>{t('deliveries.price')}:</strong> {order.price.toLocaleString()} {t('delivery.toman')}</div>
+                      <div><strong>{t('delivery.food_price')}:</strong> {((order.price || 0) - (order.deliveryFee || 0)).toLocaleString()} {t('delivery.toman')}</div>
+                      <div><strong>{t('delivery.profit')}:</strong> <span className="text-green-600">{(order.deliveryFee || 0).toLocaleString()} {t('delivery.toman')}</span></div>
                     </div>
 
                     <div className="flex justify-center mt-3">
