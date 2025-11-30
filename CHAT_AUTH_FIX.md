@@ -46,3 +46,4 @@ If chat still shows "Not authenticated" error:
 
 The session sync happens asynchronously in the background. If the API call fails, client-side features will still work, but server-side API routes (like chat) may not work until the user logs in again or the session is properly synced.
 
+

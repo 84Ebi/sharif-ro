@@ -32,3 +32,4 @@ After adding the attribute, the order confirmation should work without errors.
 
 If you want to make the feature optional (works without the attribute), the code already handles this gracefully - it will just skip saving the card number if the attribute doesn't exist. However, for full functionality, you should add the attribute as described above.
 
+
