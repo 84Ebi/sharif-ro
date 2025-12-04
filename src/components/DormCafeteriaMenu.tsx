@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { useI18n } from '@/lib/i18n'
 
 interface MenuItem {
   name: string
@@ -19,7 +18,7 @@ interface DormCafeteriaMenuProps {
 
 export default function DormCafeteriaMenu({ isOpen, onClose, onOrderSuccess }: DormCafeteriaMenuProps) {
   const router = useRouter()
-  const { t } = useI18n()
+  // const { t } = useI18n() // Unused
   const [selectedItems, setSelectedItems] = useState<MenuItem[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -69,14 +68,14 @@ export default function DormCafeteriaMenu({ isOpen, onClose, onOrderSuccess }: D
   }
 
   // Menu data for Thursday lunch (15,000 Toman)
-  const thursdayLunchMenu = [
-    {
-      category: 'ناهار پنجشنبه',
-      items: [
-        { name: 'ناهار سلف', price: 15000, category: 'ناهار پنجشنبه' },
-      ],
-    },
-  ]
+  // const thursdayLunchMenu = [ // Unused
+  //   {
+  //     category: 'ناهار پنجشنبه',
+  //     items: [
+  //       { name: 'ناهار سلف', price: 15000, category: 'ناهار پنجشنبه' },
+  //     ],
+  //   },
+  // ]
 
   // Get filtered dorms based on gender
   const getAvailableDorms = () => {

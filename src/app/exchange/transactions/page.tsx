@@ -1,7 +1,12 @@
 'use client'
 
-import ExchangePage from '../page'
+import { Suspense } from 'react'
+import ExchangeContent from '@/components/ExchangeContent'
 
 export default function ExchangeTransactionsPage() {
-  return <ExchangePage initialTab="history" />
+  return (
+    <Suspense>
+      <ExchangeContent initialTab="history" />
+    </Suspense>
+  )
 }

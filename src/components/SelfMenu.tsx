@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { useI18n } from '@/lib/i18n'
 
 interface MenuItem {
   name: string
@@ -23,7 +22,7 @@ type DeliveryMethod = 'pickup_at_dorm' | 'delivery_to_university'
 
 export default function SelfMenu({ isOpen, onClose, onOrderSuccess }: SelfMenuProps) {
   const router = useRouter()
-  const { t } = useI18n()
+  // const { t } = useI18n() // Unused
   const [selectedSection, setSelectedSection] = useState<SectionType>('university_boys')
   const [selectedMealType, setSelectedMealType] = useState<MealType>('lunch')
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('pickup_at_dorm')

@@ -1,4 +1,4 @@
-import { databases, Query } from '@/lib/appwrite'
+import { databases } from '@/lib/appwrite'
 import { NextRequest } from 'next/server'
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '68e8f87e0003da022cc5'
@@ -7,10 +7,10 @@ const EXCHANGE_COLLECTION_ID = 'exchange_listings'
 // PATCH /api/exchange/listings/[id] - Update listing (flag, purchase, confirm payment)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { action } = body
     
@@ -21,7 +21,7 @@ export async function PATCH(
       id
     )
     
-    let updateData: any = {}
+    let updateData: Record<string, unknown> = {}
     
     switch (action) {
       case 'flag':
@@ -42,7 +42,7 @@ export async function PATCH(
         }
         
         // Auto-hide if flagCount reaches 3
-        if (updateData.flagCount >= 3) {
+        if ((updateData.flagCount as number) >= 3) {
           updateData.status = 'flagged'
         }
         break
@@ -133,10 +133,10 @@ export async function PATCH(
 // DELETE /api/exchange/listings/[id] - Delete a listing
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const searchParams = request.nextUrl.searchParams
     const userId = searchParams.get('userId')
     
@@ -181,10 +181,10 @@ export async function DELETE(
 // GET /api/exchange/listings/[id] - Get a single listing
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     
     const listing = await databases.getDocument(
       DATABASE_ID,

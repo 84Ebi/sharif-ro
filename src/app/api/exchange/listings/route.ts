@@ -4,26 +4,6 @@ import { NextRequest } from 'next/server'
 const DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '68e8f87e0003da022cc5'
 const EXCHANGE_COLLECTION_ID = 'exchange_listings' // Will need to be created in Appwrite
 
-interface ExchangeListing {
-  $id?: string
-  userId: string
-  userName: string
-  userCardNumber: string
-  itemType: string
-  itemName: string
-  description?: string
-  price: number
-  status: 'active' | 'sold' | 'cancelled' | 'flagged' | 'expired'
-  buyerId?: string
-  flagCount: number
-  flagReasons?: string[]
-  codeValue?: string
-  expiresAt: string
-  paymentConfirmedAt?: string
-  $createdAt?: string
-  $updatedAt?: string
-}
-
 // Helper function to calculate expiration time (2 PM today or tomorrow)
 function calculateExpirationTime(): string {
   const now = new Date()

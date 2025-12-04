@@ -15,7 +15,7 @@ interface OrderChatProps {
   deliveryPersonId?: string
 }
 
-export default function OrderChat({ orderId, isOpen, onClose, customerId, deliveryPersonId }: OrderChatProps) {
+export default function OrderChat({ orderId, isOpen, onClose }: OrderChatProps) {
   const { user } = useAuth()
   const { t, locale } = useI18n()
   const { showNotification } = useNotification()

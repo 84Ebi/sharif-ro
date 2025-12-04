@@ -44,7 +44,7 @@ async function setupExchangeCollection() {
         true // Document Security enabled (important so users can only edit their own listings if we set permissions correctly on creation)
       )
       console.log('Collection created.')
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       if (error.code === 409) {
         console.log('Collection already exists. Updating permissions...')
         // Update permissions just in case
@@ -89,12 +89,13 @@ async function setupExchangeCollection() {
         if (attr.type === 'string') {
           await databases.createStringAttribute(DATABASE_ID, COLLECTION_ID, attr.key, attr.size as number, attr.required, undefined, attr.array)
         } else if (attr.type === 'integer') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await databases.createIntegerAttribute(DATABASE_ID, COLLECTION_ID, attr.key, attr.required, 0, 2147483647, (attr as any).default)
         } else if (attr.type === 'datetime') {
           await databases.createDatetimeAttribute(DATABASE_ID, COLLECTION_ID, attr.key, attr.required)
         }
         console.log(`Attribute '${attr.key}' created/verified.`)
-      } catch (error: any) {
+      } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         if (error.code === 409) {
           console.log(`Attribute '${attr.key}' already exists.`)
         } else {
@@ -114,9 +115,10 @@ async function setupExchangeCollection() {
 
     for (const idx of indexes) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await databases.createIndex(DATABASE_ID, COLLECTION_ID, idx.key, idx.type as any, idx.attributes)
         console.log(`Index '${idx.key}' created.`)
-      } catch (error: any) {
+      } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         if (error.code === 409) {
           console.log(`Index '${idx.key}' already exists.`)
         } else {
