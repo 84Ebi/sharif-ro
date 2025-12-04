@@ -23,6 +23,11 @@ export interface Order {
   deliveredAt?: string
   $createdAt?: string
   $updatedAt?: string
+  // Cafeteria-specific fields
+  cafeteriaType?: 'dormitory' | 'university'
+  mealType?: 'breakfast' | 'lunch' | 'dinner'
+  dormCode?: string
+  dayOfWeek?: number
 }
 
 export interface OrderFilters {

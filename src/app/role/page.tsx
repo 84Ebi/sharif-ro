@@ -90,6 +90,17 @@ export default function RoleSelectionPage() {
           </div>
           <h2 className="text-2xl font-bold text-[#001f3f]">{t('role.delivery')}</h2>
         </div>
+
+        {/* Exchange - Sharif Exchange */}
+        <div
+          onClick={() => handleRoleSelection('exchange')}
+          className="bg-white/97 backdrop-blur-sm p-8 rounded-[20px] transition-all duration-300 cursor-pointer w-[220px] hover:scale-110 hover:bg-white/97 text-center"
+        >
+          <div className="flex justify-center mb-5">
+            <div className="w-[100px] h-[100px] bg-gray-200 rounded-full flex items-center justify-center text-4xl">🐼</div>
+          </div>
+          <h2 className="text-2xl font-bold text-[#001f3f]">{t('exchange.title')}</h2>
+        </div>
       </div>
     </div>
   )

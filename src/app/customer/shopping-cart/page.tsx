@@ -48,6 +48,10 @@ const deliveryLocations = [
   { name: 'مسجد', price: 25000 },
   { name: 'ساختمان اموزش', price: 30000 },
   { name: 'امفی تئاتر', price: 25000 },
+  // Dormitory Cafeteria Destinations
+  { name: 'سلف خوابگاه احمدی', price: 0 },
+  { name: 'سلف خوابگاه طرشت ۲', price: 0 },
+  { name: 'سلف خوابگاه طرشت ۳', price: 0 },
 ]
 
 function ShoppingCartContent() {
