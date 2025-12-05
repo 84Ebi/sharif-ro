@@ -18,6 +18,11 @@ interface MenuItem {
 interface OrderData {
   items: MenuItem[]
   total: number
+  restaurantLocation?: string
+  restaurantType?: string
+  cafeteriaType?: 'dormitory' | 'university'
+  mealType?: 'breakfast' | 'lunch' | 'dinner'
+  section?: string
 }
 
 const deliveryLocations = [
@@ -66,6 +71,8 @@ function ShoppingCartContent() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [extraNotes, setExtraNotes] = useState('')
   const [phone, setPhone] = useState('')
+  const [foodCode, setFoodCode] = useState('')
+  const [foodName, setFoodName] = useState('')
   const [discountCode, setDiscountCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -125,7 +132,7 @@ function ShoppingCartContent() {
 
   const updateCart = (newItems: MenuItem[]) => {
     const newTotal = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    const newOrderData = { items: newItems, total: newTotal }
+    const newOrderData = { ...orderData, items: newItems, total: newTotal }
     setOrderData(newOrderData)
     sessionStorage.setItem('shoppingCart', JSON.stringify(newOrderData))
   }
@@ -167,12 +174,24 @@ function ShoppingCartContent() {
       setError('Please enter a phone number.')
       return
     }
+    
+    // Validate food code for Self orders
+    if ((orderData.restaurantLocation === 'Self' || orderData.cafeteriaType)) {
+      if (!foodCode) {
+        setError('لطفاً کد فراموشی / کد غذا را وارد کنید.')
+        return
+      }
+      if (!foodName) {
+        setError('لطفاً نام غذا را وارد کنید.')
+        return
+      }
+    }
 
     setLoading(true)
     setError('')
 
     try {
-      const orderItemsText = orderData.items
+      let orderItemsText = orderData.items
         .map(
           (item) =>
             `${item.name} (x${item.quantity}) - ${(
@@ -181,6 +200,10 @@ function ShoppingCartContent() {
         )
         .join('\n')
 
+      if (orderData.restaurantLocation === 'Self' || orderData.cafeteriaType) {
+        orderItemsText = `غذا: ${foodName}\nکد غذا: ${foodCode}\n${orderItemsText}`
+      }
+
       // Calculate food price and delivery fee
       const foodPrice = orderData.total
       const finalPrice = foodPrice + deliveryFee
@@ -188,8 +211,10 @@ function ShoppingCartContent() {
       await createOrder({
         userId: user.$id,
         fullName: user.name,
-        restaurantLocation: 'Sharif Plus',
-        restaurantType: 'Sharif Plus Menu',
+        restaurantLocation: orderData.restaurantLocation || 'Sharif Plus',
+        restaurantType: orderData.restaurantType || 'Sharif Plus Menu',
+        cafeteriaType: orderData.cafeteriaType,
+        mealType: orderData.mealType,
         orderCode: orderItemsText,
         deliveryLocation: deliveryLocation,
         phone: phone,
@@ -323,6 +348,33 @@ function ShoppingCartContent() {
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
+
+            {/* Food Code - Only for Self orders */}
+            {(orderData.restaurantLocation === 'Self' || orderData.cafeteriaType) && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">نام غذا</label>
+                  <input
+                    value={foodName}
+                    onChange={(e) => setFoodName(e.target.value)}
+                    type="text"
+                    placeholder="نام غذا را وارد کنید (مثلاً قرمه سبزی)"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">کد فراموشی / کد غذا</label>
+                  <input
+                    value={foodCode}
+                    onChange={(e) => setFoodCode(e.target.value)}
+                    type="text"
+                    placeholder="کد فراموشی یا کد غذا را وارد کنید"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">کد تخفیف</label>
               <input

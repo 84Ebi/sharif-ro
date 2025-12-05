@@ -9,7 +9,6 @@ import SharifFastFoodMenu from '../../components/SharifFastFoodMenu'
 import OtherMenu from '../../components/OtherMenu'
 import KelanaMenu from '../../components/KelanaMenu'
 import CleanFoodMenu from '../../components/CleanFoodMenu'
-import DormCafeteriaMenu from '../../components/DormCafeteriaMenu'
 import SelfMenu from '../../components/SelfMenu'
 import Image from 'next/image'
 import { useI18n } from '@/lib/i18n'
@@ -27,7 +26,6 @@ export default function CustomerHome() {
   const [isOtherMenuOpen, setIsOtherMenuOpen] = useState(false)
   const [isKelanaMenuOpen, setIsKelanaMenuOpen] = useState(false)
   const [isCleanFoodMenuOpen, setIsCleanFoodMenuOpen] = useState(false)
-  const [isDormCafeteriaMenuOpen, setIsDormCafeteriaMenuOpen] = useState(false)
   const [isSelfMenuOpen, setIsSelfMenuOpen] = useState(false)
   const [pendingOrders, setPendingOrders] = useState<Order[]>([])
   const [loadingOrders, setLoadingOrders] = useState(true)
@@ -38,7 +36,6 @@ export default function CustomerHome() {
     { name: t('service.sharif_plus'), icon: '/delivery-icon.png', location: 'Sharif Plus' },
     { name: t('service.sharif_fastfood'), icon: '/shariffastfood.png', location: 'Sharif Fastfood' },
     { name: t('service.self'), icon: '/self.png', location: 'Self' },
-    { name: t('service.dorm_cafeteria'), icon: '/self.png', location: 'Dorm Cafeteria' },
     { name: t('service.clean_food'), icon: '/logo38668.jpeg', location: 'Clean Food' },
     { name: t('service.other'), icon: '/other-icon.png', location: 'Other' },
     { name: t('service.kelana'), icon: '/kelana-icon.png', location: 'Kelana' },
@@ -51,8 +48,6 @@ export default function CustomerHome() {
       setIsFastFoodMenuOpen(true)
     } else if (location === 'Self') {
       setIsSelfMenuOpen(true)
-    } else if (location === 'Dorm Cafeteria') {
-      setIsDormCafeteriaMenuOpen(true)
     } else if (location === 'Other') {
       setIsOtherMenuOpen(true)
     } else if (location === 'Kelana') {
@@ -320,13 +315,6 @@ export default function CustomerHome() {
       <CleanFoodMenu 
         isOpen={isCleanFoodMenuOpen} 
         onClose={() => setIsCleanFoodMenuOpen(false)}
-      />
-
-      {/* Dorm Cafeteria Menu Popup */}
-      <DormCafeteriaMenu 
-        isOpen={isDormCafeteriaMenuOpen} 
-        onClose={() => setIsDormCafeteriaMenuOpen(false)}
-        onOrderSuccess={handleOrderSuccess}
       />
 
       {/* Self Menu Popup */}
