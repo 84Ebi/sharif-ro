@@ -19,6 +19,8 @@ interface ExchangeListing {
   status: 'active' | 'sold' | 'cancelled' | 'flagged' | 'expired' | 'pending_payment'
   buyerId?: string
   flagCount: number
+  flagReasons?: string[]
+  flaggedBy?: string[]
   codeValue?: string
   expiresAt: string
   paymentConfirmedAt?: string
@@ -214,7 +216,7 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
   }
 
   const handleReport = async () => {
-    if (!selectedListingId || !reportReason) return
+    if (!selectedListingId || !reportReason || !user) return
 
     try {
       const res = await fetch(`/api/exchange/listings/${selectedListingId}`, {
@@ -222,7 +224,8 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'flag',
-          reason: reportReason
+          reason: reportReason,
+          userId: user.$id
         })
       })
 
@@ -233,7 +236,8 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
         setSelectedListingId(null)
         fetchListings()
       } else {
-        showNotification('خطا در ثبت گزارش', 'error')
+        const data = await res.json()
+        showNotification(data.error || 'خطا در ثبت گزارش', 'error')
       }
     } catch (error) {
       console.error('Error reporting listing:', error)
@@ -502,6 +506,17 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
                         <span>{listing.price.toLocaleString()} {t('delivery.toman')}</span>
                         <span>{new Date(listing.$createdAt).toLocaleDateString('fa-IR')}</span>
                       </div>
+
+                      {listing.flagReasons && listing.flagReasons.length > 0 && (
+                        <div className="mb-3 bg-red-50 p-3 rounded-lg border border-red-200">
+                          <p className="text-sm text-red-800 font-bold mb-1">گزارش‌های دریافتی:</p>
+                          <ul className="list-disc list-inside text-xs text-red-700">
+                            {listing.flagReasons.map((reason, index) => (
+                              <li key={index}>{reason}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                       
                       {listing.status === 'active' && (
                         <button

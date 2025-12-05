@@ -32,13 +32,30 @@ export async function PATCH(
             { status: 400 }
           )
         }
+
+        if (!body.userId) {
+          return Response.json(
+            { error: 'User ID is required' },
+            { status: 400 }
+          )
+        }
         
         const currentFlagCount = currentListing.flagCount || 0
         const currentFlagReasons = currentListing.flagReasons || []
+        const currentFlaggedBy = currentListing.flaggedBy || []
+
+        // Check if user has already flagged this listing
+        if (currentFlaggedBy.includes(body.userId)) {
+          return Response.json(
+            { error: 'You have already reported this listing' },
+            { status: 400 }
+          )
+        }
         
         updateData = {
           flagCount: currentFlagCount + 1,
           flagReasons: [...currentFlagReasons, body.reason],
+          flaggedBy: [...currentFlaggedBy, body.userId],
         }
         
         // Auto-hide if flagCount reaches 3
