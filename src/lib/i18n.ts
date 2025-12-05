@@ -1,4 +1,5 @@
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useCallback } from 'react'
 
 type Dict = Record<string, string>
 
@@ -695,7 +696,7 @@ const dicts: Record<'fa' | 'en', Dict> = { fa, en }
 export function useI18n() {
   const { locale } = useLanguage()
   const dict = dicts[locale]
-  const t = (key: string) => dict[key] || key
+  const t = useCallback((key: string) => dict[key] || key, [dict])
   return { t, locale }
 }
 
