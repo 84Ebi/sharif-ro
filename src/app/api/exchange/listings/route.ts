@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
       flagCount: 0,
       flagReasons: [],
       codeValue: body.codeValue,
+      selfPlace: body.selfPlace,
       expiresAt: expiresAt,
     }
     

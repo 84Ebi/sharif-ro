@@ -80,6 +80,7 @@ async function setupExchangeCollection() {
       { key: 'flagCount', type: 'integer', required: true }, // Removed default: 0 because it's required
       { key: 'flagReasons', type: 'string', size: 255, required: false, array: true },
       { key: 'codeValue', type: 'string', size: 1000, required: false }, // The actual code/voucher
+      { key: 'selfPlace', type: 'string', size: 50, required: false }, // university_boys, university_girls, etc.
       { key: 'expiresAt', type: 'datetime', required: true },
       { key: 'paymentConfirmedAt', type: 'datetime', required: false },
     ]

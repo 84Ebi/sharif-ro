@@ -22,6 +22,7 @@ interface ExchangeListing {
   flagReasons?: string[]
   flaggedBy?: string[]
   codeValue?: string
+  selfPlace?: string
   expiresAt: string
   paymentConfirmedAt?: string
   $createdAt: string
@@ -47,6 +48,7 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
   const [newItemCode, setNewItemCode] = useState('')
   const [newItemPrice, setNewItemPrice] = useState('')
   const [newItemDesc, setNewItemDesc] = useState('')
+  const [selfPlace, setSelfPlace] = useState('')
   const [sellerCardNumber, setSellerCardNumber] = useState('')
   const [createLoading, setCreateLoading] = useState(false)
   
@@ -58,6 +60,13 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
   // Payment Modal State
   const [paymentModalOpen, setPaymentModalOpen] = useState(false)
   const [selectedPaymentListing, setSelectedPaymentListing] = useState<ExchangeListing | null>(null)
+
+  const selfPlaceLabels: Record<string, string> = {
+    'university_boys': 'سلف پسران دانشگاه',
+    'university_girls': 'سلف دختران دانشگاه',
+    'dorm_boys': 'سلف خوابگاه‌های پسران',
+    'dorm_girls': 'سلف خوابگاه‌های دختران',
+  }
 
   const fetchListings = useCallback(async () => {
     try {
@@ -107,7 +116,7 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
     e.preventDefault()
     if (!user) return
 
-    if (!newItemName || !newItemCode || !newItemPrice || !sellerCardNumber) {
+    if (!newItemName || !newItemCode || !newItemPrice || !sellerCardNumber || !selfPlace) {
       showNotification(t('exchange.required_fields'), 'error')
       return
     }
@@ -131,7 +140,8 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
           itemName: newItemName,
           description: newItemDesc,
           price: price,
-          codeValue: newItemCode
+          codeValue: newItemCode,
+          selfPlace: selfPlace
         })
       })
 
@@ -142,6 +152,7 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
         setNewItemCode('')
         setNewItemPrice('')
         setNewItemDesc('')
+        setSelfPlace('')
         // Refresh listings
         fetchListings()
         setActiveTab('sell') // Stay on sell tab to see it
@@ -365,6 +376,14 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
                     </span>
                   </div>
                   
+                  {listing.selfPlace && (
+                    <div className="mb-2">
+                      <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+                        {selfPlaceLabels[listing.selfPlace] || listing.selfPlace}
+                      </span>
+                    </div>
+                  )}
+                  
                   {listing.description && (
                     <p className="text-gray-600 text-sm mb-3 bg-gray-50 p-2 rounded">
                       {listing.description}
@@ -405,7 +424,7 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
           <div className="space-y-6">
             {/* Create Listing Form - Only show if NOT in history mode */}
             {initialTab !== 'history' && (
-            <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
+            <div className="bg-white text-black rounded-xl p-5 shadow-md border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800 mb-4">{t('exchange.create_listing')}</h2>
               <form onSubmit={handleCreateListing} className="space-y-4">
                 <div>
@@ -415,8 +434,23 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                    placeholder="مثال: کد تخفیف اسنپ فود"
+                    placeholder="نام غذای سلف"
                   />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">مکان سلف</label>
+                  <select
+                    value={selfPlace}
+                    onChange={(e) => setSelfPlace(e.target.value)}
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white"
+                  >
+                    <option value="">انتخاب کنید</option>
+                    <option value="university_boys">سلف پسران دانشگاه</option>
+                    <option value="university_girls">سلف دختران دانشگاه</option>
+                    <option value="dorm_boys">سلف خوابگاه‌های پسران</option>
+                    <option value="dorm_girls">سلف خوابگاه‌های دختران</option>
+                  </select>
                 </div>
                 
                 <div>
@@ -426,7 +460,7 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
                     value={newItemCode}
                     onChange={(e) => setNewItemCode(e.target.value)}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none font-mono text-left"
-                    placeholder="CODE123"
+                    placeholder="12345"
                     dir="ltr"
                   />
                 </div>
@@ -502,6 +536,15 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
                             : t(`exchange.status.${listing.status}`)}
                         </span>
                       </div>
+
+                      {listing.selfPlace && (
+                        <div className="mb-2">
+                          <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+                            {selfPlaceLabels[listing.selfPlace] || listing.selfPlace}
+                          </span>
+                        </div>
+                      )}
+
                       <div className="flex justify-between items-center text-sm text-gray-600 mb-3">
                         <span>{listing.price.toLocaleString()} {t('delivery.toman')}</span>
                         <span>{new Date(listing.$createdAt).toLocaleDateString('fa-IR')}</span>
