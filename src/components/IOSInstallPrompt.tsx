@@ -14,7 +14,7 @@ export default function IOSInstallPrompt({ children }: { children: React.ReactNo
     }
 
     // Check if device is iOS
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as Window & { MSStream?: unknown }).MSStream
     
     if (!isIOSDevice) {
       return
@@ -22,7 +22,7 @@ export default function IOSInstallPrompt({ children }: { children: React.ReactNo
 
     // Check if already installed (standalone mode)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         (window.navigator as any).standalone === true
+                         (window.navigator as Navigator & { standalone?: boolean }).standalone === true
 
     // Check if user has dismissed the prompt before
     const hasSeenPrompt = localStorage.getItem('ios-install-prompt-seen')

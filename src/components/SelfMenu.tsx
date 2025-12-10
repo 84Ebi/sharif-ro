@@ -17,7 +17,6 @@ export default function SelfMenu({ isOpen, onClose, onOrderSuccess }: SelfMenuPr
   const router = useRouter()
   const [selectedSection, setSelectedSection] = useState<SectionType>('university_boys')
   const [selectedMealType, setSelectedMealType] = useState<MealType>('lunch')
-  const [error, setError] = useState('')
 
   const sections = [
     { id: 'university_boys' as SectionType, label: 'سلف پسران دانشگاه', icon: '👨‍🎓' },
@@ -81,12 +80,6 @@ export default function SelfMenu({ isOpen, onClose, onOrderSuccess }: SelfMenuPr
 
         {/* Content */}
         <div className="overflow-y-auto p-6">
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-              {error}
-            </div>
-          )}
-
           {/* Section Tabs (Origin) */}
           <div className="bg-white bg-opacity-90 rounded-xl p-4 shadow-lg mb-6">
             <h3 className="text-xl font-bold text-gray-800 mb-3 text-right">مبدا سفارش</h3>

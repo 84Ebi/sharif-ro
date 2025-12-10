@@ -11,12 +11,12 @@ export default function IOSInstallGuide() {
 
   useEffect(() => {
     // Check if device is iOS
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as Window & { MSStream?: unknown }).MSStream
     setIsIOS(isIOSDevice)
 
     // Check if already installed (standalone mode)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         (window.navigator as any).standalone === true
+                         (window.navigator as Navigator & { standalone?: boolean }).standalone === true
 
     // Only show guide if iOS and NOT in standalone mode
     if (isIOSDevice && !isStandalone) {
@@ -84,9 +84,9 @@ export default function IOSInstallGuide() {
               2
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-gray-800 mb-2">گزینه "Add to Home Screen" را انتخاب کنید</h3>
+              <h3 className="font-bold text-gray-800 mb-2">گزینه &quot;Add to Home Screen&quot; را انتخاب کنید</h3>
               <p className="text-sm text-gray-600 mb-3">
-                در منوی باز شده، به دنبال گزینه "Add to Home Screen" بگردید و آن را انتخاب کنید
+                در منوی باز شده، به دنبال گزینه &quot;Add to Home Screen&quot; بگردید و آن را انتخاب کنید
               </p>
               <div className="flex justify-center bg-white rounded-lg p-3">
                 <div className="text-center">
@@ -103,9 +103,9 @@ export default function IOSInstallGuide() {
               3
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-gray-800 mb-2">روی "Add" کلیک کنید</h3>
+              <h3 className="font-bold text-gray-800 mb-2">روی &quot;Add&quot; کلیک کنید</h3>
               <p className="text-sm text-gray-600">
-                در پنجره بعدی، دکمه "Add" را بزنید تا آیکون اپلیکیشن به صفحه اصلی گوشی شما اضافه شود
+                در پنجره بعدی، دکمه &quot;Add&quot; را بزنید تا آیکون اپلیکیشن به صفحه اصلی گوشی شما اضافه شود
               </p>
             </div>
           </div>
