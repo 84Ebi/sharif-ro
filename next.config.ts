@@ -9,6 +9,8 @@ const withPWA = require('next-pwa')({
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
+  // Enable Turbopack configuration (Next.js 16+)
+  turbopack: {},
   // Disable CSS optimization to prevent caching
   experimental: {
     optimizeCss: false,
@@ -19,23 +21,6 @@ const nextConfig: NextConfig = {
   },
   // Optimize build output
   poweredByHeader: false,
-  // Force CSS to reload on every page navigation
-  webpack: (config) => {
-    // Disable CSS caching
-    config.module.rules.forEach((rule: any) => {
-      if (rule.test && rule.test.toString().includes('css')) {
-        rule.use.forEach((use: any) => {
-          if (use.loader && use.loader.includes('css-loader')) {
-            use.options = {
-              ...use.options,
-              modules: false,
-            };
-          }
-        });
-      }
-    });
-    return config;
-  },
 };
 
 export default withPWA(nextConfig);
