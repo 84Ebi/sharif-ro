@@ -266,7 +266,9 @@ function ShoppingCartContent() {
     return <div className="text-center p-8 text-white">{t('customer.loading')}</div>
   }
 
-  const finalPrice = orderData ? orderData.total + deliveryFee : deliveryFee
+  const finalPrice = orderData 
+    ? orderData.total + (orderData.selfPackagingFee || 0) + deliveryFee 
+    : deliveryFee
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-900 to-blue-200 py-6 px-4 pb-24 text-black">
