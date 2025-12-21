@@ -23,6 +23,12 @@ interface OrderData {
   cafeteriaType?: 'dormitory' | 'university'
   mealType?: 'breakfast' | 'lunch' | 'dinner'
   section?: string
+  selfMealType?: 'lunch' | 'dinner'
+  selfGender?: 'male' | 'female'
+  selfLocation?: string
+  selfIsDormMeal?: boolean
+  selfPackagingFee?: number
+  selfIsThursdayLunch?: boolean
 }
 
 const deliveryLocations = [
@@ -205,8 +211,28 @@ function ShoppingCartContent() {
       }
 
       // Calculate food price and delivery fee
-      const foodPrice = orderData.total
-      const finalPrice = foodPrice + deliveryFee
+      let foodPrice = orderData.total
+      
+      // Add packaging fee for Self orders if applicable
+      if (orderData.selfPackagingFee) {
+        foodPrice += orderData.selfPackagingFee
+      }
+      
+      // For dorm meals, check if delivery to dorm or university
+      if (orderData.selfIsDormMeal) {
+        // If delivery location matches a dorm, base price is 15,000
+        const isDormDelivery = deliveryLocation.includes('خوابگاه احمدی') || 
+                              deliveryLocation.includes('خوابگاه طرشت')
+        
+        if (isDormDelivery) {
+          foodPrice = 15000
+        } else {
+          // University delivery: dorm-to-uni delivery fee + 10,000
+          foodPrice = deliveryFee + 10000
+        }
+      }
+      
+      const finalPrice = foodPrice + (orderData.selfIsDormMeal && deliveryLocation.includes('خوابگاه') ? 0 : deliveryFee)
       
       await createOrder({
         userId: user.$id,
@@ -299,6 +325,11 @@ function ShoppingCartContent() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 انتخاب محل دریافت سفارش
               </label>
+              {orderData.selfIsDormMeal && (
+                <div className="mb-2 text-sm text-blue-600 bg-blue-50 p-2 rounded">
+                  برای وعده‌های خوابگاهی: می‌توانید در خوابگاه یا دانشگاه تحویل بگیرید
+                </div>
+              )}
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -309,19 +340,34 @@ function ShoppingCartContent() {
                 </button>
                 {isDropdownOpen && (
                   <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto border border-gray-200">
-                    {deliveryLocations.map((loc) => (
-                      <div
-                        key={loc.name}
-                        onClick={() => {
-                          setDeliveryLocation(loc.name)
-                          setDeliveryFee(loc.price)
-                          setIsDropdownOpen(false)
-                        }}
-                        className="p-3 hover:bg-blue-50 cursor-pointer text-right"
-                      >
-                        {loc.name} - {loc.price.toLocaleString()} تومان
-                      </div>
-                    ))}
+                    {deliveryLocations
+                      .filter((loc) => {
+                        // If it's a dorm meal, show dorms + university locations
+                        // Otherwise show all locations
+                        if (!orderData.selfIsDormMeal) return true
+                        
+                        // For dorm meals, show dorms the user can get from
+                        const userDorm = orderData.selfLocation
+                        if (userDorm === 'ahmadi' && loc.name.includes('احمدی')) return true
+                        if (userDorm === 'tarasht2' && loc.name.includes('طرشت ۲')) return true
+                        if (userDorm === 'tarasht3' && loc.name.includes('طرشت ۳')) return true
+                        
+                        // Also show university locations (not dorm cafeterias)
+                        return !loc.name.includes('سلف خوابگاه')
+                      })
+                      .map((loc) => (
+                        <div
+                          key={loc.name}
+                          onClick={() => {
+                            setDeliveryLocation(loc.name)
+                            setDeliveryFee(loc.price)
+                            setIsDropdownOpen(false)
+                          }}
+                          className="p-3 hover:bg-blue-50 cursor-pointer text-right"
+                        >
+                          {loc.name} - {loc.price.toLocaleString()} تومان
+                        </div>
+                      ))}
                   </div>
                 )}
               </div>
@@ -393,10 +439,25 @@ function ShoppingCartContent() {
                 <span>جمع سفارش ({orderData.items.length})</span>
                 <span>{orderData.total.toLocaleString()} تومان</span>
               </div>
+              {orderData.selfPackagingFee && (
+                <div className="flex justify-between text-gray-700">
+                  <span>هزینه پک غذا</span>
+                  <span>{orderData.selfPackagingFee.toLocaleString()} تومان</span>
+                </div>
+              )}
               <div className="flex justify-between text-gray-700">
                 <span>هزینه ارسال</span>
                 <span>{deliveryFee.toLocaleString()} تومان</span>
               </div>
+              {orderData.selfIsDormMeal && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-gray-700">
+                  {deliveryLocation.includes('خوابگاه احمدی') || deliveryLocation.includes('خوابگاه طرشت') ? (
+                    <p>💡 تحویل در خوابگاه: قیمت پایه ۱۵،۰۰۰ تومان</p>
+                  ) : (
+                    <p>💡 تحویل در دانشگاه: هزینه ارسال + ۱۰،۰۰۰ تومان</p>
+                  )}
+                </div>
+              )}
               <div className="flex justify-between font-bold text-xl text-gray-800 pt-2 border-t">
                 <span>مبلغ قابل پرداخت</span>
                 <span>{finalPrice.toLocaleString()} تومان</span>

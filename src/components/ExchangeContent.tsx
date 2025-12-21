@@ -23,6 +23,8 @@ interface ExchangeListing {
   flaggedBy?: string[]
   codeValue?: string
   selfPlace?: string
+  mealType?: 'lunch' | 'dinner'
+  location?: string
   expiresAt: string
   paymentConfirmedAt?: string
   $createdAt: string
@@ -49,6 +51,8 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
   const [newItemPrice, setNewItemPrice] = useState('')
   const [newItemDesc, setNewItemDesc] = useState('')
   const [selfPlace, setSelfPlace] = useState('')
+  const [newMealType, setNewMealType] = useState<'lunch' | 'dinner'>('lunch')
+  const [newLocation, setNewLocation] = useState('')
   const [sellerCardNumber, setSellerCardNumber] = useState('')
   const [createLoading, setCreateLoading] = useState(false)
   
@@ -116,7 +120,7 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
     e.preventDefault()
     if (!user) return
 
-    if (!newItemName || !newItemCode || !newItemPrice || !sellerCardNumber || !selfPlace) {
+    if (!newItemName || !newItemCode || !newItemPrice || !sellerCardNumber || !newLocation) {
       showNotification(t('exchange.required_fields'), 'error')
       return
     }
@@ -141,7 +145,9 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
           description: newItemDesc,
           price: price,
           codeValue: newItemCode,
-          selfPlace: selfPlace
+          selfPlace: selfPlace,
+          mealType: newMealType,
+          location: newLocation
         })
       })
 
@@ -153,6 +159,8 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
         setNewItemPrice('')
         setNewItemDesc('')
         setSelfPlace('')
+        setNewMealType('lunch')
+        setNewLocation('')
         // Refresh listings
         fetchListings()
         setActiveTab('sell') // Stay on sell tab to see it
@@ -439,17 +447,33 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">مکان سلف</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">نوع وعده</label>
                   <select
-                    value={selfPlace}
-                    onChange={(e) => setSelfPlace(e.target.value)}
+                    value={newMealType}
+                    onChange={(e) => setNewMealType(e.target.value as 'lunch' | 'dinner')}
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white"
+                  >
+                    <option value="lunch">ناهار</option>
+                    <option value="dinner">شام</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">مکان</label>
+                  <select
+                    value={newLocation}
+                    onChange={(e) => setNewLocation(e.target.value)}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white"
                   >
                     <option value="">انتخاب کنید</option>
-                    <option value="university_boys">سلف پسران دانشگاه</option>
-                    <option value="university_girls">سلف دختران دانشگاه</option>
-                    <option value="dorm_boys">سلف خوابگاه‌های پسران</option>
-                    <option value="dorm_girls">سلف خوابگاه‌های دختران</option>
+                    <option value="tarasht2">طرشت ۲</option>
+                    <option value="tarasht3">طرشت ۳</option>
+                    <option value="ahmadi">احمدی روشن</option>
+                    <option value="self_university_boys">سلف دانشگاه پسران</option>
+                    <option value="self_university_girls">سلف دانشگاه دختران</option>
+                    <option value="kaleh_central">کاله بیرون بر پردیس</option>
+                    <option value="kaleh_north">کاله بیرون بر شمالی</option>
+                    <option value="kaleh_hall">سالن کاله</option>
                   </select>
                 </div>
                 
