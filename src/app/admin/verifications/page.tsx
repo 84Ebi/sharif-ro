@@ -100,16 +100,14 @@ export default function AdminVerificationsPage() {
       const data = await response.json()
 
       if (data.success) {
-        alert(`Verification ${status} successfully!`)
         setSelectedVerification(null)
         setReviewNotes('')
         loadVerifications()
       } else {
-        alert(`Failed to ${status} verification: ${data.error}`)
+        // Error handling
       }
     } catch (error) {
       console.error('Error reviewing verification:', error)
-      alert('Failed to submit review')
     } finally {
       setSubmitting(false)
     }

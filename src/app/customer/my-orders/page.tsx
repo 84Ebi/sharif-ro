@@ -139,7 +139,6 @@ function OrderCompletionContent() {
       })
 
       router.push('/customer')
-      alert('Your order has been placed successfully!')
     } catch (err: unknown) {
       console.error('Order submission error:', err)
       setError(err instanceof Error ? err.message : 'Failed to create order. Please try again.')

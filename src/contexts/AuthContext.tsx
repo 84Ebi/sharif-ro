@@ -117,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                                     });
                                     
                                     if (syncResponse.ok) {
-                                        console.log('Session synced successfully');
+                                        // Session synced successfully
                                     } else {
                                         const errorData = await syncResponse.json().catch(() => ({}));
                                         console.warn('Failed to sync session:', errorData);
@@ -125,7 +125,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                                     }
                                 } else {
                                     // Can't sync without the secret - user needs to re-login
-                                    console.warn('Server-side session is missing. Some API routes (like chat) may not work.');
                                     console.warn('Please log out and log back in to sync your session.');
                                 }
                             } catch (syncError) {
@@ -135,7 +134,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         }
                     } catch {
                         // Session check failed, continue anyway
-                        console.warn('Could not verify server-side session');
                     }
                 }
             } catch {
@@ -144,7 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             return true;
         } catch {
-            console.log('No active session');
+            // No active session
             setUser(null);
             return false;
         }
@@ -200,7 +198,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 });
 
                 if (syncResponse.ok) {
-                    console.log('Server-side session created and cookie set');
                 } else {
                     const errorData = await syncResponse.json().catch(() => ({}));
                     console.warn('Failed to create server-side session:', errorData);
@@ -223,14 +220,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 });
                 
                 if (!sessionCheck.ok) {
-                    console.warn('Server-side session verification failed. API routes may not work.');
                     console.warn('Please try logging out and logging back in.');
                 } else {
-                    console.log('Server-side session verified successfully');
                 }
             } catch {
                 // Session check failed, but continue anyway
-                console.warn('Could not verify server-side session');
             }
 
             // Refresh user data
@@ -275,7 +269,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 });
 
                 if (syncResponse.ok) {
-                    console.log('Server-side session created and cookie set');
                 } else {
                     const errorData = await syncResponse.json().catch(() => ({}));
                     console.warn('Failed to create server-side session:', errorData);
@@ -298,14 +291,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 });
                 
                 if (!sessionCheck.ok) {
-                    console.warn('Server-side session verification failed. API routes may not work.');
                     console.warn('Please try logging out and logging back in.');
                 } else {
-                    console.log('Server-side session verified successfully');
                 }
             } catch {
                 // Session check failed, but continue anyway
-                console.warn('Could not verify server-side session');
             }
 
             // Refresh user data

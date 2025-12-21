@@ -1,12 +1,15 @@
 # 🔐 Admin System - Quick Reference Card
 
+⚠️ **PRODUCTION WARNING**: Development credentials shown below. 
+For production password, see `PRODUCTION_READY.md`
+
 ## 🚀 Quick Access
 
 ### Login
 ```
 URL: /admin/login
 Username: admin
-Password: admin
+Password: admin (DEVELOPMENT ONLY)
 ```
 
 ### After Login

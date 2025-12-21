@@ -34,7 +34,6 @@ export default function Waiting() {
       <p className="mt-4 text-sm text-gray-600">You will be notified once a delivery person accepts your order.</p>
       <button
         onClick={() => {
-          alert('Order cancelled')
           window.location.href = '/customer'
         }}
         className="mt-4 bg-red-500 text-white px-4 py-2 rounded"

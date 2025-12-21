@@ -276,7 +276,6 @@ export default function Delivery() {
                 ref={dropdownButtonRef}
                 type="button"
                 onClick={() => {
-                  console.log('Dropdown button clicked, current state:', isDropdownOpen)
                   setIsDropdownOpen(!isDropdownOpen)
                 }}
                 className="px-2 py-2 rounded-lg bg-white shadow-md hover:shadow-lg text-gray-800 font-medium text-sm transition-all flex items-center justify-between gap-2 border border-gray-200"

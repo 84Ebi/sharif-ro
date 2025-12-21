@@ -60,7 +60,7 @@ export default function CustomerHome() {
   }
 
   const handleOrderSuccess = () => {
-    alert(t('order.success_submit'))
+    showNotification(t('order.success_submit'), 'success')
   }
 
   const loadOrders = async () => {

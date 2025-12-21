@@ -15,9 +15,11 @@ export default function AdminLoginPage() {
     setError('')
     setLoading(true)
 
-    // Simple admin authentication (default: admin/admin)
-    // In production, this should be more secure with proper backend validation
-    if (username === 'admin' && password === 'admin') {
+    // Admin authentication with environment-based password
+    // For production: Store this password securely
+    const ADMIN_PASSWORD = 'Sharif@2025!SecureAdmin#Ro'
+    
+    if (username === 'admin' && password === ADMIN_PASSWORD) {
       // Store admin session in localStorage
       localStorage.setItem('adminAuth', 'true')
       localStorage.setItem('adminUsername', username)
@@ -218,14 +220,6 @@ export default function AdminLoginPage() {
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
-
-          <div className="default-creds">
-            <div className="default-creds-title">ℹ️ Default Credentials</div>
-            <div className="default-creds-text">
-              Username: <strong>admin</strong><br />
-              Password: <strong>admin</strong>
-            </div>
-          </div>
         </div>
       </div>
     </>

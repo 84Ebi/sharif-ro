@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useI18n } from '@/lib/i18n'
+import { useNotification } from '@/contexts/NotificationContext'
 import BottomDock from '../../components/BottomDock'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import styles from './account.module.css'
@@ -11,6 +12,7 @@ import styles from './account.module.css'
 export default function AccountPage() {
   const { user, loading: authLoading, updateName, updatePreferences, logout } = useAuth()
   const { t } = useI18n()
+  const { showNotification } = useNotification()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [studentCode, setStudentCode] = useState('')
@@ -62,7 +64,7 @@ export default function AccountPage() {
         phone
       })
       
-      alert(t('account.updated'))
+      showNotification(t('account.updated'), 'success')
       setEditMode({ name: false, studentCode: false, phone: false })
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : t('account.update_failed')

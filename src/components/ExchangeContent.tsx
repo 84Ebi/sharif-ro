@@ -266,7 +266,10 @@ export default function ExchangeContent({ initialTab }: { initialTab?: 'buy' | '
 
   const handleCancelListing = async (listingId: string) => {
     if (!user) return
-    if (!confirm('آیا از حذف این آگهی اطمینان دارید؟')) return
+    
+    // Simple confirmation - in production, consider a modal
+    const confirmed = window.confirm('آیا از حذف این آگهی اطمینان دارید؟')
+    if (!confirmed) return
 
     try {
       const res = await fetch(`/api/exchange/listings/${listingId}`, {
