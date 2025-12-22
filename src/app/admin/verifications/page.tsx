@@ -10,6 +10,7 @@ type Verification = {
   userName: string
   userEmail: string
   userPhone: string
+  cardNumber?: string
   studentCardFileId: string
   selfieFileId: string
   bucketId: string
@@ -527,6 +528,7 @@ export default function AdminVerificationsPage() {
                   <div className="card-info">
                     <div>📧 {verification.userEmail}</div>
                     {verification.userPhone && <div>📱 {verification.userPhone}</div>}
+                    {verification.cardNumber && <div>💳 {verification.cardNumber}</div>}
                     <div>📅 {new Date(verification.submittedAt).toLocaleDateString()}</div>
                   </div>
                 </div>
@@ -559,6 +561,12 @@ export default function AdminVerificationsPage() {
                     <div className="info-row">
                       <span className="info-label">Phone:</span>
                       <span className="info-value">{selectedVerification.userPhone}</span>
+                    </div>
+                  )}
+                  {selectedVerification.cardNumber && (
+                    <div className="info-row">
+                      <span className="info-label">Card Number:</span>
+                      <span className="info-value" style={{direction: 'ltr', textAlign: 'left'}}>{selectedVerification.cardNumber}</span>
                     </div>
                   )}
                   <div className="info-row">

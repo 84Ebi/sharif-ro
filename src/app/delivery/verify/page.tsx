@@ -88,6 +88,11 @@ export default function VerifyPage() {
       return
     }
 
+    if (!cardNumber || cardNumber.trim() === '') {
+      setError('لطفاً شماره کارت را وارد کنید')
+      return
+    }
+
     if (!user) {
       setError(t('verify.must_login'))
       return
@@ -529,7 +534,7 @@ export default function VerifyPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">{t('verify.card_number')}</label>
+              <label className="form-label">{t('verify.card_number')} *</label>
               <input
                 type="text"
                 value={cardNumber}
@@ -537,13 +542,14 @@ export default function VerifyPage() {
                 placeholder={t('verify.card_number_placeholder')}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
                 dir="ltr"
+                required
               />
             </div>
 
             <button 
               type="submit" 
               className="btn-submit"
-              disabled={isSubmitting || !studentCardFile || !selfieFile}
+              disabled={isSubmitting || !studentCardFile || !selfieFile || !cardNumber.trim()}
             >
               {isSubmitting ? t('verify.submitting') : t('verify.submit')}
             </button>
